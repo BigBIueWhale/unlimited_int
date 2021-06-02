@@ -32,7 +32,7 @@ typedef int32_t many_bits_signed;
 #define MAX_few_bits_NUM_PLUS_ONE (many_bits_signed)0x10000
 #define MAX_many_bits_NUM (many_bits)0xffffffff
 #endif
-#define PIGGY_BANK_MAXIMUM ((many_bits)(805306368)) //in num of ints, or 3 gigabytes
+#define PIGGY_BANK_MAXIMUM ((many_bits)(805306368)) //in num of ints, or 3 gigabytes (each int is 32 bits in 64bit mode)
 //#define PIGGY_BANK_MAXIMUM ((many_bits)(100000000000000000)) //in num of ints, or too much to matter
 //#define MAX_ALLOC 1048576 //2^20
 #define MAX_ALLOC 16384 //per single int array.
