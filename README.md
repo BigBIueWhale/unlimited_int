@@ -15,7 +15,7 @@ The second difference is when returning an unlimited_int by a function. You must
 unlimited_int* do_something()
 {
   unlimited_int e;
-  return e.copy(); //and not return e because the memory of e will be destroyed when the function ends.
+  return e.copy(); //and not return e; because the memory of e will be destroyed when the function ends.
 }
 int main()
 {
