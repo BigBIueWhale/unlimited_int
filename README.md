@@ -35,6 +35,7 @@ to:\
 #define IS_64_BIT_SYSTEM false\
 \
 If you want to change the max amount of RAM that the program is allowed to use for storing int arrays in the "piggy bank"\
+then change the file "int_array.h" in line 35 from:\
 #define PIGGY_BANK_MAXIMUM ((many_bits)(805306368)) //3 GB of RAM\
 to (for example)\
 #define PIGGY_BANK_MAXIMUM ((many_bits)(13107200)) //50 MB of RAM\
