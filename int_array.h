@@ -1,4 +1,3 @@
-//https://youtu.be/AvrjQtFBJvk
 #ifndef INT_ARRAY_STRUCT_WAS_DECLARED
 #define INT_ARRAY_STRUCT_WAS_DECLARED true
 #define IS_64_BIT_SYSTEM true
