@@ -2,7 +2,9 @@
 # Written by Ronen Zyroff in 2019-2020
 Arbitrary-precision arithmetic library written in pure C++ (with some std for string manipulation) for C++. Has similar syntax to int in C++ with operator overloading.\
 \
-You must tell your compiler to compile all .h and .cpp files that are included in this repository.\
+LOOK AT main.cpp for a complete example of how to use this library. READING main.cpp is the best tutorial of this library.\
+\
+You must tell your compiler to compile all .h and .cpp files that are included in this repository, as showed in the Makefile\
 To use the library you must include "unlimited_int.h" and then use "unlimited_int" object as you would use "int".\
 \
 There are 3 main differences between unlimited_int and between regular int in terms of syntax:\
@@ -10,7 +12,7 @@ There are 3 main differences between unlimited_int and between regular int in te
 unlimited_int a = 1;\
 unlimited_int b = a.copy(); //instead of b = a;\
 \
-The second difference is when returning an unlimited_int by a function. You must use an unlimited_int* and return a copy.\
+The second difference is when returning an unlimited_int by a function. You must use an unlimited_int* and return a copy:\
 \
 unlimited_int* do_something()\
 {\
