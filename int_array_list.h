@@ -7,7 +7,7 @@ public:
 	ListArrays intarrays;
 	many_bits num_of_ints;
 	int_array_list() { this->num_of_ints = 0; }
-	void flush(); //flush is the name as destroy
+	void flush(); //flush is the same as destroy
 	void print_properties();
 	void swap(int_array_list& int_array_list_to_swap_with);
 	void append(int_array_list&);
