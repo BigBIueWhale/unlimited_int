@@ -48,10 +48,12 @@ protected:
 	static int char_to_number(char ch, const int base);
 	static char number_to_char(int num, const int base);
 	static unlimited_int* generate_random(unlimited_int& max);
-public:
 	void forget_memory();
+public:
+	many_bits get_length_in_bits() { return (this->num_of_used_ints * ((many_bits)NUM_OF_BITS_few_bits)); }
 	bool get_is_negative() { return this->is_negative; }
 	void set_auto_destroy(bool tof) { this->auto_destroy = tof; }
+	bool get_auto_destroy() { return this->auto_destroy; }
 	void assign_hex(std::string num);
 	unlimited_int() { this->set_to_zero(); }
 	unlimited_int(few_bits num_to_assign) { this->assign(num_to_assign); }
