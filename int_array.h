@@ -32,12 +32,11 @@ typedef int32_t many_bits_signed;
 #define MAX_few_bits_NUM_PLUS_ONE (many_bits_signed)0x10000
 #define MAX_many_bits_NUM (many_bits)0xffffffff
 #endif
-//ipGB = ints per gigabyte; in 64 bits it's 536,870,912 per ipGB, in 32 bits it's 268,435,456 ipGB
 #define PIGGY_BANK_MAXIMUM ((many_bits)(805306368)) //in num of ints, or 3 gigabytes
 //#define PIGGY_BANK_MAXIMUM ((many_bits)(100000000000000000)) //in num of ints, or too much to matter
 //#define MAX_ALLOC 1048576 //2^20
-#define MAX_ALLOC 16384
-#define MIN_ALLOC 4096 //(2048 32bits)^2 = (64 32bit integers)^2
+#define MAX_ALLOC 16384 //per single int array.
+#define MIN_ALLOC 4096 //per single int array (2048 32bits)^2 = (64 32bit integers)^2
 //#define MIN_ALLOC 1
 //#define MIN_ALLOC 20
 struct int_array
