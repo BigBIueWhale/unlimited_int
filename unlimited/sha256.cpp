@@ -1,4 +1,4 @@
-#include "unlimited_int.h"
+#include "unlimited_int.hpp"
 #define ROTATER(x, amount) ((x >> amount) | (x << (32 - amount)))
 #define LOWERCASE_SIGMA0(x) ((ROTATER(x, 7)) ^ (ROTATER(x, 18)) ^ (x >> 3))
 #define LOWERCASE_SIGMA1(x) ((ROTATER(x, 17)) ^ (ROTATER(x, 19)) ^ (x >> 10))
