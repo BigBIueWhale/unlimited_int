@@ -1,4 +1,8 @@
 #include "int_array_piggy_bank.h"
+using namespace unlimited;
+#if DEBUG_MODE > 0
+#include <iostream>
+#endif
 void int_array_piggy_bank::deposit_from_significant(int_array_list& source, many_bits num_of_nodes_to_deposit)
 {
 #if DEBUG_MODE == 2
