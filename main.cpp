@@ -1,3 +1,4 @@
+//This is just an example file. "The best way to learn is through example"
 #include "unlimited.h"
 #include <iostream>
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
