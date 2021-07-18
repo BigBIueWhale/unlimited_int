@@ -1,149 +1,57 @@
-#include "ListArrays.h"
-void ListArrays::print_properties()
+#ifndef UNLIMITED_LISTARRAYS_H
+#define UNLIMITED_LISTARRAYS_H
+#include "Node.h"
+namespace unlimited
 {
-	std::cout << "\nListArrays->length: " << this->length;
-}
-void ListArrays::prepend(ListArrays& la_to_prepend)
-{
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"ListArrays::prepend(ListArrays& la_to_prepend)\".";
-#endif
-#if DEBUG_MODE >= 1
-	this->find_inconsistencies();
-	la_to_prepend.find_inconsistencies();
-#endif
-	if (la_to_prepend.length == 0) { return; }
-	if (this->length == 0) { this->operator=(la_to_prepend); }
-	else
+	struct __list_location__ {
+		Node* node;
+		unlimited::many_bits index;
+		unlimited::many_bits num_array;
+	};
+	class ListArrays
 	{
-		this->length += la_to_prepend.length;
-		this->first->previous = la_to_prepend.last;
-		la_to_prepend.last->next = this->first;
-		this->first = la_to_prepend.first;
-	}
-	la_to_prepend.length = 0;
-	la_to_prepend.first = nullptr;
-	la_to_prepend.last = nullptr;
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"ListArrays::prepend(ListArrays& la_to_prepend)\".";
-#endif
-#if DEBUG_MODE >= 1
-	this->find_inconsistencies();
-	la_to_prepend.find_inconsistencies();
-#endif
-}
-void ListArrays::append(ListArrays& la_to_append)
-{
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"ListArrays::append(ListArrays& la_to_append)\".";
-#endif
-#if DEBUG_MODE >= 1
-	this->find_inconsistencies();
-	la_to_append.find_inconsistencies();
-#endif
-	if (la_to_append.length == 0) { return; }
-	if (this->length == 0) { this->operator=(la_to_append); }
-	else
-	{
-		this->length += la_to_append.length;
-		this->last->next = la_to_append.first;
-		la_to_append.first->previous = this->last;
-		this->last = la_to_append.last;
-	}
-	la_to_append.length = 0;
-	la_to_append.first = nullptr;
-	la_to_append.last = nullptr;
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"ListArrays::append(ListArrays& la_to_append)\".";
-#endif
-#if DEBUG_MODE >= 1
-	this->find_inconsistencies();
-	la_to_append.find_inconsistencies();
-#endif
-}
+	public:
+		Node* first;
+		Node* last;
+		unlimited::many_bits length;
+		ListArrays()
+		{
+			first = nullptr;
+			last = nullptr;
+			length = 0;
+		}
+		ListArrays(const ListArrays& la) { (*this) = la; }
+		void operator=(const ListArrays& la)
+		{
+			this->first = la.first;
+			this->last = la.last;
+			this->length = la.length;
+		}
+		void swap(ListArrays& other)
+		{
+			Node* temp_Node = other.first;
+			other.first = this->first;
+			this->first = temp_Node;
+
+			temp_Node = other.last;
+			other.last = this->last;
+			this->last = temp_Node;
+
+			unlimited::many_bits temp_int;
+			temp_int = other.length;
+			other.length = this->length;
+			this->length = temp_int;
+		}
 #if DEBUG_MODE > 0
-many_bits ListArrays::double_check_length()
-{
-	Node* it = this->first;
-	many_bits counter = 0;
-	while (it != nullptr)
-	{
-		++counter;
-		it = it->next;
-	}
-	return counter;
-}
-bool ListArrays::find_inconsistencies()
-{
-	bool to_return_error = false;
-	many_bits length_this = this->double_check_length();
-	if (length_this != this->length)
-	{
-		std::cout << "\nError found by function \"ListArrays::find_inconsistencies()\": the actual length of the list is: " << length_this <<
-			" and the length in \"this->length\" is: " << this->length << " (They should be equal)";
-		to_return_error = true;
-	}
-	if ((this->first == nullptr) != (this->last == nullptr))
-	{
-		std::cout << "\nError found by function \"ListArrays::find_inconsistencies()\": "
-			<< "(this->first == nullptr) != (this->last == nullptr)";
-		to_return_error = true;
-	}
-	if (this->first != nullptr)
-	{
-		if (this->first->previous != nullptr)
-		{
-			std::cout << "\nError found by function \"ListArrays::find_inconsistencies()\": "
-				<< "this->first->previous != nullptr";
-			to_return_error = true;
-		}
-		if (this->length == 1 && this->first->next == this->last)
-		{
-			std::cout << "\nError found by function \"ListArrays::find_inconsistencies()\": "
-				<< "this->length == 1 and this->first->next == this->last";
-			to_return_error = true;
-		}
-	}
-	if (this->last != nullptr)
-	{
-		if (this->last->next != nullptr)
-		{
-			std::cout << "\nError found by function \"ListArrays::find_inconsistencies()\": "
-				<< "this->last->next != nullptr";
-			to_return_error = true;
-		}
-		if (this->length == 1 && this->last->previous == this->first)
-		{
-			std::cout << "\nError found by function \"ListArrays::find_inconsistencies()\": "
-				<< "this->length == 1 and this->last->previous == this->first";
-			to_return_error = true;
-		}
-	}
-	return to_return_error;
+		void print_properties() const;
+		void print_all() const;
+#endif
+		void prepend(ListArrays& la_to_prepend);
+		void append(ListArrays& la_to_append);
+#if DEBUG_MODE > 0
+		unlimited::many_bits double_check_length() const;
+		bool find_inconsistencies() const;
+#endif
+	};
 }
 #endif
-void ListArrays::print_all()
-{
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"ListArrays::print_all()\".";
-#endif
-#if DEBUG_MODE >= 1
-	this->find_inconsistencies();
-#endif
-	this->print_properties();
-	Node* it = this->last;
-	many_bits_signed arr_index = this->length - 1;
-	while (it != nullptr)
-	{
-		std::cout << "\narray index: " << arr_index << ":\n";
-		it->value->print_all();
-		it = it->previous;
-		--arr_index;
-	}
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"ListArrays::print_all()\".";
-#endif
-#if DEBUG_MODE >= 1
-	this->find_inconsistencies();
-#endif
-}
