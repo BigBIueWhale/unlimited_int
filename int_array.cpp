@@ -1,5 +1,11 @@
 #include "int_array.h"
-void int_array::assign(few_bits num_to_assign)
+using namespace unlimited;
+#if DEBUG_MODE > 0
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+#endif
+void int_array::assign(const few_bits num_to_assign)
 {
 	if (num_to_assign == 0) { this->num_of_used_ints = 0; }
 	else
@@ -8,65 +14,6 @@ void int_array::assign(few_bits num_to_assign)
 		if (this->intarr_len == 0) {this->resize(MIN_ALLOC); }
 		this->intarr[0] = num_to_assign;
 	}
-}
-void int_array::compact_print()
-{
-	std::stringstream message;
-	if (this->num_of_used_ints == 0)
-	{
-		message << " 0xNOTHING";
-	}
-	else
-	{
-		message << " 0x";
-		bool is_first = true;
-		for (many_bits_signed index_of_intarr = this->num_of_used_ints - 1; index_of_intarr >= 0; index_of_intarr--)
-		{
-			if (is_first) { is_first = false; }
-			else { message << " "; }
-			char fill_char = '0';
-			message << std::setfill(fill_char) << std::setw(NUM_OF_BITS_few_bits / 4) << std::hex << ((this->intarr)[index_of_intarr]) << std::dec;
-		}
-	}
-	std::cout << message.str();
-	message.clear();
-}
-char* int_array::create_string()
-{
-	char* str_to_return;
-	many_bits this_num_of_used_ints = this->num_of_used_ints;
-	if (this_num_of_used_ints == 0)
-	{
-		str_to_return = new char[2];
-		str_to_return[0] = '0';
-		str_to_return[1] = '\0';
-	}
-	else
-	{
-		char* chunk = new char[NUM_OF_BITS_few_bits / 4 + 1];
-		chunk[NUM_OF_BITS_few_bits / 4] = '\0';
-		str_to_return = new char[this_num_of_used_ints * (NUM_OF_BITS_few_bits / 4) + 1];
-		few_bits* this_intarr = this->intarr;
-		many_bits str_to_return_index = 0;
-		for (many_bits_signed index = this_num_of_used_ints - 1; index >= 0; --index)
-		{
-			sprintf(chunk, "%x", this_intarr[index]);
-			int counter;
-			for (counter = 0; chunk[counter] != '\0'; ++counter);
-			int num_of_zeros_to_prepend = (NUM_OF_BITS_few_bits / 4) - counter;
-			for (int counter2 = 0; counter2 < num_of_zeros_to_prepend; ++counter2, ++str_to_return_index)
-			{
-				str_to_return[str_to_return_index] = '0';
-			}
-			for (int counter3 = 0; counter3 < counter; ++counter3, ++str_to_return_index)
-			{
-				str_to_return[str_to_return_index] = chunk[counter3];
-			}
-		}
-		delete[] chunk;
-		str_to_return[str_to_return_index] = '\0';
-	}
-	return str_to_return;
 }
 void int_array::fillzero()
 {
@@ -125,7 +72,8 @@ bool int_array::find_inconsistencies()
 	return false;
 }
 #endif
-void int_array::print_all()
+#if DEBUG_MODE > 0
+void int_array::print_all() const
 {
 	std::stringstream message;
 	if (this->intarr_len == 0)
@@ -147,9 +95,9 @@ void int_array::print_all()
 		}
 	}
 	std::cout << message.str();
-	message.clear();
 }
-bool int_array::is_all_used_zeros()
+#endif
+bool int_array::is_all_used_zeros() const
 {
 	if (this->num_of_used_ints == 0) { return true; }
 	few_bits* current_address = this->intarr;
@@ -158,7 +106,7 @@ bool int_array::is_all_used_zeros()
 	if (*current_address != 0) { return false; }
 	return true;
 }
-many_bits_signed int_array::find_first_used_not_zero()
+many_bits_signed int_array::find_first_used_not_zero() const
 {
 	if (this->num_of_used_ints == 0) { return -1; }
 	few_bits* current_address = &this->intarr[this->num_of_used_ints - 1];
@@ -193,6 +141,8 @@ void int_array::shift_left_by_one()
 {
 	if (this->num_of_used_ints == 0) { *this->intarr = 0; this->num_of_used_ints = 1; return; }
 	if (this->num_of_used_ints == 1) { this->intarr[1] = *this->intarr; *this->intarr = 0; this->num_of_used_ints = 2; return; }
+	if (this->is_full())
+		throw "Error in function \"void int_array::shift_left_by_one()\". Can\'t shift left, there's no room to shift left.";
 	few_bits* it_read = &this->intarr[this->num_of_used_ints - 1];
 	few_bits* it_write = &this->intarr[this->num_of_used_ints];
 	few_bits* it_stop_read = this->intarr;
