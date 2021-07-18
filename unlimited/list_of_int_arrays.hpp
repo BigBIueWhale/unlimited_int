@@ -1,7 +1,7 @@
 #ifndef UNLIMITED_LIST_OF_INT_ARRAYS_H
 #define UNLIMITED_LIST_OF_INT_ARRAYS_H
-#include "int_array_list.h"
-#include "int_array_piggy_bank.h"
+#include "int_array_list.hpp"
+#include "int_array_piggy_bank.hpp"
 namespace unlimited
 {
 	class list_of_int_arrays : public int_array_list
