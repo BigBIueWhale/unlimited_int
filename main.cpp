@@ -1,5 +1,5 @@
 //This is just an example file. "The best way to learn is through example"
-#include "unlimited/unlimited.h"
+#include "unlimited/unlimited.hpp"
 #include <iostream>
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
 unlimited::many_bits unlimited::int_array::num_of_ints_created = 0;
