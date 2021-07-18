@@ -1,4 +1,13 @@
 #include "int_array_list.h"
+using namespace unlimited;
+#if DEBUG_MODE > 0
+#include <iostream>
+#endif
+void unlimited::int_array_list::operator=(const int_array_list& num_to_assign)
+{
+	this->intarrays = num_to_assign.intarrays;
+	this->num_of_ints = num_to_assign.num_of_ints;
+}
 void int_array_list::flush()
 {
 #if DEBUG_MODE > 1
@@ -19,11 +28,13 @@ void int_array_list::flush()
 	this->intarrays.first = nullptr;
 	this->intarrays.last = nullptr;
 }
-void int_array_list::print_properties()
+#if DEBUG_MODE > 0
+void int_array_list::print_properties() const
 {
 	this->intarrays.print_properties();
 	std::cout << "\nint_array_list->num_of_ints: " << this->num_of_ints;
 }
+#endif
 void int_array_list::swap(int_array_list& int_array_list_to_swap_with)
 {
 	many_bits temp_int = this->num_of_ints;
@@ -33,7 +44,7 @@ void int_array_list::swap(int_array_list& int_array_list_to_swap_with)
 	this->intarrays.swap(int_array_list_to_swap_with.intarrays);
 }
 #if DEBUG_MODE > 0
-bool int_array_list::find_inconsistencies()
+bool int_array_list::find_inconsistencies() const
 {
 #if DEBUG_MODE > 1
 	std::cout << "\nFinding inconsistencies from \"int_array_list::find_inconsistencies\" of this->intarrays";
