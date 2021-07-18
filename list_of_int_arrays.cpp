@@ -1,4 +1,8 @@
 #include "list_of_int_arrays.h"
+using namespace unlimited;
+#if DEBUG_MODE > 0
+#include <iostream>
+#endif
 int_array_piggy_bank list_of_int_arrays::bank_storage;
 void list_of_int_arrays::increase_by_one_array_and_zero()
 {
