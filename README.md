@@ -26,4 +26,5 @@ int main()\
 }\
 \
 The third difference is when using a series of operations, for example:\
-unlimited_int num = unlimited_int(unlimited_int::pow(5, 6, 7)); //the unlimited_int() constructor must be used to avoid the memory leak\
+unlimited_int num = unlimited_int(unlimited_int::pow(5, 6, 7)) + 5; //the unlimited_int() constructor must be used to avoid the memory leak\
+//because otherwise it would be a pointer plus an integer.
