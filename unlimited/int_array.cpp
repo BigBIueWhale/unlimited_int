@@ -1,4 +1,4 @@
-#include "int_array.h"
+#include "int_array.hpp"
 using namespace unlimited;
 #if DEBUG_MODE > 0
 #include <iostream>
