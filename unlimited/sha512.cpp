@@ -1,4 +1,4 @@
-#include "unlimited_int.h"
+#include "unlimited_int.hpp"
 void SHA512_compress_message_block(const uint64_t* message_block, uint64_t* parameter_hash_values); //accepts a message block with 1024 bits, meaning an array of 16 32bit integers
 
 #define ROTATER(x, amount) ((x >> amount) | (x << (64 - amount)))
