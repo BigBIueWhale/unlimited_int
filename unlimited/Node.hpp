@@ -1,6 +1,6 @@
 #ifndef UNLIMITED_NODE_H
 #define UNLIMITED_NODE_H
-#include "int_array.h"
+#include "int_array.hpp"
 namespace unlimited
 {
 	struct Node
