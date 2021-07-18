@@ -1,4 +1,4 @@
-#include "int_array_piggy_bank.h"
+#include "int_array_piggy_bank.hpp"
 using namespace unlimited;
 #if DEBUG_MODE > 0
 #include <iostream>
