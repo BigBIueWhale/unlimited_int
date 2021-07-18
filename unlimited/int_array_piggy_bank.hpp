@@ -1,6 +1,6 @@
 #ifndef UNLIMITED_INT_ARRAY_PIGGY_BANK_H
 #define UNLIMITED_INT_ARRAY_PIGGY_BANK_H true
-#include "int_array_list.h"
+#include "int_array_list.hpp"
 namespace unlimited
 {
 	class int_array_piggy_bank : public int_array_list
