@@ -1,6 +1,21 @@
-﻿#include "unlimited_int.h"
+#include "unlimited_int.h"
+#include <chrono>
+#include <cmath>
+using namespace unlimited;
+#if DEBUG_MODE > 0
+#include <iostream>
+#endif
 //I need to design and write a squaring basecase multiplication algorithm
 //The most important thing, is to make the division algorithm more efficient, and at least to make the binary search faster.
+unlimited_int unlimited_int::current_random;
+int num_of_zero_bits_preceding_number(const few_bits);
+many_bits ceiling_division(many_bits numerator, many_bits denominator)
+{
+	many_bits result = numerator / denominator;
+	if (result * denominator == numerator)
+		return result;
+	return result + (many_bits)1;
+}
 void unlimited_int::forget_memory()
 {
 	this->intarrays.num_of_ints = 0;
@@ -9,115 +24,7 @@ void unlimited_int::forget_memory()
 	this->intarrays.intarrays.last = nullptr;
 	this->set_to_zero();
 }
-few_bits unlimited_int::from_hex_char_to_int(char c_int)
-{
-	if ((48 <= c_int) && (c_int <= 57))
-	{
-		return (c_int - 48);
-	}
-	else if ((97 <= c_int) && (c_int <= 102))
-	{
-		return (c_int - 87);
-	}
-	else if ((65 <= c_int) && (c_int <= 70))
-	{
-		return (c_int - 54);
-	}
-	return 0;
-}
-void unlimited_int::assign_hex(std::string num)
-{
-	if (this->auto_destroy) { this->flush(); }
-	else { this->forget_memory(); }
-	this->auto_destroy = true;
-	many_bits num_of_chars = ((many_bits)num.length());
-	if (num_of_chars == 0) { this->set_to_zero(); }
-	else
-	{
-		if (num[0] == '-')
-		{
-			this->is_negative = true;
-			num_of_chars--;
-			if (num_of_chars == 0)
-			{
-				this->set_to_zero();
-				return;
-			}
-			num.erase(0, 1);
-		}
-		else
-		{
-			this->is_negative = false;
-		}
-		many_bits first_num_not_zero = num.find_first_not_of('0');
-		num_of_chars -= first_num_not_zero;
-		if (num_of_chars == 0)
-		{
-			this->set_to_zero();
-			return;
-		}
-		num.erase(0, first_num_not_zero);
-		many_bits num_of_ints_needed;
-		if (num_of_chars % (NUM_OF_BITS_few_bits / 4) == 0)
-		{
-			num_of_ints_needed = num_of_chars / (NUM_OF_BITS_few_bits / 4);
-		}
-		else
-		{
-			num_of_ints_needed = (num_of_chars / (NUM_OF_BITS_few_bits / 4)) + 1;
-		}
-		this->intarrays.increase_until_num_of_ints(num_of_ints_needed);
-		this->num_of_used_ints = num_of_ints_needed;
-		many_bits num_of_intarrays_used_counter = 1;
-		Node* it = this->intarrays.intarrays.first;
-		int_array* current_int_array = it->value;
-		current_int_array->set_num_of_used_ints_to_maximum();
-		many_bits length_of_current_int_array = current_int_array->intarr_len;
-		many_bits index_intarr = 0;
-		many_bits_signed index_string = num_of_chars - 1;
-		many_bits index_string_foward = 0;
-		for (many_bits num_int = 0; num_int < num_of_ints_needed; )
-		{
-			if (index_intarr == length_of_current_int_array)
-			{
-				num_of_intarrays_used_counter++;
-				index_intarr = 0;
-				it = it->next;
-				current_int_array = it->value;
-				current_int_array->set_num_of_used_ints_to_maximum();
-				length_of_current_int_array = current_int_array->intarr_len;
-				continue;
-			}
-			many_bits power_of_16 = 1;
-			few_bits num_to_assign = 0;
-			current_int_array->intarr[index_intarr] = 0;
-			while (true)
-			{
-				few_bits num_to_add = (unlimited_int::from_hex_char_to_int(num[index_string]));
-				num_to_assign += (num_to_add * power_of_16);
-				++index_string_foward;
-				--index_string;
-				if ((index_string_foward % (NUM_OF_BITS_few_bits / 4) == 0) || index_string < 0)
-				{
-					break;
-				}
-				power_of_16 *= 16;
-			}
-			current_int_array->intarr[index_intarr] = num_to_assign;
-			++num_int;
-			++index_intarr;
-		}
-		current_int_array->num_of_used_ints = index_intarr;
-		this->num_of_intarrays_used = num_of_intarrays_used_counter;
-	}
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"assign_hex(std::string num)\":";
-#endif
-#if DEBUG_MODE > 0
-	this->find_inconsistencies();
-#endif
-}
-unlimited_int::unlimited_int(few_bits_signed num_to_assign)
+unlimited_int::unlimited_int(const few_bits_signed num_to_assign)
 {
 	bool set_to_negative;
 	if (num_to_assign == 0) { this->set_to_zero(); }
@@ -141,10 +48,11 @@ unlimited_int::unlimited_int(few_bits_signed num_to_assign)
 	std::cout << "\nFinding inconsistencies in function \"unlimited_int(few_bits_signed num_to_assign)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "Inconsistency found in the end of function \"unlimited_int::unlimited_int(const few_bits_signed num_to_assign)\"";
 #endif
 }
-unlimited_int::unlimited_int(many_bits_signed num_to_assign)
+unlimited_int::unlimited_int(const many_bits_signed num_to_assign)
 {
 	bool set_to_negative;
 	if (num_to_assign == 0)
@@ -171,7 +79,8 @@ unlimited_int::unlimited_int(many_bits_signed num_to_assign)
 	std::cout << "\nFinding inconsistencies in function \"unlimited_int(many_bits_signed num_to_assign)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "Inconsistency found in the end of function \"unlimited_int::unlimited_int(const many_bits_signed num_to_assign)\"";
 #endif
 }
 unlimited_int::unlimited_int(const unlimited_int& num_to_assign, bool auto_destroy_this)
@@ -185,7 +94,8 @@ unlimited_int::unlimited_int(const unlimited_int& num_to_assign, bool auto_destr
 	std::cout << "\nFinding inconsistencies in function \"unlimited_int(const unlimited_int& num_to_assign, bool auto_destroy_this)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "Inconsistency ffound in the end of function \"unlimited_int::unlimited_int(const unlimited_int& num_to_assign, bool auto_destroy_this)\"";
 #endif
 }
 void unlimited_int::operator=(unlimited_int& num_to_assign)
@@ -199,13 +109,15 @@ void unlimited_int::operator=(unlimited_int& num_to_assign)
 	this->num_of_intarrays_used = num_to_assign.num_of_intarrays_used;
 	this->num_of_used_ints = num_to_assign.num_of_used_ints;
 #if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in function \"unlimited_int(const unlimited_int& num_to_assign, bool auto_destroy_this)\":";
+	std::cout << "\nFinding inconsistencies in function \"void unlimited_int::operator=(unlimited_int& num_to_assign)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "Inconsistency found in the end of function \"void unlimited_int::operator=(unlimited_int& num_to_assign)\"";
 #endif
 }
-void unlimited_int::print_properties()
+#if DEBUG_MODE > 0
+void unlimited_int::print_properties() const
 {
 	std::cout << "\nthis: " << this;
 	std::cout << "\nthis->auto_destroy: " << this->auto_destroy;
@@ -214,66 +126,20 @@ void unlimited_int::print_properties()
 	std::cout << "\nthis->num_of_used_ints: " << this->num_of_used_ints;
 	this->intarrays.print_properties();
 }
-void unlimited_int::print()
+#endif
+#if DEBUG_MODE > 0
+void unlimited_int::print() const
 {
 	this->print_properties();
-	std::cout << "\n";
-	if (this->num_of_intarrays_used == 0)
-	{
-		std::cout << "0xNOTHING_IN_UNLIMITED_INT";
-	}
-	else
-	{
-		if (this->is_negative)
-		{
-			std::cout << "MINUS ";
-		}
-		many_bits_signed num_arr_counter = this->intarrays.intarrays.length - 1;
-		Node* it;
-		for (it = this->intarrays.intarrays.last; it != nullptr; it = it->previous, --num_arr_counter)
-		{
-			if (num_arr_counter < this->num_of_intarrays_used)
-			{
-				if (num_arr_counter == this->intarrays.intarrays.length - 1)
-				{
-					std::cout << "arr index in list: " << num_arr_counter << ": ";
-				}
-				else
-				{
-					std::cout << "\narr index in list: " << num_arr_counter << ": ";
-				}
-				char* to_print = it->value->create_string();
-				std::cout << to_print;
-				delete[] to_print;
-			}
-		}
-	}
+	std::cout << std::endl << std::hex << (*this) << std::dec;
 }
-void unlimited_int::compact_print()
+#endif
+#if DEBUG_MODE > 0
+void unlimited_int::compact_print() const
 {
-	if (this->num_of_intarrays_used == 0)
-	{
-		std::cout << "0xNOTHING_IN_UNLIMITED_INT";
-	}
-	else
-	{
-		if (this->is_negative)
-		{
-			std::cout << "-";
-		}
-		many_bits_signed num_arr_counter = this->intarrays.intarrays.length - 1;
-		Node* it;
-		for (it = this->intarrays.intarrays.last; it != nullptr; it = it->previous, num_arr_counter--)
-		{
-			if (num_arr_counter < ((many_bits_signed)this->num_of_intarrays_used))
-			{
-				char *str_of_int_array = it->value->create_string();
-				std::cout << str_of_int_array;
-				delete[] str_of_int_array;
-			}
-		}
-	}
+	std::cout << std::hex << (*this) << std::dec;
 }
+#endif
 void unlimited_int::flush()
 {
 	this->auto_destroy = true;
@@ -286,20 +152,21 @@ void unlimited_int::destroy()
 	this->intarrays.flush();
 	this->set_to_zero();
 }
-void unlimited_int::fill_0_until_num_of_ints(many_bits fill_0_until)
+void unlimited_int::fill_0_until_num_of_ints(const many_bits fill_0_until)
 {
-	if (!this->auto_destroy) { this->forget_memory(); }
+	many_bits fill_0_until_cpy = fill_0_until;
+	//if (!this->auto_destroy) { this->forget_memory(); } this line of code might be important
 	Node* it = this->intarrays.intarrays.first;
 	many_bits num_of_ints_zeroed_until_now = 0;
 	int_array* current_int_array;
-	if (this->intarrays.num_of_ints < fill_0_until) { fill_0_until = this->intarrays.num_of_ints; }
+	if (this->intarrays.num_of_ints < fill_0_until_cpy) { fill_0_until_cpy = this->intarrays.num_of_ints; }
 	while (true)
 	{
 		current_int_array = it->value;
 		many_bits sum = num_of_ints_zeroed_until_now + current_int_array->intarr_len;
-		if (sum >= fill_0_until)
+		if (sum >= fill_0_until_cpy)
 		{
-			current_int_array->fillzero_until(fill_0_until - num_of_ints_zeroed_until_now);
+			current_int_array->fillzero_until(fill_0_until_cpy - num_of_ints_zeroed_until_now);
 			break;
 		}
 		else
@@ -313,7 +180,8 @@ void unlimited_int::fill_0_until_num_of_ints(many_bits fill_0_until)
 	std::cout << "\nFinding inconsistencies in function \"fill_0_until_num_of_ints(many_bits fill_0_until)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "inconsistency found in the end of \"void unlimited_int::fill_0_until_num_of_ints(const many_bits fill_0_until)\"";
 #endif
 }
 void unlimited_int::fill_0_until_num_of_ints_and_set_used_ints_to_maximum(many_bits fill_0_until)
@@ -322,7 +190,8 @@ void unlimited_int::fill_0_until_num_of_ints_and_set_used_ints_to_maximum(many_b
 	std::cout << "\nFinding inconsistencies in start of function \"fill_0_until_num_of_ints_and_set_used_ints_to_maximum(many_bits fill_0_until)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "inconsistency found in the beginning of \"void unlimited_int::fill_0_until_num_of_ints_and_set_used_ints_to_maximum(many_bits fill_0_until)\"";
 #endif
 	Node* it = this->intarrays.intarrays.first;
 	many_bits num_of_ints_zeroed_until_now = 0;
@@ -346,13 +215,14 @@ void unlimited_int::fill_0_until_num_of_ints_and_set_used_ints_to_maximum(many_b
 		it = it->next;
 	}
 }
-void unlimited_int::copy_to(unlimited_int& num_to_paste_into)
+void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"copy_to\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "inconsistency found in the beginning of \"void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const\"";
 #endif
 	num_to_paste_into.flush();
 	num_to_paste_into.auto_destroy = true;
@@ -373,19 +243,15 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into)
 	many_bits index_this = 0, index_paste = 0;
 	many_bits num_int = 0, previous_num_int = 0;
 	current_int_array_paste->set_num_of_used_ints_to_maximum();
-	many_bits current_int_array_this_intarr_len = current_int_array_this->num_of_used_ints;
+	many_bits current_int_array_this_num_of_used_ints = current_int_array_this->num_of_used_ints;
 	many_bits current_int_array_paste_intarr_len = current_int_array_paste->intarr_len;
 	few_bits* current_int_array_paste_intarr = current_int_array_paste->intarr;
 	few_bits* current_int_array_this_intarr = current_int_array_this->intarr;
 	many_bits stop_at = this_num_of_used_ints;
-	if (current_int_array_this_intarr_len < stop_at)
-	{
-		stop_at = current_int_array_this_intarr_len;
-	}
+	if (current_int_array_this_num_of_used_ints < stop_at)
+		stop_at = current_int_array_this_num_of_used_ints;
 	if (current_int_array_paste_intarr_len < stop_at)
-	{
 		stop_at = current_int_array_paste_intarr_len;
-	}
 	while (true)
 	{
 		if (num_int == stop_at)
@@ -395,11 +261,11 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into)
 			index_paste += previous_num_int;
 			previous_num_int = num_int;
 			if (num_int == this_num_of_used_ints) { break; }
-			if (index_this == current_int_array_this_intarr_len)
+			if (index_this == current_int_array_this_num_of_used_ints)
 			{
 				it_this = it_this->next;
 				current_int_array_this = it_this->value;
-				current_int_array_this_intarr_len = current_int_array_this->num_of_used_ints;
+				current_int_array_this_num_of_used_ints = current_int_array_this->num_of_used_ints;
 				current_int_array_this_intarr = current_int_array_this->intarr;
 				index_this = 0;
 			}
@@ -414,7 +280,7 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into)
 				index_paste = 0;
 			}
 			many_bits paste_intarr_len_left_to_go_through = current_int_array_paste_intarr_len - index_paste;
-			many_bits this_intarr_len_left_to_go_through = current_int_array_this_intarr_len - index_this;
+			many_bits this_intarr_len_left_to_go_through = current_int_array_this_num_of_used_ints - index_this;
 			if (paste_intarr_len_left_to_go_through < this_intarr_len_left_to_go_through)
 			{
 				stop_at += paste_intarr_len_left_to_go_through;
@@ -434,18 +300,17 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into)
 	std::cout << "\nFinding inconsistencies in end of function \"copy_to\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
-	num_to_paste_into.find_inconsistencies();
+	if (this->find_inconsistencies() || num_to_paste_into.find_inconsistencies())
+		throw "Inconsistency was found in the end of \"void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const\"";
 #endif
 }
-__list_location__ unlimited_int::find_num_used_int_from_significant(many_bits num_int_to_find)
+__list_location__ unlimited_int::find_num_used_int_from_significant(const many_bits num_int_to_find) const
 {
 	__list_location__ ll;
-	this->flush_unused();
 	if (num_int_to_find > this->num_of_used_ints) { ll.index = 0; ll.num_array = 0; ll.node = nullptr; return ll; }
-	Node* it = this->intarrays.intarrays.last;
+	Node* it = this->get_most_significant_used_int_array();
 	many_bits sum_used = 0;
-	many_bits num_array = this->num_of_intarrays_used + 1;
+	many_bits_signed num_array = this->num_of_intarrays_used + 1;
 	while (true)
 	{
 		sum_used += it->value->num_of_used_ints;
@@ -453,19 +318,32 @@ __list_location__ unlimited_int::find_num_used_int_from_significant(many_bits nu
 		if (sum_used >= num_int_to_find) { break; }
 		else { it = it->previous; }
 	}
+	if (num_array < 1)
+		throw "Error in function: \"__list_location__ unlimited_int::find_num_used_int_from_significant(const many_bits num_int_to_find) const\". \"this->num_of_intarrays_used\" is wrong.";
 	ll.num_array = num_array;
 	ll.node = it;
-	//ll.index = it->value->num_of_used_ints - ((num_int_to_find - (sum_used - it->value->num_of_used_ints)) - 1) - 1;
 	ll.index = sum_used - num_int_to_find;
 	return ll;
 }
-void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, many_bits num_of_ints_to_copy)
+Node* unlimited_int::get_most_significant_used_int_array() const
 {
+	if (this->num_of_intarrays_used == 0)
+		throw "\nError in start of function \"Node* unlimited_int::get_last_intarray() const\" there are no used intarrays";
+	many_bits difference = this->intarrays.intarrays.length - this->num_of_intarrays_used;
+	Node* it = this->intarrays.intarrays.last;
+	for (many_bits counter = 0; counter < difference; ++counter)
+		it = it->previous;
+	return it;
+}
+void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const many_bits num_of_ints_to_copy) const
+{
+	many_bits num_of_ints_to_copy_cpy = num_of_ints_to_copy;
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"copy_most_significant_to\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "Inconsistency was found in start of function \"void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const many_bits num_of_ints_to_copy) const\"";
 #endif
 	num_to_paste_into.is_negative = false;
 	if (this->num_of_intarrays_used == 0)
@@ -474,18 +352,17 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, m
 		return;
 	}
 	many_bits this_num_of_used_ints = this->num_of_used_ints;
-	if (num_of_ints_to_copy > this_num_of_used_ints) { num_of_ints_to_copy = this_num_of_used_ints; }
-	num_to_paste_into.intarrays.increase_until_num_of_ints(num_of_ints_to_copy);
-	num_to_paste_into.num_of_used_ints = num_of_ints_to_copy;
-	__list_location__ ll = num_to_paste_into.intarrays.find_num_of_int_from_insignificant(num_of_ints_to_copy);
+	if (num_of_ints_to_copy_cpy > this_num_of_used_ints) { num_of_ints_to_copy_cpy = this_num_of_used_ints; }
+	num_to_paste_into.intarrays.increase_until_num_of_ints(num_of_ints_to_copy_cpy);
+	num_to_paste_into.num_of_used_ints = num_of_ints_to_copy_cpy;
+	__list_location__ ll = num_to_paste_into.intarrays.find_num_of_int_from_insignificant(num_of_ints_to_copy_cpy);
 	Node* it_paste = ll.node;
 	many_bits_signed index_paste = ll.index;
 	num_to_paste_into.num_of_intarrays_used = ll.num_array;
-	num_to_paste_into.num_of_used_ints = num_of_ints_to_copy;
+	num_to_paste_into.num_of_used_ints = num_of_ints_to_copy_cpy;
 	int_array* current_int_array_paste = it_paste->value;
 	current_int_array_paste->num_of_used_ints = index_paste + 1;
-	this->flush_unused();
-	Node* it_this = this->intarrays.intarrays.last;
+	Node* it_this = this->get_most_significant_used_int_array();
 	int_array* current_int_array_this = it_this->value;
 	many_bits_signed index_this = current_int_array_this->num_of_used_ints - 1;
 	many_bits num_int = 0, stop_at, previous_num_int = 0;
@@ -495,7 +372,7 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, m
 	few_bits* current_intarr_paste = &current_int_array_paste->intarr[index_paste];
 	if (num_of_ints_left_for_this < num_of_ints_left_for_paste) { stop_at = num_of_ints_left_for_this; }
 	else { stop_at = num_of_ints_left_for_paste; }
-	if (num_of_ints_to_copy < stop_at) { stop_at = num_of_ints_to_copy; }
+	if (num_of_ints_to_copy_cpy < stop_at) { stop_at = num_of_ints_to_copy_cpy; }
 	while (true)
 	{
 		if (num_int >= stop_at)
@@ -504,7 +381,7 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, m
 			index_paste -= previous_num_int;
 			index_this -= previous_num_int;
 			previous_num_int = num_int;
-			if (num_int >= num_of_ints_to_copy) { break; }
+			if (num_int >= num_of_ints_to_copy_cpy) { break; }
 			if (index_this < 0)
 			{
 				it_this = it_this->previous;
@@ -524,7 +401,7 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, m
 			num_of_ints_left_for_paste = index_paste + 1;
 			if (num_of_ints_left_for_this < num_of_ints_left_for_paste) { stop_at += num_of_ints_left_for_this; }
 			else { stop_at += num_of_ints_left_for_paste; }
-			if (num_of_ints_to_copy < stop_at) { stop_at = num_of_ints_to_copy; }
+			if (num_of_ints_to_copy_cpy < stop_at) { stop_at = num_of_ints_to_copy_cpy; }
 			continue;
 		}
 		*current_intarr_paste = *current_intarr_this;
@@ -536,14 +413,8 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, m
 	std::cout << "\nFinding inconsistencies in end of function \"copy_most_significant_to\":";
 #endif
 #if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-	{
-		std::cout << "\nThe error was found in function \"copy_most_significant_to\" with this.";
-	}
-	if (num_to_paste_into.find_inconsistencies())
-	{
-		std::cout << "\nThe error was found in function \"copy_most_significant_to\" with num_to_paste_into.";
-	}
+	if (this->find_inconsistencies() || num_to_paste_into.find_inconsistencies())
+		throw "Inconsistency was found in the end of function \"void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const many_bits num_of_ints_to_copy) const\"";
 #endif
 }
 void unlimited_int::swap(unlimited_int& num_to_swap_with)
@@ -552,22 +423,25 @@ void unlimited_int::swap(unlimited_int& num_to_swap_with)
 	std::cout << "\nFinding inconsistencies in start of function \"swap\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
-	num_to_swap_with.find_inconsistencies();
+	if (this->find_inconsistencies() || num_to_swap_with.find_inconsistencies())
+		throw "Inconsistency was found in start of function \"void unlimited_int::swap(unlimited_int& num_to_swap_with)\"";
 #endif
 
-	bool temp_bool;
-	temp_bool = num_to_swap_with.is_negative;
-	num_to_swap_with.is_negative = this->is_negative;
-	this->is_negative = temp_bool;
+	const bool temp_is_negative = this->is_negative;
+	this->is_negative = num_to_swap_with.is_negative;
+	num_to_swap_with.is_negative = temp_is_negative;
 
-	many_bits temp_int = num_to_swap_with.num_of_intarrays_used;
+	const bool temp_auto_destroy = this->auto_destroy;
+	this->auto_destroy = num_to_swap_with.auto_destroy;
+	num_to_swap_with.auto_destroy = temp_auto_destroy;
+
+	const many_bits temp_num_of_intarrays_used = num_to_swap_with.num_of_intarrays_used;
 	num_to_swap_with.num_of_intarrays_used = this->num_of_intarrays_used;
-	this->num_of_intarrays_used = temp_int;
+	this->num_of_intarrays_used = temp_num_of_intarrays_used;
 
-	temp_int = num_to_swap_with.num_of_used_ints;
+	const many_bits temp_num_to_swap_with = num_to_swap_with.num_of_used_ints;
 	num_to_swap_with.num_of_used_ints = this->num_of_used_ints;
-	this->num_of_used_ints = temp_int;
+	this->num_of_used_ints = temp_num_to_swap_with;
 
 	this->intarrays.swap(num_to_swap_with.intarrays);
 
@@ -575,38 +449,49 @@ void unlimited_int::swap(unlimited_int& num_to_swap_with)
 	std::cout << "\nFinding inconsistencies in end of function \"swap\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
-	num_to_swap_with.find_inconsistencies();
+	if (this->find_inconsistencies() || num_to_swap_with.find_inconsistencies())
+		throw "Inconsistency was found in end of function \"void unlimited_int::swap(unlimited_int& num_to_swap_with)\"";
 #endif
 }
-char unlimited_int::estimate_compare_to(unlimited_int& num_to_compare_to)
+char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const
 {
 #if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"estimate_compare_to(unlimited_int* num_to_compare_to)\":";
+	std::cout << "\nFinding inconsistencies in start of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
-	num_to_compare_to.find_inconsistencies();
+	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+		throw "Inconsistencies found in start of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
 #endif
+	if (this->is_zero() && num_to_compare_to.is_zero())
+	{
+#if DEBUG_MODE == 2
+		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
+#endif
+#if DEBUG_MODE > 0
+		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
+#endif
+		return 'E';
+	}
 	if ((this->is_negative) && (num_to_compare_to.is_negative == false))
 	{
 #if DEBUG_MODE == 2
-		std::cout << "\nFinding inconsistencies in end of function \"estimate_compare_to(unlimited_int* num_to_compare_to)\":";
+		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
 #if DEBUG_MODE > 0
-		this->find_inconsistencies();
-		num_to_compare_to.find_inconsistencies();
+		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
 #endif
 		return 'S';
 	}
 	if ((this->is_negative == false) && (num_to_compare_to.is_negative))
 	{
 #if DEBUG_MODE == 2
-		std::cout << "\nFinding inconsistencies in end of function \"estimate_compare_to(unlimited_int* num_to_compare_to)\":";
+		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
 #if DEBUG_MODE > 0
-		this->find_inconsistencies();
-		num_to_compare_to.find_inconsistencies();
+		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
 #endif
 		return 'L';
 	}
@@ -618,11 +503,11 @@ char unlimited_int::estimate_compare_to(unlimited_int& num_to_compare_to)
 	if (this->num_of_used_ints > num_to_compare_to.num_of_used_ints)
 	{
 #if DEBUG_MODE == 2
-		std::cout << "\nFinding inconsistencies in end of function \"estimate_compare_to(unlimited_int* num_to_compare_to)\":";
+		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
 #if DEBUG_MODE > 0
-		this->find_inconsistencies();
-		num_to_compare_to.find_inconsistencies();
+		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
 #endif
 		if (both_negative)
 		{
@@ -636,11 +521,11 @@ char unlimited_int::estimate_compare_to(unlimited_int& num_to_compare_to)
 	else if (num_to_compare_to.num_of_used_ints > this->num_of_used_ints)
 	{
 #if DEBUG_MODE == 2
-		std::cout << "\nFinding inconsistencies in end of function \"estimate_compare_to(unlimited_int* num_to_compare_to)\":";
+		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
 #if DEBUG_MODE > 0
-		this->find_inconsistencies();
-		num_to_compare_to.find_inconsistencies();
+		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
 #endif
 		if (both_negative)
 		{
@@ -652,16 +537,56 @@ char unlimited_int::estimate_compare_to(unlimited_int& num_to_compare_to)
 		}
 	}
 #if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"estimate_compare_to(unlimited_int* num_to_compare_to)\":";
+	std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
-	num_to_compare_to.find_inconsistencies();
+	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+		throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
+#endif
+	return 'E';
+}
+char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const
+{
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\":";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+		throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
+#endif
+	if (this->num_of_used_ints > num_to_compare_to.num_of_used_ints)
+	{
+#if DEBUG_MODE == 2
+		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\":";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+		throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
+#endif
+		return 'L';
+	}
+	else if (num_to_compare_to.num_of_used_ints > this->num_of_used_ints)
+	{
+#if DEBUG_MODE == 2
+		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\":";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+		throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
+#endif
+		return 'S';
+	}
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\":";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+		throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
 #endif
 	return 'E';
 }
 #if DEBUG_MODE > 0
-bool unlimited_int::find_inconsistencies()
+bool unlimited_int::find_inconsistencies() const
 {
 	bool to_return_true = false;
 	to_return_true = this->intarrays.find_inconsistencies();
@@ -769,29 +694,22 @@ bool unlimited_int::find_inconsistencies()
 	return to_return_true;
 }
 #endif
-char unlimited_int::compare_to(unlimited_int& num_to_compare_to)
+char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"compare_to(unlimited_int* num_to_compare_to)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
-	num_to_compare_to.find_inconsistencies();
+	
+	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+		throw "Inconsistencies found in start of function \"char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const\"";
 #endif
 	char value_compare_estimation = this->estimate_compare_to(num_to_compare_to);
 	if (value_compare_estimation != 'E')
-	{
 		return value_compare_estimation;
-	}
-	bool both_are_negative = false;
-	if (this->is_negative)
-	{
-		both_are_negative = true;
-	}
+	const bool both_are_negative = this->is_negative;
 	if (this->num_of_intarrays_used == 0) //meaning they're both zero
-	{
 		return 'E';
-	}
 	Node* it_this = this->intarrays.intarrays.first;
 	many_bits this_num_of_used_int_arrays = this->num_of_intarrays_used;
 	for (many_bits num_int_array_in_list_this = 1; num_int_array_in_list_this < this_num_of_used_int_arrays; num_int_array_in_list_this++, it_this = it_this->next);
@@ -862,21 +780,106 @@ char unlimited_int::compare_to(unlimited_int& num_to_compare_to)
 	std::cout << "\nFinding inconsistencies in end of function \"compare_to(unlimited_int* num_to_compare_to)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
-	num_to_compare_to.find_inconsistencies();
+	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+		throw "Inconsistencies found in end of function \"char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const\"";
 #endif
 	return 'E';
 }
-void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answer)
+char unlimited_int::compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const
+{
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in start of function \"compare_to(unlimited_int* num_to_compare_to)\":";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+		throw "Inconsistencies found in the start of function \"char unlimited_int::compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
+#endif
+	char value_compare_estimation = this->estimate_compare_to_ignore_sign(num_to_compare_to);
+	if (value_compare_estimation != 'E')
+		return value_compare_estimation;
+	if ((this->num_of_intarrays_used == 0) && (num_to_compare_to.num_of_intarrays_used == 0)) //meaning they're both zero
+		return 'E';
+	Node* it_this = this->intarrays.intarrays.first;
+	many_bits this_num_of_used_int_arrays = this->num_of_intarrays_used;
+	for (many_bits num_int_array_in_list_this = 1; num_int_array_in_list_this < this_num_of_used_int_arrays; num_int_array_in_list_this++, it_this = it_this->next);
+	Node* it_compare = num_to_compare_to.intarrays.intarrays.first;
+	many_bits compare_num_of_used_int_arrays = num_to_compare_to.num_of_intarrays_used;
+	for (many_bits num_int_array_in_list_compare = 1; num_int_array_in_list_compare < compare_num_of_used_int_arrays; num_int_array_in_list_compare++, it_compare = it_compare->next);
+	int_array* current_int_array_this = it_this->value;
+	int_array* current_int_array_compare = it_compare->value;
+	many_bits_signed index_this = current_int_array_this->num_of_used_ints - 1;
+	many_bits_signed index_compare = current_int_array_compare->num_of_used_ints - 1;
+	many_bits num_int = 0;
+	many_bits_signed previous_num_int = 0;
+	many_bits num_of_used_ints_both = this->num_of_used_ints;
+	many_bits stop_at;
+	many_bits length_left_in_this = index_this + 1, length_left_in_compare = index_compare + 1;
+	if (length_left_in_this < length_left_in_compare) { stop_at = length_left_in_this; }
+	else { stop_at = length_left_in_compare; }
+	if (num_of_used_ints_both < stop_at) { stop_at = num_of_used_ints_both; }
+	few_bits* current_int_array_this_intarr = &current_int_array_this->intarr[current_int_array_this->num_of_used_ints - 1];
+	few_bits* current_int_array_compare_intarr = &current_int_array_compare->intarr[current_int_array_compare->num_of_used_ints - 1];
+	while (true)
+	{
+		if (num_int == stop_at)
+		{
+			previous_num_int = num_int - previous_num_int;
+			index_this -= previous_num_int;
+			index_compare -= previous_num_int;
+			previous_num_int = num_int;
+			if (num_int == num_of_used_ints_both) { break; }
+			if (index_this < 0)
+			{
+				it_this = it_this->previous;
+				current_int_array_this = it_this->value;
+				current_int_array_this_intarr = &current_int_array_this->intarr[current_int_array_this->num_of_used_ints - 1];
+				index_this = current_int_array_this->num_of_used_ints - 1;
+			}
+			if (index_compare < 0)
+			{
+				it_compare = it_compare->previous;
+				current_int_array_compare = it_compare->value;
+				current_int_array_compare_intarr = &current_int_array_compare->intarr[current_int_array_compare->num_of_used_ints - 1];
+				index_compare = current_int_array_compare->num_of_used_ints - 1;
+			}
+			length_left_in_this = index_this + 1;
+			length_left_in_compare = index_compare + 1;
+			if (length_left_in_this < length_left_in_compare) { stop_at += length_left_in_this; }
+			else { stop_at += length_left_in_compare; }
+			if (num_of_used_ints_both < stop_at) { stop_at = num_of_used_ints_both; }
+			continue;
+		}
+		few_bits this_value_current = *current_int_array_this_intarr;
+		few_bits compare_value_current = *current_int_array_compare_intarr;
+		if (this_value_current < compare_value_current)
+		{
+			return 'S';
+		}
+		if (compare_value_current < this_value_current)
+		{
+			return 'L';
+		}
+		++num_int;
+		--current_int_array_this_intarr;
+		--current_int_array_compare_intarr;
+	}
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"compare_to(unlimited_int* num_to_compare_to)\":";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
+		throw "Inconsistencies found in the end of function \"char unlimited_int::compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
+#endif
+	return 'E';
+}
+void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nStart of subtract:";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_subtract->find_inconsistencies())
-	{
-		std::cout << "\nThe error was found in start of function subtract";
-	}
+		throw "\nThe error was found in start of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"";
 #endif
 	if (num_to_subtract == this)
 	{
@@ -919,12 +922,29 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 			answer->is_negative = true;
 		}
 		else { this_copy.add(&num_to_subtract_copy, answer); }
+#if DEBUG_MODE == 2
+		std::cout << "\nEnd of subtract:";
+#endif
+#if DEBUG_MODE > 0
+		if (answer->find_inconsistencies())
+			throw "\nThe inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"";
+#endif
 		return;
 	}
-	char compare_result = this_copy.compare_to(num_to_subtract_copy);
+	char compare_result = this_copy.compare_to_ignore_sign(num_to_subtract_copy);
 	if (compare_result == 'E')
 	{
 		answer->set_to_zero();
+#if DEBUG_MODE == 2
+	std::cout << "\nEnd of subtract:";
+#endif
+#if DEBUG_MODE > 0
+	if (answer->find_inconsistencies())
+	{
+		if (answer->find_inconsistencies())
+			throw "\nThe inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"";
+	}
+#endif
 		return;
 	}
 	if (compare_result == 'L') { answer->is_negative = false; }
@@ -943,8 +963,8 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 	int_array* answer_current_int_array = it_answer->value;
 	many_bits num_of_int_arrays_used_in_answer = 1;
 	many_bits index_this = 0, index_subtract = 0, index_answer = 0;
-	many_bits this_current_int_array_intarr_len = this_current_int_array->num_of_used_ints;
-	many_bits subtract_current_int_array_intarr_len = subtract_current_int_array->num_of_used_ints;
+	many_bits this_current_int_array_num_of_used_ints = this_current_int_array->num_of_used_ints;
+	many_bits subtract_current_int_array_num_of_used_ints = subtract_current_int_array->num_of_used_ints;
 	many_bits answer_current_int_array_intarr_len = answer_current_int_array->intarr_len;
 	few_bits* this_current_int_array_intarr = this_current_int_array->intarr;
 	few_bits* subtract_current_int_array_intarr = subtract_current_int_array->intarr;
@@ -953,8 +973,8 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 	many_bits num_of_used_ints_subtract = num_to_subtract_copy.num_of_used_ints;
 	many_bits int_num_of_start_of_current_intarr_answer = 0;
 	many_bits next_stop = num_of_used_ints_subtract;
-	if (subtract_current_int_array_intarr_len < next_stop) { next_stop = subtract_current_int_array_intarr_len; }
-	if (this_current_int_array_intarr_len < next_stop) { next_stop = this_current_int_array_intarr_len; }
+	if (subtract_current_int_array_num_of_used_ints < next_stop) { next_stop = subtract_current_int_array_num_of_used_ints; }
+	if (this_current_int_array_num_of_used_ints < next_stop) { next_stop = this_current_int_array_num_of_used_ints; }
 	if (answer_current_int_array_intarr_len < next_stop) { next_stop = answer_current_int_array_intarr_len; }
 	many_bits remaining_intarr_len_this;
 	many_bits remaining_intarr_len_answer;
@@ -970,20 +990,20 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 			index_this += previous_int_num;
 			previous_int_num = int_num;
 			if (int_num == num_of_used_ints_subtract) { break; }
-			if (index_this == this_current_int_array_intarr_len)
+			if (index_this == this_current_int_array_num_of_used_ints)
 			{
 				it_this = it_this->next;
 				index_this = 0;
 				this_current_int_array = it_this->value;
-				this_current_int_array_intarr_len = this_current_int_array->num_of_used_ints;
+				this_current_int_array_num_of_used_ints = this_current_int_array->num_of_used_ints;
 				this_current_int_array_intarr = this_current_int_array->intarr;
 			}
-			if (index_subtract == subtract_current_int_array_intarr_len)
+			if (index_subtract == subtract_current_int_array_num_of_used_ints)
 			{
 				it_subtract = it_subtract->next;
 				index_subtract = 0;
 				subtract_current_int_array = it_subtract->value;
-				subtract_current_int_array_intarr_len = subtract_current_int_array->num_of_used_ints;
+				subtract_current_int_array_num_of_used_ints = subtract_current_int_array->num_of_used_ints;
 				subtract_current_int_array_intarr = subtract_current_int_array->intarr;
 			}
 			if (index_answer == answer_current_int_array_intarr_len)
@@ -997,8 +1017,8 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 				answer_current_int_array_intarr_len = answer_current_int_array->intarr_len;
 				answer_current_int_array_intarr = answer_current_int_array->intarr;
 			}
-			many_bits remaining_intarr_len_subtract = subtract_current_int_array_intarr_len - index_subtract;
-			remaining_intarr_len_this = this_current_int_array_intarr_len - index_this;
+			many_bits remaining_intarr_len_subtract = subtract_current_int_array_num_of_used_ints - index_subtract;
+			remaining_intarr_len_this = this_current_int_array_num_of_used_ints - index_this;
 			remaining_intarr_len_answer = answer_current_int_array_intarr_len - index_answer;
 			bool subtract_smaller_than_this = remaining_intarr_len_subtract < remaining_intarr_len_this;
 			bool answer_smaller_than_this = remaining_intarr_len_answer < remaining_intarr_len_this;
@@ -1023,12 +1043,12 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 		else { current_value_in_this = *this_current_int_array_intarr; }
 		if (current_value_in_this < current_value_in_subtract)
 		{
-			*answer_current_int_array_intarr = current_value_in_this + MAX_few_bits_NUM_PLUS_ONE - current_value_in_subtract;
+			*answer_current_int_array_intarr = (few_bits)(current_value_in_this + MAX_few_bits_NUM_PLUS_ONE - current_value_in_subtract);
 			is_carry = true;
 		}
 		else
 		{
-			*answer_current_int_array_intarr = current_value_in_this - current_value_in_subtract;
+			*answer_current_int_array_intarr = (few_bits)(current_value_in_this - current_value_in_subtract);
 			is_carry = false;
 		}
 		++answer_current_int_array_intarr;
@@ -1038,12 +1058,12 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 	}
 	if (int_num != num_of_used_ints_this)
 	{
-		if (index_this == this_current_int_array_intarr_len)
+		if (index_this == this_current_int_array_num_of_used_ints)
 		{
 			it_this = it_this->next;
 			index_this = 0;
 			this_current_int_array = it_this->value;
-			this_current_int_array_intarr_len = this_current_int_array->num_of_used_ints;
+			this_current_int_array_num_of_used_ints = this_current_int_array->num_of_used_ints;
 			this_current_int_array_intarr = this_current_int_array->intarr;
 		}
 		if (index_answer == answer_current_int_array_intarr_len)
@@ -1057,7 +1077,7 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 			answer_current_int_array_intarr_len = answer_current_int_array->intarr_len;
 			answer_current_int_array_intarr = answer_current_int_array->intarr;
 		}
-		remaining_intarr_len_this = this_current_int_array_intarr_len - index_this;
+		remaining_intarr_len_this = this_current_int_array_num_of_used_ints - index_this;
 		remaining_intarr_len_answer = answer_current_int_array_intarr_len - index_answer;
 		if (remaining_intarr_len_this < remaining_intarr_len_answer)
 		{
@@ -1075,12 +1095,12 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 					index_answer += previous_int_num;
 					index_this += previous_int_num;
 					previous_int_num = int_num;
-					if (index_this == this_current_int_array_intarr_len)
+					if (index_this == this_current_int_array_num_of_used_ints)
 					{
 						it_this = it_this->next;
 						index_this = 0;
 						this_current_int_array = it_this->value;
-						this_current_int_array_intarr_len = this_current_int_array->num_of_used_ints;
+						this_current_int_array_num_of_used_ints = this_current_int_array->num_of_used_ints;
 						this_current_int_array_intarr = this_current_int_array->intarr;
 					}
 					if (index_answer == answer_current_int_array_intarr_len)
@@ -1094,7 +1114,7 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 						answer_current_int_array_intarr_len = answer_current_int_array->intarr_len;
 						answer_current_int_array_intarr = answer_current_int_array->intarr;
 					}
-					remaining_intarr_len_this = this_current_int_array_intarr_len - index_this;
+					remaining_intarr_len_this = this_current_int_array_num_of_used_ints - index_this;
 					remaining_intarr_len_answer = answer_current_int_array_intarr_len - index_answer;
 					if (remaining_intarr_len_answer < remaining_intarr_len_this)
 					{
@@ -1127,12 +1147,12 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 		}
 		if (int_num != num_of_used_ints_this)
 		{
-			if (index_this == this_current_int_array_intarr_len)
+			if (index_this == this_current_int_array_num_of_used_ints)
 			{
 				it_this = it_this->next;
 				index_this = 0;
 				this_current_int_array = it_this->value;
-				this_current_int_array_intarr_len = this_current_int_array->num_of_used_ints;
+				this_current_int_array_num_of_used_ints = this_current_int_array->num_of_used_ints;
 				this_current_int_array_intarr = this_current_int_array->intarr;
 			}
 			if (index_answer == answer_current_int_array_intarr_len)
@@ -1146,7 +1166,7 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 				answer_current_int_array_intarr_len = answer_current_int_array->intarr_len;
 				answer_current_int_array_intarr = answer_current_int_array->intarr;
 			}
-			remaining_intarr_len_this = this_current_int_array_intarr_len - index_this;
+			remaining_intarr_len_this = this_current_int_array_num_of_used_ints - index_this;
 			remaining_intarr_len_answer = answer_current_int_array_intarr_len - index_answer;
 			if (remaining_intarr_len_this < remaining_intarr_len_answer)
 			{
@@ -1162,12 +1182,12 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 					index_this += previous_int_num;
 					previous_int_num = int_num;
 					if (int_num == num_of_used_ints_this) { break; }
-					if (index_this == this_current_int_array_intarr_len)
+					if (index_this == this_current_int_array_num_of_used_ints)
 					{
 						it_this = it_this->next;
 						index_this = 0;
 						this_current_int_array = it_this->value;
-						this_current_int_array_intarr_len = this_current_int_array->num_of_used_ints;
+						this_current_int_array_num_of_used_ints = this_current_int_array->num_of_used_ints;
 						this_current_int_array_intarr = this_current_int_array->intarr;
 					}
 					if (index_answer == answer_current_int_array_intarr_len)
@@ -1181,7 +1201,7 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 						answer_current_int_array_intarr_len = answer_current_int_array->intarr_len;
 						answer_current_int_array_intarr = answer_current_int_array->intarr;
 					}
-					remaining_intarr_len_this = this_current_int_array_intarr_len - index_this;
+					remaining_intarr_len_this = this_current_int_array_num_of_used_ints - index_this;
 					remaining_intarr_len_answer = answer_current_int_array_intarr_len - index_answer;
 					if (remaining_intarr_len_answer < remaining_intarr_len_this)
 					{
@@ -1206,19 +1226,17 @@ void unlimited_int::subtract(unlimited_int* num_to_subtract, unlimited_int* answ
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistencies were found at the end of subtract.";
-	}
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"";
 #endif
 }
-void unlimited_int::add(unlimited_int* num_to_add, unlimited_int* answer)
+void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nStart of add:";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
-	num_to_add->find_inconsistencies();
+	if (this->find_inconsistencies() || num_to_add->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"";
 #endif
 	if (num_to_add == this)
 	{
@@ -1245,8 +1263,8 @@ void unlimited_int::add(unlimited_int* num_to_add, unlimited_int* answer)
 	bool this_is_negative = this->is_negative, add_is_negative = num_to_add->is_negative, set_answer_to_negative;
 	if (this_is_negative) { num_of_negatives++; }
 	if (add_is_negative) { num_of_negatives++; }
-	unlimited_int this_copy = *this;
-	unlimited_int num_to_add_copy = *num_to_add;
+	unlimited_int this_copy(*this, false);
+	unlimited_int num_to_add_copy(*num_to_add, false);
 	this_copy.is_negative = false;
 	this_copy.auto_destroy = false;
 	num_to_add_copy.is_negative = false;
@@ -1272,7 +1290,7 @@ void unlimited_int::add(unlimited_int* num_to_add, unlimited_int* answer)
 		set_answer_to_negative = false;
 	}
 	unlimited_int* smaller_num, * larger_num;
-	char compare_result = this_copy.estimate_compare_to(num_to_add_copy);
+	char compare_result = this_copy.estimate_compare_to_ignore_sign(num_to_add_copy);
 	if (compare_result == 'L')
 	{
 		larger_num = &this_copy;
@@ -1364,7 +1382,7 @@ void unlimited_int::add(unlimited_int* num_to_add, unlimited_int* answer)
 			continue;
 		}
 		carry += ((many_bits)(*current_intarr_for_bigger)) + ((many_bits)(*current_intarr_for_smaller));
-		*current_intarr_for_answer = carry;
+		*current_intarr_for_answer = (few_bits)carry;
 		carry >>= NUM_OF_BITS_few_bits;
 		++current_intarr_for_bigger;
 		++current_intarr_for_smaller;
@@ -1435,7 +1453,7 @@ void unlimited_int::add(unlimited_int* num_to_add, unlimited_int* answer)
 				continue;
 			}
 			carry += ((many_bits)(*current_intarr_for_bigger));
-			*current_intarr_for_answer = carry;
+			*current_intarr_for_answer = (few_bits)carry;
 			carry >>= NUM_OF_BITS_few_bits;
 			++current_intarr_for_bigger;
 			++current_intarr_for_answer;
@@ -1539,10 +1557,11 @@ void unlimited_int::add(unlimited_int* num_to_add, unlimited_int* answer)
 	std::cout << "\nEnd of add:";
 #endif
 #if DEBUG_MODE > 0
-	answer->find_inconsistencies();
+	if (answer->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"";
 #endif
 }
-void unlimited_int::assign(few_bits value_to_assign)
+void unlimited_int::assign(const few_bits value_to_assign)
 {
 	if (this->auto_destroy) { this->flush(); }
 	else { this->forget_memory();  this->auto_destroy = true; }
@@ -1559,10 +1578,11 @@ void unlimited_int::assign(few_bits value_to_assign)
 	std::cout << "\nFinding inconsistencies in end of function \"assign(few_ints value_to_assign)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::assign(const few_bits value_to_assign)\"";
 #endif
 }
-void unlimited_int::assign(many_bits value_to_assign)
+void unlimited_int::assign(const many_bits value_to_assign)
 {
 	if (this->auto_destroy) { this->flush(); }
 	else { this->forget_memory();  this->auto_destroy = true; }
@@ -1570,7 +1590,7 @@ void unlimited_int::assign(many_bits value_to_assign)
 	else
 	{
 		this->is_negative = false;
-		few_bits remainder = value_to_assign; //value_to_assign & MASK_LOW_BITS
+		few_bits remainder = (few_bits)value_to_assign; //value_to_assign & MASK_LOW_BITS
 		few_bits carry = value_to_assign >> NUM_OF_BITS_few_bits;
 		if (carry != 0)
 		{
@@ -1604,16 +1624,18 @@ void unlimited_int::assign(many_bits value_to_assign)
 	std::cout << "\nFinding inconsistencies in end of function \"assign(many_bits value_to_assign)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::assign(const many_bits value_to_assign)\"";
 #endif
 }
-void unlimited_int::multiply_both_only_one_array(few_bits num_to_mult, unlimited_int* answer)
+void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"multiply_both_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"";
 #endif
 	many_bits num_to_mult_many = (many_bits)num_to_mult;
 	int_array* this_int_array = this->intarrays.intarrays.first->value;
@@ -1625,13 +1647,13 @@ void unlimited_int::multiply_both_only_one_array(few_bits num_to_mult, unlimited
 	while (this_intarr != stop_ptr)
 	{
 		carry += ((many_bits)(*this_intarr)) * num_to_mult_many;
-		*answer_intarr = carry;
+		*answer_intarr = (few_bits)carry;
 		carry >>= NUM_OF_BITS_few_bits;
 		++this_intarr;
 		++answer_intarr;
 	}
 	carry += ((many_bits)(*this_intarr)) * num_to_mult_many;
-	*answer_intarr = carry;
+	*answer_intarr = (few_bits)carry;
 	carry >>= NUM_OF_BITS_few_bits;
 	++this_intarr;
 	++answer_intarr;
@@ -1640,7 +1662,7 @@ void unlimited_int::multiply_both_only_one_array(few_bits num_to_mult, unlimited
 	else
 	{
 		unum_of_used_ints_answer = this->num_of_used_ints + 1;
-		*answer_intarr = carry;
+		*answer_intarr = (few_bits)carry;
 	}
 	answer_int_array->num_of_used_ints = unum_of_used_ints_answer;
 	answer->num_of_used_ints = unum_of_used_ints_answer;
@@ -1649,16 +1671,18 @@ void unlimited_int::multiply_both_only_one_array(few_bits num_to_mult, unlimited
 	std::cout << "\nFinding inconsistencies in end of function \"multiply_both_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
 #if DEBUG_MODE > 0
-	answer->find_inconsistencies();
+	if (answer->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"";
 #endif
 }
-void unlimited_int::multiply_this_only_one_array(few_bits num_to_mult, unlimited_int* answer)
+void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"multiply_this_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"";
 #endif
 	many_bits num_to_mult_many = (many_bits)num_to_mult;
 	Node* it_answer = answer->intarrays.intarrays.first;
@@ -1703,7 +1727,7 @@ void unlimited_int::multiply_this_only_one_array(few_bits num_to_mult, unlimited
 			continue;
 		}
 		carry += ((many_bits)(*current_intarray_for_this_intarr)) * num_to_mult_many;
-		*current_intarray_for_answer_intarr = carry;
+		*current_intarray_for_answer_intarr = (few_bits)carry;
 		carry >>= NUM_OF_BITS_few_bits;
 		++current_intarray_for_this_intarr;
 		++current_intarray_for_answer_intarr;
@@ -1737,17 +1761,18 @@ void unlimited_int::multiply_this_only_one_array(few_bits num_to_mult, unlimited
 	std::cout << "\nFinding inconsistencies in end of function \"multiply_this_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
 #if DEBUG_MODE > 0
-	answer->find_inconsistencies();
-	this->find_inconsistencies();
+	if (answer->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"";
 #endif
 }
-void unlimited_int::multiply_answer_only_one_array(few_bits num_to_mult, unlimited_int* answer)
+void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"multiply_answer_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"";
 #endif
 #if DEBUG_MODE == 2
 	unlimited_int ui_mult = num_to_mult;
@@ -1787,7 +1812,7 @@ void unlimited_int::multiply_answer_only_one_array(few_bits num_to_mult, unlimit
 			continue;
 		}
 		carry += ((many_bits)(*current_intarray_for_this_intarr)) * num_to_mult_many;
-		*first_intarray_for_answer_intarr = carry;
+		*first_intarray_for_answer_intarr = (few_bits)carry;
 		carry >>= NUM_OF_BITS_few_bits;
 		++current_intarray_for_this_intarr;
 		++first_intarray_for_answer_intarr;
@@ -1801,7 +1826,7 @@ void unlimited_int::multiply_answer_only_one_array(few_bits num_to_mult, unlimit
 	else
 	{
 		answer->num_of_used_ints = this_used_ints + 1;
-		*first_intarray_for_answer_intarr = carry;
+		*first_intarray_for_answer_intarr = (few_bits)carry;
 		answer_first_int_array->num_of_used_ints = this_used_ints + 1;
 	}
 	answer->num_of_intarrays_used = 1;
@@ -1815,17 +1840,18 @@ void unlimited_int::multiply_answer_only_one_array(few_bits num_to_mult, unlimit
 	std::cout << "\nFinding inconsistencies in end of function \"multiply_answer_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
 #if DEBUG_MODE > 0
-	if (this->find_inconsistencies()) { std::cout << "I somehow ruined this in function \"multiply_answer_only_one_array\""; }
-	if (answer->find_inconsistencies()) { std::cout << "I somehow ruined answer in function \"multiply_answer_only_one_array\""; }
+	if (answer->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"";
 #endif
 }
-void unlimited_int::multiply(few_bits num_to_mult, unlimited_int* answer)
+void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"multiply(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) const\"";
 #endif
 	if ((this->num_of_intarrays_used == 0) || (num_to_mult == 0))
 	{
@@ -1834,8 +1860,8 @@ void unlimited_int::multiply(few_bits num_to_mult, unlimited_int* answer)
 	}
 	many_bits max_num_of_ints_needed_for_answer = this->num_of_used_ints + 1;
 	answer->intarrays.increase_until_num_of_ints(max_num_of_ints_needed_for_answer);
-	bool this_uses_only_one_array = this->num_of_intarrays_used == 1;
-	bool answer_needs_only_one_array = max_num_of_ints_needed_for_answer <= answer->intarrays.intarrays.first->value->intarr_len;
+	const bool this_uses_only_one_array = this->num_of_intarrays_used == 1;
+	const bool answer_needs_only_one_array = max_num_of_ints_needed_for_answer <= answer->intarrays.intarrays.first->value->intarr_len;
 	if (this_uses_only_one_array || answer_needs_only_one_array)
 	{
 		if (this_uses_only_one_array && answer_needs_only_one_array)
@@ -1916,7 +1942,7 @@ void unlimited_int::multiply(few_bits num_to_mult, unlimited_int* answer)
 			continue;
 		}
 		carry += ((many_bits)(*current_intarray_for_this_intarr)) * num_to_mult_many;
-		*current_intarray_for_answer_intarr = carry; //carry & MASK_LOW_BITS
+		*current_intarray_for_answer_intarr = (few_bits)carry;
 		carry >>= NUM_OF_BITS_few_bits;
 		++current_intarray_for_this_intarr;
 		++current_intarray_for_answer_intarr;
@@ -1947,46 +1973,50 @@ void unlimited_int::multiply(few_bits num_to_mult, unlimited_int* answer)
 	std::cout << "\nFinding inconsistencies in end of function \"multiply(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
 #if DEBUG_MODE > 0
-	answer->find_inconsistencies();
+	if (answer->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) const\"";
 #endif
 }
-void unlimited_int::multiply_basecase(unlimited_int* num_to_mult, unlimited_int* answer)
+void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimited_int* answer) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"multiply_basecase(unlimited_int* num_to_mult, unlimited_int* answer)\":";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
-	num_to_mult->find_inconsistencies();
+	if (this->find_inconsistencies() || num_to_mult->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimited_int* answer) const\"";
 #endif
 	if ((num_to_mult->num_of_intarrays_used == 0) || (this->num_of_intarrays_used == 0))
 	{
 		answer->set_to_zero();
 		return;
 	}
-	bool answer_is_this = false, answer_is_mult = false;
+	const unlimited_int* this_cpy = this;
+	const unlimited_int* num_to_mult_cpy = num_to_mult;
+	bool this_is_answer = false;
+	bool num_to_mult_is_answer = false;
 	if (this == answer)
 	{
-		answer_is_this = true;
-		answer = new unlimited_int;
+		this_cpy = this->copy();
+		this_is_answer = true;
 	}
-	else if (answer == num_to_mult)
+	if (answer == num_to_mult)
 	{
-		answer_is_mult = true;
-		answer = new unlimited_int;
+		num_to_mult_cpy = num_to_mult->copy();
+		num_to_mult_is_answer = true;
 	}
-	if (this->is_negative != num_to_mult->is_negative) { answer->is_negative = true; }
-	unlimited_int* smaller_num, * bigger_num;
-	char value_of_comparison = this->estimate_compare_to(*num_to_mult);
+	if (this_cpy->is_negative != num_to_mult_cpy->is_negative) { answer->is_negative = true; }
+	const unlimited_int* smaller_num, * bigger_num;
+	char value_of_comparison = this_cpy->estimate_compare_to_ignore_sign(*num_to_mult_cpy);
 	if (value_of_comparison == 'L')
 	{
-		bigger_num = this;
-		smaller_num = num_to_mult;
+		bigger_num = this_cpy;
+		smaller_num = num_to_mult_cpy;
 	}
 	else
 	{
-		bigger_num = num_to_mult;
-		smaller_num = this;
+		bigger_num = num_to_mult_cpy;
+		smaller_num = this_cpy;
 	}
 	many_bits smaller_num_of_used_ints = smaller_num->num_of_used_ints;
 	many_bits bigger_used_ints = bigger_num->num_of_used_ints;
@@ -2109,7 +2139,7 @@ void unlimited_int::multiply_basecase(unlimited_int* num_to_mult, unlimited_int*
 					continue;
 				}
 				carry += ((many_bits)(*current_intarray_for_bigger_intarr)) * num_to_mult_many + ((many_bits)(*current_intarray_for_answer_intarr));
-				*current_intarray_for_answer_intarr = carry;
+				*current_intarray_for_answer_intarr = (few_bits)carry;
 				carry >>= NUM_OF_BITS_few_bits;
 				++current_intarray_for_bigger_intarr;
 				++current_intarray_for_answer_intarr;
@@ -2145,52 +2175,26 @@ void unlimited_int::multiply_basecase(unlimited_int* num_to_mult, unlimited_int*
 	if (last_digit_is_zero) { answer->num_of_used_ints = num_of_ints_needed_for_answer - 1; }
 	else { answer->num_of_used_ints = num_of_ints_needed_for_answer; }
 	current_intarray_for_answer->num_of_used_ints = num_of_used_ints_in_most_significant_int_array;
-	if (answer_is_this)
-	{
-		answer->swap(*this);
-		answer->flush();
-		delete answer;
-	}
-	else if (answer_is_mult)
-	{
-		answer->swap(*num_to_mult);
-		answer->flush();
-		delete answer;
-	}
+	if (this_is_answer)
+		delete this_cpy;
+	if (num_to_mult_is_answer)
+		delete num_to_mult_cpy;
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"multiply_basecase(unlimited_int* num_to_mult, unlimited_int* answer)\":";
 #endif
 #if DEBUG_MODE > 0
-	if (answer_is_this)
-	{
-		if (this->find_inconsistencies())
-		{
-			std::cout << "\nThe inconsistencies were found at the end of multiply_basecase with this.";
-		}
-	}
-	else if (answer_is_mult)
-	{
-		if (num_to_mult->find_inconsistencies())
-		{
-			std::cout << "\nThe inconsistencies were found at the end of multiply_basecase with num_to_mult.";
-		}
-	}
-	else
-	{
-		if (answer->find_inconsistencies())
-		{
-			std::cout << "\nThe inconsistencies were found at the end of multiply_basecase with answer.";
-		}
-	}
+	if (answer->find_inconsistencies())
+		throw "\nThe inconsistencies were found at the end of multiply_basecase with answer.";
 #endif
 }
-void unlimited_int::split_at_and_use_original(many_bits index, unlimited_int* high, unlimited_int* low)
+void unlimited_int::split_at_and_use_original(const many_bits index, unlimited_int* high, unlimited_int* low)
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"split_at_and_use_original(many_bits index, unlimited_int* high, unlimited_int* low)\"";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"void unlimited_int::split_at_and_use_original(const many_bits index, unlimited_int* high, unlimited_int* low)\"";
 #endif
 	many_bits size_of_this = this->num_of_used_ints;
 	if (size_of_this == 0)
@@ -2311,7 +2315,6 @@ void unlimited_int::split_at_and_use_original(many_bits index, unlimited_int* hi
 	if (this_num_of_used_int_arrays_left != 0)
 	{
 		many_bits num_of_transfered_int_arrays_to_high = 0, num_of_transfered_ints_to_high = 0;
-		many_bits current_len_int_array_this;
 		it_this = this->intarrays.intarrays.first;
 		while (true)
 		{
@@ -2351,18 +2354,17 @@ void unlimited_int::split_at_and_use_original(many_bits index, unlimited_int* hi
 #endif
 #if DEBUG_MODE > 0
 	if (high->find_inconsistencies() || low->find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistencies were found at the end of split_at_and_use_original.";
-	}
+		throw "\nThe inconsistencies were found at the end of split_at_and_use_original.";
 #endif
 }
-void unlimited_int::split_at(many_bits index, unlimited_int* high, unlimited_int* low)
+void unlimited_int::split_at(const many_bits index, unlimited_int* high, unlimited_int* low) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"split_at(many_bits index, unlimited_int* low, unlimited_int* high)\"";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"void unlimited_int::split_at(const many_bits index, unlimited_int* high, unlimited_int* low) const\"";
 #endif
 	many_bits this_num_of_used_ints = this->num_of_used_ints;
 	if (index >= this_num_of_used_ints)
@@ -2513,9 +2515,7 @@ void unlimited_int::split_at(many_bits index, unlimited_int* high, unlimited_int
 #endif
 #if DEBUG_MODE > 0
 	if (high->find_inconsistencies() || low->find_inconsistencies() || this->find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistencies were found at the end of split_at.";
-	}
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::split_at(const many_bits index, unlimited_int* high, unlimited_int* low) const\"";
 #endif
 }
 /*
@@ -2548,7 +2548,7 @@ def karatsuba(num1, num2):
 	return (z2 * (10 ** (m2 * 2))) + ((z1 - z2 - z0) * (10 ** m2)) + z0
 */
 #define MIN_KARATSUBA 80
-unlimited_int* unlimited_int::multiply_karatsuba(unlimited_int* num_to_mult)
+unlimited_int* unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const
 {
 	many_bits num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
 	many_bits this_num_of_used_ints = this->num_of_used_ints;
@@ -2585,7 +2585,8 @@ unlimited_int* unlimited_int::multiply_karatsuba(unlimited_int* num_to_mult)
 	std::cout << "\nFinding inconsistencies in recursive function \"multiply karatuba\"";
 #endif
 #if DEBUG_MODE > 0
-	z2->find_inconsistencies();
+	if (z2->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const\"";
 #endif
 	return z2;
 }
@@ -2628,11 +2629,12 @@ unlimited_int* unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(un
 	std::cout << "\nFinding inconsistencies in recursive function \"multiply karatuba\"";
 #endif
 #if DEBUG_MODE > 0
-	z2->find_inconsistencies();
+	if (z2->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unlimited_int* num_to_mult)\"";
 #endif
 	return z2;
 }
-unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(unlimited_int* num_to_mult)
+unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult)
 {
 	many_bits num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
 	many_bits this_num_of_used_ints = this->num_of_used_ints;
@@ -2670,12 +2672,13 @@ unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(unlimited_int* num
 	std::cout << "\nFinding inconsistencies in recursive function \"multiply karatuba\"";
 #endif
 #if DEBUG_MODE > 0
-	z2->find_inconsistencies();
+	if (z2->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult)\"";
 #endif
 	return z2;
 }
 #define MIN_KARATSUBA_SQUARING 80
-unlimited_int* unlimited_int::power2()
+unlimited_int* unlimited_int::power2() const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of recursive function \"power2\"";
@@ -2706,8 +2709,8 @@ unlimited_int* unlimited_int::power2()
 	std::cout << "\nFinding inconsistencies in end of recursive function \"power2\"";
 #endif
 #if DEBUG_MODE > 0
-	answer->find_inconsistencies();
-	this->find_inconsistencies();
+	if (answer->find_inconsistencies() || this->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::power2() const\"";
 #endif
 	return answer;
 }
@@ -2717,7 +2720,8 @@ unlimited_int* unlimited_int::power2_destroy_this()
 	std::cout << "\nFinding inconsistencies in start of recursive function \"power2_destroy_this\"";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"unlimited_int* unlimited_int::power2_destroy_this()\"";
 #endif
 	if (this->num_of_used_ints <= MIN_KARATSUBA_SQUARING)
 	{
@@ -2743,121 +2747,20 @@ unlimited_int* unlimited_int::power2_destroy_this()
 	std::cout << "\nFinding inconsistencies in end of recursive function \"power2_destroy_this\"";
 #endif
 #if DEBUG_MODE > 0
-	answer->find_inconsistencies();
-	this->find_inconsistencies();
+	if (this->find_inconsistencies() || answer->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::power2_destroy_this()\"";
 #endif
 	return answer;
 }
-void unlimited_int::shift_right_one_by_one(many_bits shift_by) //basically divide by 0x10000000000000000 (if you're in 64 bits mode) and ignore the remainder
-{
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"shift_right_one_by_one(many_bits shift_by)\"";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in start of function \"shift_right_one_by_one(many_bits shift_by)\"";
-	}
-#endif
-	many_bits this_num_of_used_ints = this->num_of_used_ints;
-	if ((this->num_of_intarrays_used == 0) || (shift_by == 0)) { return; }
-	if (shift_by >= this_num_of_used_ints) { this->set_to_zero(); return; }
-	//Start by finding the index of the most insignificant digit of the newly to-be-created shifted number
-	Node* it_read = this->intarrays.intarrays.first;
-	Node* it_write = it_read;
-	many_bits used_ints_counter = 0;
-	int_array* current_read_int_array;
-	many_bits current_length_read_int_array;
-	while (true)
-	{
-		current_read_int_array = it_read->value;
-		current_length_read_int_array = current_read_int_array->num_of_used_ints;
-		many_bits sum = used_ints_counter + current_length_read_int_array;
-		if (sum > shift_by) { break; }
-		used_ints_counter = sum;
-		it_read = it_read->next;
-	}
-	many_bits index_read = shift_by - used_ints_counter;
-	many_bits index_write = 0;
-	int_array* current_write_int_array = it_write->value;
-	many_bits current_length_write_int_array = current_write_int_array->intarr_len;
-	current_write_int_array->set_num_of_used_ints_to_maximum();
-	many_bits int_num = 0, stop_next, length_of_shifted_num = this_num_of_used_ints - shift_by;
-	many_bits previous_int_num = 0;
-	many_bits len_left_for_current_write_intarr = current_length_write_int_array;
-	many_bits len_left_for_current_read_intarr = current_length_read_int_array - index_read;
-	if (len_left_for_current_write_intarr < len_left_for_current_read_intarr)
-	{
-		stop_next = len_left_for_current_write_intarr;
-	}
-	else { stop_next = len_left_for_current_read_intarr; }
-	if (length_of_shifted_num < stop_next) { stop_next = length_of_shifted_num; }
-	many_bits new_num_of_used_int_arrays = 1;
-	few_bits* current_intarr_read = &current_read_int_array->intarr[index_read];
-	few_bits* current_intarr_write = current_write_int_array->intarr;
-	while (true)
-	{
-		if (int_num >= stop_next)
-		{
-			previous_int_num = int_num - previous_int_num;
-			index_read += previous_int_num;
-			index_write += previous_int_num;
-			previous_int_num = int_num;
-			if (int_num >= length_of_shifted_num) { break; }
-			if (index_read >= current_length_read_int_array)
-			{
-				index_read = 0;
-				it_read = it_read->next;
-				current_read_int_array = it_read->value;
-				current_length_read_int_array = current_read_int_array->num_of_used_ints;
-				current_intarr_read = current_read_int_array->intarr;
-			}
-			if (index_write >= current_length_write_int_array)
-			{
-				++new_num_of_used_int_arrays;
-				index_write = 0;
-				it_write = it_write->next;
-				current_write_int_array = it_write->value;
-				current_write_int_array->set_num_of_used_ints_to_maximum();
-				current_length_write_int_array = current_write_int_array->intarr_len;
-				current_intarr_write = current_write_int_array->intarr;
-			}
-			len_left_for_current_write_intarr = current_length_write_int_array - index_write;
-			len_left_for_current_read_intarr = current_length_read_int_array - index_read;
-			if (len_left_for_current_write_intarr < len_left_for_current_read_intarr)
-			{
-				stop_next += len_left_for_current_write_intarr;
-			}
-			else { stop_next += len_left_for_current_read_intarr; }
-			if (length_of_shifted_num < stop_next) { stop_next = length_of_shifted_num; }
-			continue;
-		}
-		*current_intarr_write = *current_intarr_read;
-		++int_num;
-		++current_intarr_write;
-		++current_intarr_read;
-	}
-	this->num_of_used_ints = length_of_shifted_num;
-	this->num_of_intarrays_used = new_num_of_used_int_arrays;
-	current_write_int_array->num_of_used_ints = index_write;
-	this->flush_unused();
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"shift_right_one_by_one(many_bits shift_by)\"";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in end of function \"shift_right_one_by_one(many_bits shift_by)\"";
-	}
-#endif
-}
-void unlimited_int::shift_left(many_bits shift_by) //basically multiply by (0x10000000000000000 ^ shift_by) (if you're in 64 bits mode)
+//basically multiply by (0x10000000000000000 ^ shift_by) (if you're in 64 bits mode)
+void unlimited_int::shift_left(const many_bits shift_by)
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"shift_left(many_bits shift_by)\"";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"void unlimited_int::shift_left(const many_bits shift_by)\"";
 #endif
 	if ((this->num_of_intarrays_used == 0) || (shift_by == 0)) { return; }
 	list_of_int_arrays list_to_prepend;
@@ -2870,146 +2773,81 @@ void unlimited_int::shift_left(many_bits shift_by) //basically multiply by (0x10
 	std::cout << "\nFinding inconsistencies in end of function \"shift_left(many_bits shift_by)\"";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::shift_left(const many_bits shift_by)\"";
 #endif
 }
-few_bits unlimited_int::generate_random_few_bits()
+unlimited_int* unlimited_int::operator*(const unlimited_int& other) const
 {
-#if IS_64_BIT_SYSTEM
-	return (((((few_bits)rand()) & 0xf))
-		+ ((((few_bits)rand()) & 0xf) << 4)
-		+ ((((few_bits)rand()) & 0xf) << 8)
-		+ ((((few_bits)rand()) & 0xf) << 12)
-		+ ((((few_bits)rand()) & 0xf) << 16)
-		+ ((((few_bits)rand()) & 0xf) << 20)
-		+ ((((few_bits)rand()) & 0xf) << 24)
-		+ ((((few_bits)rand()) & 0xf) << 28));
-#else
-	return (((((few_bits)rand()) & 0xf))
-		+ ((((few_bits)rand()) & 0xf) << 4)
-		+ ((((few_bits)rand()) & 0xf) << 8)
-		+ ((((few_bits)rand()) & 0xf) << 12));
-#endif
-}
-many_bits unlimited_int::generate_random_many_bits()
-{
-#if IS_64_BIT_SYSTEM
-	return (((((many_bits)rand()) & 0xf))
-		+ ((((many_bits)rand()) & 0xf) << 4)
-		+ ((((many_bits)rand()) & 0xf) << 8)
-		+ ((((many_bits)rand()) & 0xf) << 12)
-		+ ((((many_bits)rand()) & 0xf) << 16)
-		+ ((((many_bits)rand()) & 0xf) << 20)
-		+ ((((many_bits)rand()) & 0xf) << 24)
-		+ ((((many_bits)rand()) & 0xf) << 28)
-		+ ((((many_bits)rand()) & 0xf) << 32)
-		+ ((((many_bits)rand()) & 0xf) << 36)
-		+ ((((many_bits)rand()) & 0xf) << 40)
-		+ ((((many_bits)rand()) & 0xf) << 44)
-		+ ((((many_bits)rand()) & 0xf) << 48)
-		+ ((((many_bits)rand()) & 0xf) << 52)
-		+ ((((many_bits)rand()) & 0xf) << 56)
-		+ ((((many_bits)rand()) & 0xf) << 60));
-#else
-	return (((((many_bits)rand()) & 0xf))
-		+ ((((many_bits)rand()) & 0xf) << 4)
-		+ ((((many_bits)rand()) & 0xf) << 8)
-		+ ((((many_bits)rand()) & 0xf) << 12)
-		+ ((((many_bits)rand()) & 0xf) << 16)
-		+ ((((many_bits)rand()) & 0xf) << 20)
-		+ ((((many_bits)rand()) & 0xf) << 24)
-		+ ((((many_bits)rand()) & 0xf) << 28));
-#endif
-}
-void unlimited_int::randomize(many_bits num_of_digits)
-{
-	if (num_of_digits == 0) { this->set_to_zero(); return; }
-	this->intarrays.increase_until_num_of_ints(num_of_digits);
-	this->num_of_used_ints = num_of_digits;
-	Node* it = this->intarrays.intarrays.first;
-	int_array* current_int_array = it->value;
-	current_int_array->set_num_of_used_ints_to_maximum();
-	many_bits current_length_int_array = current_int_array->intarr_len;
-	few_bits* current_intarr = current_int_array->intarr;
-	many_bits num_int = 0, stop_at, index_this = 0, this_num_of_intarrays_used = 1, previous_num_int = 0;
-	if (current_length_int_array < num_of_digits) { stop_at = current_length_int_array; }
-	else { stop_at = num_of_digits; }
-	while (true)
-	{
-		if (num_int >= stop_at)
-		{
-			previous_num_int = num_int - previous_num_int;
-			index_this += previous_num_int;
-			previous_num_int = num_int;
-			if (num_int >= num_of_digits) { break; }
-			if (index_this >= current_length_int_array)
-			{
-				++this_num_of_intarrays_used;
-				index_this = 0;
-				it = it->next;
-				current_int_array = it->value;
-				current_int_array->set_num_of_used_ints_to_maximum();
-				current_length_int_array = current_int_array->intarr_len;
-				current_intarr = current_int_array->intarr;
-			}
-			many_bits num_of_ints_left = current_length_int_array - index_this;
-			stop_at += num_of_ints_left;
-			if (num_of_digits < stop_at) { stop_at = num_of_digits; }
-			continue;
-		}
-		*current_intarr = unlimited_int::generate_random_few_bits();
-		++current_intarr;
-		++num_int;
-	}
-	current_int_array->num_of_used_ints = index_this;
-	this->num_of_intarrays_used = this_num_of_intarrays_used;
-	this->cutoff_leading_zeros(it);
 #if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"randomize(many_bits num_of_digits)\"";
+	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies() || other.find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
 #endif
-}
-unlimited_int* unlimited_int::operator*(unlimited_int& other)
-{
-	unlimited_int* answer = this->multiply_karatsuba(&other);
+	//it's more efficient when either other or this is a power of 2 because then bit shifting can be used instead of the Karatsuba multiplication algorithm.
+	const many_bits_signed other_log2 = other.find_exact_log_2();
+	const many_bits_signed this_log2 = this->find_exact_log_2();
+	unlimited_int* answer;
+	if (other_log2 >= (many_bits_signed)0)
+		answer = (*this) << other_log2;
+	else if (this_log2 >= (many_bits_signed)0)
+		answer = other << this_log2;
+	else //neither numbers are powers of 2.
+		answer = this->multiply_karatsuba(&other);
 	if (this->num_of_used_ints == 0) { answer->is_negative = false; }
 	else if (this->is_negative != other.is_negative) { answer->is_negative = true; }
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies() || other.find_inconsistencies() || answer->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
+#endif
 	return answer;
 }
-unlimited_int* unlimited_int::operator/(unlimited_int& denominator)
+unlimited_int* unlimited_int::operator/(const unlimited_int& denominator) const
 {
-	if (denominator.num_of_used_ints == 0) { return (new unlimited_int(((few_bits_signed)0))); }
+	if (denominator.num_of_used_ints == 0) { throw "\nError in function: \"unlimited_int* unlimited_int::operator/(const unlimited_int& denominator) const\" Can't divide by zero"; }
 	unlimited_int* answer = this->divide_by(denominator);
 	if (this->num_of_used_ints == 0) { answer->is_negative = false; }
 	else if (this->is_negative != denominator.is_negative) { answer->is_negative = true; }
 	return answer;
 }
-unlimited_int* unlimited_int::operator*(few_bits num)
+unlimited_int* unlimited_int::operator*(const few_bits num) const
 {
 	unlimited_int* answer = new unlimited_int;
 	this->multiply(num, answer);
 	return answer;
 }
-unlimited_int* operator*(few_bits num, unlimited_int& ui)
+unlimited_int* unlimited::operator*(const few_bits num, const unlimited_int& ui)
 {
 	unlimited_int* answer = new unlimited_int;
 	ui.multiply(num, answer);
 	return answer;
 }
-void unlimited_int::operator*=(unlimited_int& other)
+void unlimited_int::operator*=(const unlimited_int& other)
 {
-	unlimited_int* answer = this->multiply_karatsuba_destroy_this(&other);
-	(*this) = answer;
+	//it's more efficient when either other or this is a power of 2 because then bit shifting can be used instead of the Karatsuba multiplication algorithm.
+	many_bits_signed other_log2 = other.find_exact_log_2();
+	many_bits_signed this_log2 = this->find_exact_log_2();
+	if (other_log2 >= (many_bits_signed)0)
+		(*this) = (*this) << other_log2;
+	else if (this_log2 >= (many_bits_signed)0)
+		(*this) = other << this_log2;
+	else //neither numbers are powers of 2.
+		(*this) = this->multiply_karatsuba_destroy_this(&other);
+	if (this->num_of_used_ints == 0) { this->is_negative = false; }
+	else if (this->is_negative != other.is_negative) { this->is_negative = true; }
 }
-unlimited_int* unlimited_int::operator+(unlimited_int& other)
+unlimited_int* unlimited_int::operator+(const unlimited_int& other) const
 {
 	unlimited_int* answer = new unlimited_int;
 	this->add(&other, answer);
 	return answer;
 }
-unlimited_int* unlimited_int::operator-(unlimited_int& other)
+unlimited_int* unlimited_int::operator-(const unlimited_int& other) const
 {
 	unlimited_int* answer = new unlimited_int;
 	this->subtract(&other, answer);
@@ -3021,7 +2859,8 @@ void unlimited_int::operator++()
 	std::cout << "Finding inconsistencies in start of function \"unlimited_int::operator++()\"";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"void unlimited_int::operator++()\"";
 #endif
 	if (this->num_of_used_ints == 0) { this->assign((few_bits)1); return; }
 	few_bits* current_intarr = this->intarrays.intarrays.first->value->intarr;
@@ -3035,7 +2874,8 @@ void unlimited_int::operator++()
 	std::cout << "Finding inconsistencies in end of function \"unlimited_int::operator++()\"";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::operator++()\"";
 #endif
 }
 void unlimited_int::operator--()
@@ -3044,7 +2884,8 @@ void unlimited_int::operator--()
 	std::cout << "Finding inconsistencies in start of function \"unlimited_int::operator--()\"";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function \"void unlimited_int::operator++()\"";
 #endif
 	if (this->num_of_used_ints == 0) { this->assign((few_bits_signed)-1); return; }
 	few_bits* current_intarr = this->intarrays.intarrays.first->value->intarr;
@@ -3058,10 +2899,11 @@ void unlimited_int::operator--()
 	std::cout << "Finding inconsistencies in end of function \"unlimited_int::operator--()\"";
 #endif
 #if DEBUG_MODE > 0
-	this->find_inconsistencies();
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::operator++()\"";
 #endif
 }
-unlimited_int* unlimited_int::operator%(unlimited_int& ui)
+unlimited_int* unlimited_int::operator%(const unlimited_int& ui) const
 {
 	unlimited_int* answer_divide = this->divide_by(ui);
 	unlimited_int* answer_multiply = (*answer_divide) * ui;
@@ -3071,7 +2913,7 @@ unlimited_int* unlimited_int::operator%(unlimited_int& ui)
 	delete answer_multiply;
 	return answer;
 }
-void unlimited_int::operator%=(unlimited_int& ui)
+void unlimited_int::operator%=(const unlimited_int& ui)
 {
 	unlimited_int* answer_divide = this->divide_by(ui);
 	unlimited_int* answer_multiply = (*answer_divide) * ui;
@@ -3079,52 +2921,18 @@ void unlimited_int::operator%=(unlimited_int& ui)
 	this->subtract(answer_multiply, this);
 	delete answer_multiply;
 }
-unlimited_int* unlimited_int::operator+(many_bits num)
+std::ostream& unlimited::operator<<(std::ostream& os, const unlimited_int& ui)
 {
-	unlimited_int num_ui(num);
-	unlimited_int* answer = new unlimited_int;
-	this->add(&num_ui, answer);
-	return answer;
-}
-unlimited_int* operator+(many_bits num, unlimited_int& ui)
-{
-	unlimited_int num_ui(num);
-	unlimited_int* answer = new unlimited_int;
-	ui.add(&num_ui, answer);
-	return answer;
-}
-unlimited_int* operator-(many_bits num, unlimited_int& ui)
-{
-	unlimited_int num_ui(num);
-	unlimited_int* answer = new unlimited_int;
-	ui.subtract(&num_ui, answer);
-	return answer;
-}
-/*
-std::ostream& operator<<(std::ostream& os, const unlimited_int& ui)
-{
-	if (ui.num_of_intarrays_used == 0) { os << "0"; }
+	char* str_of_this;
+	auto current_flags = os.flags();
+	if (current_flags & std::ios::hex)
+		str_of_this = ui.to_c_string(16);
+	else if (current_flags & std::ios::dec)
+		str_of_this = ui.to_c_string(10);
+	else if (current_flags & std::ios::oct)
+		str_of_this = ui.to_c_string(8);
 	else
-	{
-		if (ui.is_negative) { os << '-'; }
-		many_bits_signed num_arr_counter = ui.intarrays.intarrays.length - 1;
-		Node* it;
-		for (it = ui.intarrays.intarrays.last; it != nullptr; it = it->previous, num_arr_counter--)
-		{
-			if (num_arr_counter < ui.num_of_intarrays_used)
-			{
-				char* str_of_int_array = it->value->create_string();
-				os << str_of_int_array;
-				delete[] str_of_int_array;
-			}
-		}
-	}
-	return os;
-}
-*/
-std::ostream& operator<<(std::ostream& os, unlimited_int& ui)
-{
-	char* str_of_this = ui.to_string();
+		str_of_this = ui.to_c_string(16);
 	os << str_of_this;
 	delete[]str_of_this;
 	return os;
@@ -3169,26 +2977,22 @@ void unlimited_int::cutoff_leading_zeros(Node* int_array_to_start_at)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-	{
-		std::cout << "\nThe error was found in end of function \"cutoff_leading_zeros(Node* int_array_to_start_at)\"";
-	}
+		throw "\nThe error was found in end of function \"cutoff_leading_zeros(Node* int_array_to_start_at)\"";
 #endif
 }
-void unlimited_int::shift_left_by_bits(many_bits num_of_bits_to_shift_by)
+void unlimited_int::shift_left_by_bits(const many_bits num_of_bits_to_shift_by)
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"shift_left_by_bits()\"";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-	{
-		std::cout << "\nThe error was found in start of function \"shift_left_by_bits()\"";
-	}
+		throw "\nThe error was found in start of function \"void unlimited_int::shift_left_by_bits(const many_bits num_of_bits_to_shift_by)\"";
 #endif
 	if (this->num_of_used_ints == 0 || num_of_bits_to_shift_by == 0) { return; }
 	this->shift_left(num_of_bits_to_shift_by / NUM_OF_BITS_few_bits);
 	if (this->num_of_used_ints == 0) { return; }
-	register const int micro_shift = num_of_bits_to_shift_by % NUM_OF_BITS_few_bits;
+	const int micro_shift = num_of_bits_to_shift_by % NUM_OF_BITS_few_bits;
 	if (micro_shift != 0)
 	{
 		const int amount_to_shift_remainder = NUM_OF_BITS_few_bits - micro_shift;
@@ -3197,16 +3001,16 @@ void unlimited_int::shift_left_by_bits(many_bits num_of_bits_to_shift_by)
 		{
 			mask_of_shift_builder += 1 << bit_counter;
 		}
-		register const few_bits mask_of_shift = mask_of_shift_builder;
+		const few_bits mask_of_shift = mask_of_shift_builder;
 		few_bits remainder = 0;
 		this->flush_unused();
 		Node* it_this = this->intarrays.intarrays.first;
 		while (it_this != nullptr)
 		{
 			int_array* current_int_array = it_this->value;
-			register few_bits* it_ptr = current_int_array->intarr;
-			const register few_bits* stop_at = &current_int_array->intarr[current_int_array->num_of_used_ints - 1];
-			register few_bits current_value;
+			few_bits* it_ptr = current_int_array->intarr;
+			const few_bits* stop_at = &current_int_array->intarr[current_int_array->num_of_used_ints - 1];
+			few_bits current_value;
 			while (it_ptr != stop_at)
 			{
 				current_value = *it_ptr;
@@ -3241,26 +3045,22 @@ void unlimited_int::shift_left_by_bits(many_bits num_of_bits_to_shift_by)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-	{
-		std::cout << "\nThe error was found in end of function \"shift_left_by_bits()\"";
-	}
+		throw "\nThe error was found in end of function \"void unlimited_int::shift_left_by_bits(const many_bits num_of_bits_to_shift_by)\"";
 #endif
 }
-void unlimited_int::shift_right_by_bits(many_bits num_of_bits_to_shift_by)
+void unlimited_int::shift_right_by_bits(const many_bits num_of_bits_to_shift_by)
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"shift_right_by_bits()\"";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-	{
-		std::cout << "\nThe error was found in start of function \"shift_right_by_bits()\"";
-	}
+		throw "\nThe error was found in start of function \"void unlimited_int::shift_right_by_bits(const many_bits num_of_bits_to_shift_by)\"";
 #endif
 	if (this->num_of_used_ints == 0 || num_of_bits_to_shift_by == 0) { return; }
 	this->shift_right(num_of_bits_to_shift_by / NUM_OF_BITS_few_bits);
 	if (this->num_of_used_ints == 0) { return; }
-	register const int micro_shift = num_of_bits_to_shift_by % NUM_OF_BITS_few_bits;
+	const int micro_shift = num_of_bits_to_shift_by % NUM_OF_BITS_few_bits;
 	if (micro_shift != 0)
 	{
 		const int amount_to_shift_remainder = NUM_OF_BITS_few_bits - micro_shift;
@@ -3269,16 +3069,16 @@ void unlimited_int::shift_right_by_bits(many_bits num_of_bits_to_shift_by)
 		{
 			mask_of_shift_builder += 1 << bit_counter;
 		}
-		register const few_bits mask_of_shift = mask_of_shift_builder;
+		const few_bits mask_of_shift = mask_of_shift_builder;
 		few_bits remainder = 0;
 		this->flush_unused();
 		Node* it_this = this->intarrays.intarrays.last;
 		while (it_this != nullptr)
 		{
 			int_array* current_int_array = it_this->value;
-			register few_bits* it_ptr = &current_int_array->intarr[current_int_array->num_of_used_ints - 1];
-			const register few_bits* stop_at = current_int_array->intarr;
-			register few_bits current_value;
+			few_bits* it_ptr = &current_int_array->intarr[current_int_array->num_of_used_ints - 1];
+			const few_bits* stop_at = current_int_array->intarr;
+			few_bits current_value;
 			while (it_ptr != stop_at)
 			{
 				current_value = *it_ptr;
@@ -3300,21 +3100,17 @@ void unlimited_int::shift_right_by_bits(many_bits num_of_bits_to_shift_by)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-	{
-		std::cout << "\nThe error was found in end of function \"shift_right_by_bits()\"";
-	}
+		throw "\nThe error was found in end of function \"void unlimited_int::shift_right_by_bits(const many_bits num_of_bits_to_shift_by)\"";
 #endif
 }
-void unlimited_int::shift_right(many_bits shift_by)
+void unlimited_int::shift_right(const many_bits shift_by)
 {
 #if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"shift_right(many_bits shift_by)\"";
+	std::cout << "\nFinding inconsistencies in start of function \"void unlimited_int::shift_right(const many_bits shift_by)\"";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in start of function \"shift_right(many_bits shift_by)\"";
-	}
+		throw "\nThe error was found in start of function \"void unlimited_int::shift_right(const many_bits shift_by)\"";
 #endif
 	if (shift_by == 0) { return; }
 	if (shift_by >= this->num_of_used_ints) { this->set_to_zero(); return; }
@@ -3334,39 +3130,37 @@ void unlimited_int::shift_right(many_bits shift_by)
 	this->num_of_used_ints -= shift_by;
 	this->num_of_intarrays_used -= num_of_intarrays_went_through;
 #if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"shift_right(many_bits shift_by)\"";
+	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::shift_right(const many_bits shift_by)\"";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 	{
-		std::cout << "\nThe inconsistency was found in end of function \"shift_right(many_bits shift_by)\"";
+		throw "\nThe inconsistency was found in end of function \"void unlimited_int::shift_right(const many_bits shift_by)\"";
 	}
 #endif
 }
-few_bits unlimited_int::binary_search_divide(unlimited_int& num_to_divide_by)
+few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_by) const
 {
 #if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in function \"binary_search_divide(unlimited_int& num_to_divide_by)\"";
+	std::cout << "\nFinding inconsistencies in function \"few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_by) const\"";
 #endif
 #if DEBUG_MODE > 0
 	if ((this->find_inconsistencies()) || (num_to_divide_by.find_inconsistencies()))
-	{
-		std::cout << "\nThe inconsistency was found in function \"binary_search_divide(unlimited_int& num_to_divide_by)\"";
-	}
+		throw "\nThe inconsistency was found in function \"few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_by) const\"";
 #endif
 	unlimited_int mult_result;
 	few_bits min = 0, max = MAX_few_bits_NUM;
 	num_to_divide_by.multiply(min, &mult_result);
-	char result_compare = mult_result.compare_to(*this);
+	char result_compare = mult_result.compare_to_ignore_sign(*this);
 	if (result_compare == 'E') { return min; }
 	num_to_divide_by.multiply(max, &mult_result);
-	result_compare = mult_result.compare_to(*this);
+	result_compare = mult_result.compare_to_ignore_sign(*this);
 	if ((result_compare == 'E') || (result_compare == 'S')) { return max; }
 	while (true)
 	{
 		few_bits average = (((many_bits)min) + ((many_bits)max)) / 2;
 		num_to_divide_by.multiply(average, &mult_result);
-		result_compare = mult_result.compare_to(*this);
+		result_compare = mult_result.compare_to_ignore_sign(*this);
 		if (result_compare == 'E') { return average; }
 		if (result_compare == 'L') { max = average; }
 		else { min = average; }
@@ -3374,44 +3168,62 @@ few_bits unlimited_int::binary_search_divide(unlimited_int& num_to_divide_by)
 	}
 	return 0;
 }
-unlimited_int* unlimited_int::divide_by(unlimited_int& num_to_divide_by)
+unlimited_int* unlimited_int::divide_by(const unlimited_int& num_to_divide_by) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"divide_by(unlimited_int& num_to_divide_by)\"";
 #endif
 #if DEBUG_MODE > 0
 	if ((this->find_inconsistencies()) || (num_to_divide_by.find_inconsistencies()))
-	{
-		std::cout << "\nThe inconsistency was found in start of function \"divide_by(unlimited_int& num_to_divide_by)\"";
-	}
-	if (num_to_divide_by.num_of_used_ints == 0) { std::cerr << "\nError trying to divide by zero."; }
+		throw "\nThe inconsistency was found in start of function \"divide_by(unlimited_int& num_to_divide_by)\"";
 #endif
+	if (num_to_divide_by.num_of_used_ints == 0) { throw "\nError trying to divide by zero."; }
 	many_bits num_of_used_ints_divide = num_to_divide_by.num_of_used_ints;
 	many_bits num_of_used_ints_this = this->num_of_used_ints;
-	char result_compare = this->compare_to(num_to_divide_by);
-	unlimited_int* answer = new unlimited_int;
-	if (result_compare == 'E') { *answer = 1; return answer; }
-	if (result_compare == 'S') { return answer; }
-	if (num_of_used_ints_this == 0 || num_of_used_ints_divide == 0) { return answer; }
-	if (num_of_used_ints_this == num_of_used_ints_divide)
+	char result_compare = this->compare_to_ignore_sign(num_to_divide_by);
+	unlimited_int* answer = nullptr;
+	if (result_compare == 'E') { answer = new unlimited_int(1); return answer; }
+	if (result_compare == 'S') { answer = new unlimited_int; return answer; }
+	if (num_of_used_ints_this == 0 || num_of_used_ints_divide == 0) { answer = new unlimited_int;  return answer; }
+	many_bits_signed exact_power_of_2 = num_to_divide_by.find_exact_log_2();
+	if (exact_power_of_2 >= 0) //more efficient method of division when dividing by power of 2
 	{
-		*answer = this->binary_search_divide(num_to_divide_by);
+		answer = (*this) >> (many_bits)exact_power_of_2;
+#if DEBUG_MODE == 2
+		std::cout << "\nFinding inconsistencies in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
+#endif
+#if DEBUG_MODE > 0
+		if (answer->find_inconsistencies())
+			throw "\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
+#endif
 		return answer;
 	}
+	if (num_of_used_ints_this == num_of_used_ints_divide)
+	{
+		answer = new unlimited_int(this->binary_search_divide(num_to_divide_by));
+#if DEBUG_MODE == 2
+		std::cout << "\nFinding inconsistencies in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
+#endif
+#if DEBUG_MODE > 0
+		if (answer->find_inconsistencies())
+			throw "\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
+#endif
+		return answer;
+	}
+	answer = new unlimited_int;
 	unlimited_int partial_this;
-	many_bits num_of_ints_taken_from_this_so_far;
 	many_bits num_of_ints_currently_using_from_this = num_of_used_ints_divide;
 	this->copy_most_significant_to(partial_this, num_of_ints_currently_using_from_this);
 	__list_location__ ll_start = this->find_num_used_int_from_significant(num_of_ints_currently_using_from_this + 1);
 	Node* it_this = ll_start.node;
 	int_array* current_int_array_this = it_this->value;
 	many_bits_signed index_this = ll_start.index;
-	result_compare = partial_this.compare_to(num_to_divide_by);
+	result_compare = partial_this.compare_to_ignore_sign(num_to_divide_by);
 	if (result_compare == 'S')
 	{
 		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
 		++num_of_ints_currently_using_from_this;
-		result_compare = partial_this.compare_to(num_to_divide_by);
+		result_compare = partial_this.compare_to_ignore_sign(num_to_divide_by);
 		--index_this;
 		if (index_this < 0)
 		{
@@ -3432,7 +3244,8 @@ unlimited_int* unlimited_int::divide_by(unlimited_int& num_to_divide_by)
 		num_to_divide_by.multiply(binary_search_division_result, &result_of_multiplication);
 		partial_this.subtract(&result_of_multiplication, &partial_this);
 		result_of_multiplication.flush();
-		if (num_of_ints_currently_using_from_this == num_of_used_ints_this) { break; }
+		if (num_of_ints_currently_using_from_this == num_of_used_ints_this)
+			break;
 		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
 		++num_of_ints_currently_using_from_this;
 		--index_this;
@@ -3454,54 +3267,18 @@ unlimited_int* unlimited_int::divide_by(unlimited_int& num_to_divide_by)
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
-	}
+		throw "\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
 #endif
 	return answer;
 }
-unlimited_int* unlimited_int::divide_using_binary_search(unlimited_int& num_to_divide_by)
-{
-	unlimited_int* min = new unlimited_int;
-	unlimited_int* max = new unlimited_int;
-	unlimited_int* answer;
-	this->copy_to(*max);
-	many_bits_signed permanent_difference = ((many_bits_signed)this->num_of_used_ints) - ((many_bits_signed)num_to_divide_by.num_of_used_ints);
-	while (true)
-	{
-		unlimited_int difference_between_min_and_max = (*max) - (*min);
-		if (difference_between_min_and_max <= ((many_bits_signed)1)) { delete max; return min; }
-		difference_between_min_and_max.flush();
-		unlimited_int* average = (*min) + (*max);
-		(*average) >>= 1; //divide by two
-		many_bits_signed difference = permanent_difference - ((many_bits_signed)average->num_of_used_ints);
-		if (difference < -1) { delete max; max = average; }
-		else if (difference > 0) { delete min; min = average; }
-		else
-		{
-			answer = num_to_divide_by.multiply_karatsuba(average);
-			char compare_result = answer->compare_to(*this);
-			delete answer;
-			if (compare_result == 'E')
-			{
-				delete min; delete max;
-				return average;
-			}
-			else if (compare_result == 'S') { delete min; min = average; }
-			else { delete max; max = average; }
-		}
-	}
-}
-void unlimited_int::push_to_insignificant(few_bits num_to_push)
+void unlimited_int::push_to_insignificant(const few_bits num_to_push)
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"push_to_insignificant(few_bits num_to_push)\"";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in start of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"";
-	}
+		throw "\nThe inconsistency was found in start of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"";
 #endif
 	if (this->num_of_used_ints == 0) { this->assign(num_to_push); return; }
 	int_array* int_array_first = this->intarrays.intarrays.first->value;
@@ -3519,12 +3296,17 @@ void unlimited_int::push_to_insignificant(few_bits num_to_push)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in end of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"";
-	}
+		throw "\nThe inconsistency was found in end of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"";
 #endif
 }
-char* unlimited_int::to_string(int base)
+std::string unlimited_int::to_string(const int base) const
+{
+	char* c_str_received = this->to_c_string(base);
+	std::string str_to_return(c_str_received);
+	delete[]c_str_received;
+	return str_to_return;
+}
+char* unlimited_int::to_c_string(const int base) const
 {
 	if (this->num_of_used_ints == 0)
 	{
@@ -3533,7 +3315,7 @@ char* unlimited_int::to_string(int base)
 		char_to_return[1] = '\0';
 		return char_to_return;
 	}
-	const int size_of_string = (this->num_of_used_ints) * NUM_OF_BITS_few_bits;
+	const many_bits_signed size_of_string = (this->num_of_used_ints) * (many_bits)NUM_OF_BITS_few_bits;
 	char* string_base = new char[size_of_string];
 	many_bits_signed counter = 0;
 	unlimited_int numerator = this->copy(), base_str = ((many_bits_signed)base);
@@ -3541,26 +3323,25 @@ char* unlimited_int::to_string(int base)
 	while ((numerator > ((many_bits_signed)0)) && (counter < size_of_string))
 	{
 		unlimited_int current_digit_ui = (numerator % base_str);
-		string_base[counter] = unlimited_int::number_to_char((int)current_digit_ui, base);
+		string_base[counter] = unlimited_int::number_to_char((int)current_digit_ui.get_least_significant(), base);
 		numerator /= base_str;
 		++counter;
 	}
 	//by now we have the digits of string_base backwards
 	char* final_str;
 	char* final_str_original;
-	many_bits_signed counter2 = 0;
 	if (this->is_negative)
 	{
-		final_str_original = new char[counter + 2];
+		final_str_original = new char[counter + 2ULL];
 		final_str_original[0] = '-';
 		final_str = final_str_original + 1;
 	}
 	else
 	{
-		final_str_original = new char[counter + 1];
+		final_str_original = new char[counter + 1ULL];
 		final_str = final_str_original;
 	}
-	for (many_bits_signed counter3 = counter - 1; counter2 < counter; ++counter2, --counter3)
+	for (many_bits_signed counter2 = 0, counter3 = counter - 1; counter2 < counter; ++counter2, --counter3)
 	{
 		final_str[counter2] = string_base[counter3];
 	}
@@ -3568,15 +3349,15 @@ char* unlimited_int::to_string(int base)
 	final_str[counter] = '\0';
 	return final_str_original;
 }
-unlimited_int* unlimited_int::from_string(char* str, const int base = 10)
+unlimited_int* unlimited_int::from_string(const char* str, const int base)
 {
 	unlimited_int* answer = new unlimited_int;
 	if (str[0] == '0') { answer->set_to_zero(); return answer; }
 	bool set_answer_to_true = false;
 	if (str[0] == '-') { set_answer_to_true = true; ++str; }
-	if ((base <= 0) || (base > 36)) { std::cerr << "\nError in function \"from_string\" Invalid Argument!\nbase is out of range \"1 <= base <= 36\""; return answer; }
+	if ((base <= 0) || (base > 36)) { throw "\nError in function \"from_c_string\" Invalid Argument!\nbase is out of range \"1 <= base <= 36\""; }
 	unlimited_int base_ui = base;
-	char* it_ch = str;
+	const char* it_ch = str;
 	many_bits_signed counter = 0;
 	while (*it_ch != '\0') { ++it_ch; ++counter; }
 	many_bits_signed index = counter - 1;
@@ -3585,9 +3366,7 @@ unlimited_int* unlimited_int::from_string(char* str, const int base = 10)
 	{
 		int value = unlimited_int::char_to_number(str[index], base);
 		if (value == -1)
-		{
-			std::cerr << "\nError in function \"unlimited_int::from_string(char*, const int base)\": Invalid char in the char array";
-		}
+			throw "\nError in function \"unlimited_int::from_c_string(char*, const int base)\": Invalid char in the char array";
 		unlimited_int temp_answer;
 		multiplicand.multiply(value, &temp_answer);
 		*answer += temp_answer;
@@ -3597,14 +3376,11 @@ unlimited_int* unlimited_int::from_string(char* str, const int base = 10)
 	answer->is_negative = set_answer_to_true;
 	return answer;
 }
-int unlimited_int::char_to_number(char ch, const int base = 10)
+int unlimited_int::char_to_number(const char ch, const int base)
 {
 	if ((ch < 48) || ((ch > 57) && (ch < 65)) || ((ch > 90) && (ch < 97)) || (ch > 122))
-	{
-		std::cerr << "\nError in function \"char_to_number(char ch, int base)\" Invalid Argument!\nchar ch is a NON number or letter characters: " << ((int)ch);
-		return (-1);
-	}
-	if ((base <= 0) || (base > 36)) { std::cerr << "\nError in function \"char_to_number(char ch, int base)\" Invalid Argument!\nbase is out of range \"1 <= base <= 36\""; return -1; }
+		throw "\nError in function \"char_to_number(char ch, int base)\" Invalid Argument!\nchar ch is a NON number or letter characters: ";
+	if ((base <= 0) || (base > 36)) { throw "\nError in function \"char_to_number(char ch, int base)\" Invalid Argument!\nbase is out of range \"1 <= base <= 36\""; }
 	int value;
 	if (ch <= 57) //is a number
 	{
@@ -3616,74 +3392,102 @@ int unlimited_int::char_to_number(char ch, const int base = 10)
 	}
 	else { value = ch - 87; } //is a lower-case letter
 	if (value >= base)
-	{
-		std::cerr << "\nError in function \"char_to_number(char ch, int base)\" Invalid Argument!\nthe number of char ch: " << value << " is not a digit in the specified base: " << base;
-		return (-1);
-	}
+		throw "\nError in function \"char_to_number(char ch, int base)\" Invalid Argument!\nthe number of char ch is not a digit in the specified base.";
 	return value;
 }
-char unlimited_int::number_to_char(int num, const int base = 10)
+char unlimited_int::number_to_char(const int num, const int base = 10)
 {
-	if ((num >= base) || (num < 0)) { std::cout << "\nError in function \"number_to_char\" num out of range."; return '0'; }
-	if ((base <= 0) || (base > 36)) { std::cerr << "\nError in function \"number_to_char\" Invalid Argument!\nbase is out of range \"1 <= base <= 36\""; return '0'; }
+	if ((num >= base) || (num < 0)) { throw "\nError in function \"number_to_char\" num out of range."; }
+	if ((base <= 0) || (base > 36)) { throw "\nError in function \"number_to_char\" Invalid Argument!\nbase is out of range \"1 <= base <= 36\"";}
 	if (num <= 9) { return (num + 48); }
 	return (num + 87);
 }
-unlimited_int* unlimited_int::generate_random(unlimited_int& min, unlimited_int& max)
+unlimited_int* unlimited_int::generate_random_that_is_at_least(many_bits min_num_of_bits)
+{
+	unlimited_int* result_random = new unlimited_int;
+#if IS_64_BIT_SYSTEM
+	const many_bits num_of_sha512_hashes_needed = ceiling_division(min_num_of_bits, 512);
+	many_bits num_hash;
+	for (num_hash = 0; num_hash < num_of_sha512_hashes_needed; ++num_hash)
+	{
+		unlimited_int current_hash = generate_next_random();
+		current_hash <<= (num_hash * 512);
+		(*result_random) |= current_hash;
+	}
+	while (result_random->get_length_in_bits() < min_num_of_bits) //for the 1 in 1024 chance that result_random is still smaller than min_num_of_bits
+	{
+		unlimited_int current_hash = generate_next_random();
+		current_hash <<= (num_hash * 512);
+		(*result_random) |= current_hash;
+		++num_hash;
+	}
+#else
+	const many_bits num_of_sha256_hashes_needed = ceiling_division(min_num_of_bits, 256);
+	many_bits num_hash;
+	for (num_hash = 0; num_hash < num_of_sha256_hashes_needed; ++num_hash)
+	{
+		unlimited_int current_hash = generate_next_random();
+		current_hash <<= (num_hash * 256);
+		(*result_random) |= current_hash;
+	}
+	while (result_random->get_length_in_bits() < min_num_of_bits) //for the 1 in 512 chance that result_random is still smaller than min_num_of_bits
+	{
+		unlimited_int current_hash = generate_next_random();
+		current_hash <<= (num_hash * 256);
+		(*result_random) |= current_hash;
+		++num_hash;
+	}
+#endif
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int* unlimited_int::generate_random_that_is_at_least(many_bits min_num_of_bits)\"";
+#endif
+#if DEBUG_MODE > 0
+	if (result_random->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function: \"unlimited_int* unlimited_int::generate_random_that_is_at_least(many_bits min_num_of_bits)\"";
+#endif
+	return result_random;
+}
+unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)
 {
 	char result_compare = min.compare_to(max);
 	if (result_compare == 'L')
-	{
-		std::cerr << "\nError found in function \"unlimited_int::generate_random(unlimited_int&, unlimited_int&)\": min > max";
-		return (min.copy());
-	}
+		throw "\nError found in function \"unlimited_int::generate_random(unlimited_int&, unlimited_int&)\": min > max";
 	else if (result_compare == 'E')
-	{
 		return (min.copy());
-	}
 	unlimited_int result_of_sub = max - min;
-	unlimited_int* answer = unlimited_int::generate_random(result_of_sub);
+	//Correction by 1 because max is also within range
+	++result_of_sub;
+	unlimited_int large_enough_random_num = generate_random_that_is_at_least(result_of_sub.get_length_in_bits() + (many_bits)256); //No, the 256 isn't a mistake, even when using SHA512. It's just a big number.
+	unlimited_int* answer = large_enough_random_num % result_of_sub;
 	*answer += min;
-	return answer;
-}
-unlimited_int* unlimited_int::generate_random(unlimited_int& max)
-{
-	unlimited_int* answer = new unlimited_int;
-	if (max.num_of_used_ints == 0) { return answer; }
-	__list_location__ ll = max.find_num_used_int_from_significant(1);
-	few_bits most_significant_max = ll.node->value->intarr[ll.index];
-	answer->randomize(max.num_of_used_ints);
-	if (*answer > max)
-	{
-		__list_location__ ll_answer = answer->find_num_used_int_from_significant(1);
-		few_bits* most_significant_answer_ptr = &ll_answer.node->value->intarr[ll_answer.index];
-		few_bits num_to_assign = unlimited_int::generate_random_many_bits() % (((many_bits)most_significant_max) + ((many_bits)1));
-		*most_significant_answer_ptr = num_to_assign;
-		if (num_to_assign == 0) { answer->cutoff_leading_zeros(ll_answer.node); }
-		else if (*answer > max)
-		{
-			num_to_assign = unlimited_int::generate_random_many_bits() % ((many_bits)num_to_assign);
-			*most_significant_answer_ptr = num_to_assign;
-			if (num_to_assign == 0) { answer->cutoff_leading_zeros(ll_answer.node); }
-		}
-	}
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)\"";
+#endif
+#if DEBUG_MODE > 0
+	if (answer->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)\"";
+	if ((*answer < min) || (*answer > max))
+		throw "Error in function \"unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)\". Result is out of range (an internal bug)";
+#endif
 	return answer;
 }
 //makes use if the identity (a ⋅ b) mod m = [(a mod m) ⋅ (b mod m)] mod m
-unlimited_int* unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)
+unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod)
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
 #endif
 #if DEBUG_MODE > 0
 	if (base.find_inconsistencies() || power.find_inconsistencies() || mod.find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in start of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
-	}
+		throw "\nThe inconsistency was found in start of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
 #endif
-	unlimited_int* answer = new unlimited_int(((many_bits_signed)1));
+	if (base.is_zero() && power.is_zero())
+		throw "\nInvalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod)\" pow(0, 0) is mathematically undefined";
+	if (mod.is_zero())
+		throw "\nInvalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod)\" division by zero is undefined";
+	unlimited_int* answer = new unlimited_int((many_bits)1);
 	if (power.num_of_used_ints == 0) { return answer; }
-	if (base.num_of_used_ints == 0) { answer->set_to_zero(); return answer; }
+	if ((base.num_of_used_ints == 0) || (power.is_negative == true)) { answer->set_to_zero(); return answer; }
 	if (mod == ((many_bits_signed)1)) { answer->set_to_zero(); return answer; }
 	unlimited_int current_power = base.copy();
 	current_power %= mod;
@@ -3711,30 +3515,26 @@ unlimited_int* unlimited_int::pow(unlimited_int& base, unlimited_int& power, unl
 #endif
 #if DEBUG_MODE > 0
 	if (base.find_inconsistencies() || power.find_inconsistencies() || mod.find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
-	}
+		throw "\nThe inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
 	if (answer->find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\" in answer";
-	}
+		throw "\nThe inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\" in answer";
 #endif
 	return answer;
 }
-unlimited_int* unlimited_int::pow(unlimited_int& base, unlimited_int& power)
+unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power)
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"";
 #endif
 #if DEBUG_MODE > 0
 	if (base.find_inconsistencies() || power.find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in start of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"";
-	}
+		throw "\nThe inconsistency was found in start of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"";
 #endif
+	if (base.is_zero() && power.is_zero())
+		throw "\nInvalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power)\" pow(0, 0) is mathematically undefined";
 	unlimited_int* answer = new unlimited_int(((many_bits_signed)1));
 	if (power.num_of_used_ints == 0) { return answer; }
-	if (base.num_of_used_ints == 0) { answer->set_to_zero(); return answer; }
+	if ((base.num_of_used_ints == 0) || power.is_negative) { answer->set_to_zero(); return answer; }
 	unlimited_int current_power = base.copy();
 	unlimited_int power_cpy = power.copy();
 	if (power_cpy.modulo_2() == 1) { *answer *= current_power; }
@@ -3750,13 +3550,999 @@ unlimited_int* unlimited_int::pow(unlimited_int& base, unlimited_int& power)
 #endif
 #if DEBUG_MODE > 0
 	if (base.find_inconsistencies() || power.find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"";
-	}
+		throw "\nThe inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"";
 	if (answer->find_inconsistencies())
-	{
-		std::cout << "\nThe inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\" in answer";
-	}
+		throw "\nThe inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\" in answer";
 #endif
 	return answer;
+}
+unlimited_int* unlimited_int::gcd(const unlimited_int& a, const unlimited_int& b)
+{
+	unlimited_int* a_editable = a.copy();
+	unlimited_int* b_editable = b.copy();
+	a_editable->is_negative = false;
+	b_editable->is_negative = false;
+	while (!b_editable->is_zero())
+	{
+		unlimited_int* modulo_result = (*a_editable) % (*b_editable);
+		delete a_editable;
+		a_editable = b_editable;
+		b_editable = modulo_result;
+	}
+	delete b_editable;
+	return a_editable;
+}
+//lcm(a, b) = abs(a * b) / gcd(a, b)
+unlimited_int* unlimited_int::lcm(const unlimited_int& a, const unlimited_int& b)
+{
+	unlimited_int gcd = unlimited::unlimited_int::gcd(a, b);
+	unlimited_int result_of_division = a / gcd;
+	unlimited_int* result = b * result_of_division;
+	result->is_negative = false;
+	return result;
+}
+unlimited_int::unlimited_int(uint32_t* arr, many_bits len)
+{
+	this->auto_destroy = false;
+	this->assign(arr, len);
+}
+unlimited_int::unlimited_int(uint64_t* arr, many_bits len)
+{
+	this->auto_destroy = false;
+	this->assign(arr, len);
+}
+void unlimited_int::assign(uint64_t* arr, many_bits len)
+{
+	if (this->auto_destroy) { this->flush(); }
+	else { this->forget_memory();  this->auto_destroy = true; }
+	if (len == 0) { return; }
+#if NUM_OF_BITS_few_bits == 16
+	const many_bits num_of_ints = len * 4;
+#elif NUM_OF_BITS_few_bits == 32
+	const many_bits num_of_ints = len * 2;
+#endif
+	this->intarrays.increase_until_num_of_ints(num_of_ints);
+	Node* current_int_array_Node = this->intarrays.intarrays.first;
+	int_array current_int_array = *current_int_array_Node->value;
+	current_int_array_Node->value->set_num_of_used_ints_to_maximum();
+	many_bits index_in_current_int_array = 0;
+	many_bits int_array_counter = 0;
+#if NUM_OF_BITS_few_bits == 32
+	bool using_significant_part = false;
+	uint64_t previous_num = 0U;
+#elif NUM_OF_BITS_few_bits == 16
+	uint64_t previous_num = 0;
+	int num_of_bits_used_from_previous_num = 0;
+#endif
+	for (many_bits_signed counter_ints = len - 1; counter_ints >= 0; )
+	{
+#if NUM_OF_BITS_few_bits == 16
+		if (num_of_bits_used_from_previous_num == 0)
+			previous_num = arr[counter_ints];
+		current_int_array.intarr[index_in_current_int_array] = (few_bits)((previous_num >> num_of_bits_used_from_previous_num) & (uint64_t)MASK_LOW_BITS);
+		num_of_bits_used_from_previous_num += 16;
+		if (num_of_bits_used_from_previous_num == 64)
+		{
+			--counter_ints;
+			num_of_bits_used_from_previous_num = 0;
+		}
+#elif NUM_OF_BITS_few_bits == 32
+		if (using_significant_part)
+		{
+			current_int_array.intarr[index_in_current_int_array] = (few_bits)(previous_num >> 32);
+			using_significant_part = false;
+			--counter_ints;
+		}
+		else
+		{
+			previous_num = arr[counter_ints];
+			current_int_array.intarr[index_in_current_int_array] = (few_bits)(previous_num & (uint64_t)MASK_LOW_BITS);
+			using_significant_part = true;
+		}
+#endif
+		++index_in_current_int_array;
+		if (index_in_current_int_array >= current_int_array.intarr_len)
+		{
+			if (counter_ints >= 0)
+			{
+				++int_array_counter;
+				current_int_array_Node->value->set_num_of_used_ints_to_maximum();
+				index_in_current_int_array = 0;
+				current_int_array_Node = current_int_array_Node->next;
+				current_int_array = *current_int_array_Node->value;
+			}
+		}
+	}
+	current_int_array_Node->value->num_of_used_ints = index_in_current_int_array;
+	this->num_of_used_ints = num_of_ints;
+	this->num_of_intarrays_used = int_array_counter + 1;
+	this->cutoff_leading_zeros(current_int_array_Node);
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"";
+#endif
+}
+void unlimited_int::assign(uint32_t* arr, many_bits len)
+{
+	if (this->auto_destroy) { this->flush(); }
+	else { this->forget_memory();  this->auto_destroy = true; }
+	if (len == 0) { return; }
+#if NUM_OF_BITS_few_bits == 16
+	const many_bits num_of_ints = len * 2;
+#elif NUM_OF_BITS_few_bits == 32
+	const many_bits num_of_ints = len;
+#endif
+	this->intarrays.increase_until_num_of_ints(num_of_ints);
+	Node* current_int_array_Node = this->intarrays.intarrays.first;
+	int_array current_int_array = *current_int_array_Node->value;
+	current_int_array_Node->value->set_num_of_used_ints_to_maximum();
+	many_bits index_in_current_int_array = 0;
+	many_bits int_array_counter = 0;
+#if NUM_OF_BITS_few_bits == 16
+	bool using_significant_part = false;
+	uint32_t previous_num = 0U;
+#endif
+	for (many_bits_signed counter_ints = len - 1; counter_ints >= 0; )
+	{
+#if NUM_OF_BITS_few_bits == 16
+		if (using_significant_part)
+		{
+			current_int_array.intarr[index_in_current_int_array] = (few_bits)(previous_num >> 16);
+			using_significant_part = false;
+			--counter_ints;
+		}
+		else
+		{
+			previous_num = arr[counter_ints];
+			current_int_array.intarr[index_in_current_int_array] = (few_bits)(previous_num & MASK_LOW_BITS);
+			using_significant_part = true;
+		}
+#else
+		current_int_array.intarr[index_in_current_int_array] = arr[counter_ints];
+		--counter_ints;
+#endif
+		++index_in_current_int_array;
+		if (index_in_current_int_array >= current_int_array.intarr_len)
+		{
+			if (counter_ints >= 0)
+			{
+				++int_array_counter;
+				current_int_array_Node->value->set_num_of_used_ints_to_maximum();
+				index_in_current_int_array = 0;
+				current_int_array_Node = current_int_array_Node->next;
+				current_int_array = *current_int_array_Node->value;
+			}
+		}
+	}
+	current_int_array_Node->value->num_of_used_ints = index_in_current_int_array;
+	this->num_of_used_ints = num_of_ints;
+	this->num_of_intarrays_used = int_array_counter + 1;
+	this->cutoff_leading_zeros(current_int_array_Node);
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"";
+#endif
+}
+unlimited_int* unlimited_int::operator&(const unlimited_int& right) const
+{
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in beginning of function \"unlimited_int* unlimited_int::operator&(const unlimited_int& right) const\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies() || right.find_inconsistencies())
+		throw "\nThe inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator&(const unlimited_int& right) const\"";
+#endif
+	if (this->is_zero() || right.is_zero())
+		return new unlimited_int; //returns 0
+	const unlimited_int* shorter_num = this;
+	const unlimited_int* longer_num = &right;
+	if (this->num_of_used_ints > right.num_of_used_ints)
+	{
+		const unlimited_int* temp_ui_ptr = shorter_num;
+		shorter_num = longer_num;
+		longer_num = temp_ui_ptr;
+	}
+	unlimited_int* result = new unlimited_int;
+	const many_bits len_of_result = shorter_num->num_of_used_ints;
+	if (len_of_result == 0)
+		return result;
+	result->intarrays.increase_until_num_of_ints(len_of_result);
+	Node* current_int_array_Node_shorter_num = shorter_num->intarrays.intarrays.first;
+	Node* current_int_array_Node_longer_num = longer_num->intarrays.intarrays.first;
+	Node* current_int_array_Node_result = result->intarrays.intarrays.first;
+	many_bits num_of_intarrays_in_result = 1;
+	int_array current_int_array_shorter_num = *current_int_array_Node_shorter_num->value;
+	int_array current_int_array_longer_num = *current_int_array_Node_longer_num->value;
+	int_array current_int_array_result = *current_int_array_Node_result->value;
+	current_int_array_Node_result->value->set_num_of_used_ints_to_maximum();
+	many_bits index_shorter_num = 0, index_longer_num = 0, index_result = 0;
+
+	many_bits stop_for_result = current_int_array_result.intarr_len;
+	many_bits stop_for_shorter_num = current_int_array_shorter_num.num_of_used_ints;
+	many_bits stop_for_longer_num = current_int_array_longer_num.num_of_used_ints;
+
+	many_bits stop_at = stop_for_result;
+	if (stop_for_shorter_num < stop_at)
+		stop_at = stop_for_shorter_num;
+	if (stop_for_longer_num < stop_at)
+		stop_at = stop_for_longer_num;
+	if (len_of_result < stop_at)
+		stop_at = len_of_result;
+
+	many_bits int_num_counter = 0;
+	while (true)
+	{
+		if (int_num_counter >= stop_at)
+		{
+			if (int_num_counter >= len_of_result)
+				break;
+			if (index_result >= current_int_array_result.intarr_len)
+			{
+				index_result = 0;
+				current_int_array_Node_result = current_int_array_Node_result->next;
+				current_int_array_result = *current_int_array_Node_result->value;
+				++num_of_intarrays_in_result;
+				current_int_array_Node_result->value->num_of_used_ints = current_int_array_result.intarr_len;
+			}
+			if (index_shorter_num >= current_int_array_shorter_num.num_of_used_ints)
+			{
+				index_shorter_num = 0;
+				current_int_array_Node_shorter_num = current_int_array_Node_shorter_num->next;
+				current_int_array_shorter_num = *current_int_array_Node_shorter_num->value;
+			}
+			if (index_longer_num >= current_int_array_longer_num.num_of_used_ints)
+			{
+				index_longer_num = 0;
+				current_int_array_Node_longer_num = current_int_array_Node_longer_num->next;
+				current_int_array_longer_num = *current_int_array_Node_longer_num->value;
+			}
+			const many_bits stop_for_result = int_num_counter + current_int_array_result.intarr_len - index_result;
+			const many_bits stop_for_shorter_num = int_num_counter + current_int_array_shorter_num.num_of_used_ints - index_shorter_num;
+			const many_bits stop_for_longer_num = int_num_counter + current_int_array_longer_num.num_of_used_ints - index_longer_num;
+			stop_at = stop_for_result;
+			if (stop_for_shorter_num < stop_at)
+				stop_at = stop_for_shorter_num;
+			if (stop_for_longer_num < stop_at)
+				stop_at = stop_for_longer_num;
+			if (len_of_result < stop_at)
+				stop_at = len_of_result;
+			continue;
+		}
+		current_int_array_result.intarr[index_result] = current_int_array_shorter_num.intarr[index_shorter_num] & current_int_array_longer_num.intarr[index_longer_num];
+		++index_result;
+		++index_longer_num;
+		++index_shorter_num;
+		++int_num_counter;
+	}
+	current_int_array_Node_result->value->num_of_used_ints = index_result;
+	result->num_of_used_ints = len_of_result;
+	result->num_of_intarrays_used = num_of_intarrays_in_result;
+	result->cutoff_leading_zeros(current_int_array_Node_result);
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator&(const unlimited_int& right) const\"";
+#endif
+#if DEBUG_MODE > 0
+	if (result->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator&(const unlimited_int& right) const\"";
+#endif
+	return result;
+}
+unlimited_int* unlimited_int::operator|(const unlimited_int& right) const
+{
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in beginning of function \"unlimited_int* unlimited_int::operator|(const unlimited_int& right) const\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies() || right.find_inconsistencies())
+		throw "\nThe inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator|(const unlimited_int& right) const\"";
+#endif
+	if (this->is_zero())
+	{
+		unlimited_int* right_copy = right.copy();
+		right_copy->is_negative = false;
+		return right_copy;
+	}
+	if (right.is_zero())
+	{
+		unlimited_int* this_copy = this->copy();
+		this_copy->is_negative = false;
+		return this_copy;
+	}
+	const unlimited_int* shorter_num = this;
+	const unlimited_int* longer_num = &right;
+	if (this->num_of_used_ints > right.num_of_used_ints)
+	{
+		const unlimited_int* temp_ui_ptr = shorter_num;
+		shorter_num = longer_num;
+		longer_num = temp_ui_ptr;
+	}
+	unlimited_int* result = new unlimited_int;
+	const many_bits len_of_result = longer_num->num_of_used_ints;
+	result->intarrays.increase_until_num_of_ints(len_of_result);
+	const many_bits len_of_shorter_num = shorter_num->num_of_used_ints;
+	Node* current_int_array_Node_shorter_num = shorter_num->intarrays.intarrays.first;
+	Node* current_int_array_Node_longer_num = longer_num->intarrays.intarrays.first;
+	Node* current_int_array_Node_result = result->intarrays.intarrays.first;
+	many_bits num_of_intarrays_in_result = 1;
+	int_array current_int_array_shorter_num = *current_int_array_Node_shorter_num->value;
+	int_array current_int_array_longer_num = *current_int_array_Node_longer_num->value;
+	int_array current_int_array_result = *current_int_array_Node_result->value;
+	current_int_array_Node_result->value->set_num_of_used_ints_to_maximum();
+	many_bits index_shorter_num = 0, index_longer_num = 0, index_result = 0;
+
+	const many_bits stop_for_result = current_int_array_result.intarr_len;
+	const many_bits stop_for_shorter_num = current_int_array_shorter_num.num_of_used_ints;
+	const many_bits stop_for_longer_num = current_int_array_longer_num.num_of_used_ints;
+
+	many_bits stop_at = stop_for_result;
+	if (stop_for_shorter_num < stop_at)
+		stop_at = stop_for_shorter_num;
+	if (stop_for_longer_num < stop_at)
+		stop_at = stop_for_longer_num;
+	if (len_of_result < stop_at)
+		stop_at = len_of_result;
+
+	many_bits int_num_counter = 0;
+	while (true)
+	{
+		if (int_num_counter >= stop_at)
+		{
+			if (int_num_counter >= len_of_shorter_num)
+				break;
+			if (index_result >= current_int_array_result.intarr_len)
+			{
+				index_result = 0;
+				current_int_array_Node_result = current_int_array_Node_result->next;
+				current_int_array_result = *current_int_array_Node_result->value;
+				++num_of_intarrays_in_result;
+				current_int_array_Node_result->value->num_of_used_ints = current_int_array_result.intarr_len;
+			}
+			if (index_shorter_num >= current_int_array_shorter_num.num_of_used_ints)
+			{
+				index_shorter_num = 0;
+				current_int_array_Node_shorter_num = current_int_array_Node_shorter_num->next;
+				current_int_array_shorter_num = *current_int_array_Node_shorter_num->value;
+			}
+			if (index_longer_num >= current_int_array_longer_num.num_of_used_ints)
+			{
+				index_longer_num = 0;
+				current_int_array_Node_longer_num = current_int_array_Node_longer_num->next;
+				current_int_array_longer_num = *current_int_array_Node_longer_num->value;
+			}
+			const many_bits stop_for_result = int_num_counter + current_int_array_result.intarr_len - index_result;
+			const many_bits stop_for_shorter_num = int_num_counter + current_int_array_shorter_num.num_of_used_ints - index_shorter_num;
+			const many_bits stop_for_longer_num = int_num_counter + current_int_array_longer_num.num_of_used_ints - index_longer_num;
+			stop_at = stop_for_result;
+			if (stop_for_shorter_num < stop_at)
+				stop_at = stop_for_shorter_num;
+			if (stop_for_longer_num < stop_at)
+				stop_at = stop_for_longer_num;
+			if (len_of_shorter_num < stop_at)
+				stop_at = len_of_shorter_num;
+			continue;
+		}
+		current_int_array_result.intarr[index_result] = current_int_array_shorter_num.intarr[index_shorter_num] | current_int_array_longer_num.intarr[index_longer_num];
+		++index_result;
+		++index_longer_num;
+		++index_shorter_num;
+		++int_num_counter;
+	}
+	while (true)
+	{
+		if (int_num_counter >= stop_at)
+		{
+			if (int_num_counter >= len_of_result)
+				break;
+			if (index_result >= current_int_array_result.intarr_len)
+			{
+				index_result = 0;
+				current_int_array_Node_result = current_int_array_Node_result->next;
+				current_int_array_result = *current_int_array_Node_result->value;
+				++num_of_intarrays_in_result;
+				current_int_array_Node_result->value->num_of_used_ints = current_int_array_result.intarr_len;
+			}
+			if (index_longer_num >= current_int_array_longer_num.num_of_used_ints)
+			{
+				index_longer_num = 0;
+				current_int_array_Node_longer_num = current_int_array_Node_longer_num->next;
+				current_int_array_longer_num = *current_int_array_Node_longer_num->value;
+			}
+			const many_bits stop_for_result = int_num_counter + current_int_array_result.intarr_len - index_result;
+			const many_bits stop_for_longer_num = int_num_counter + current_int_array_longer_num.num_of_used_ints - index_longer_num;
+			stop_at = stop_for_result;
+			if (stop_for_longer_num < stop_at)
+				stop_at = stop_for_longer_num;
+			if (len_of_result < stop_at)
+				stop_at = len_of_result;
+			continue;
+		}
+		current_int_array_result.intarr[index_result] = current_int_array_longer_num.intarr[index_longer_num];
+		++index_result;
+		++index_longer_num;
+		++int_num_counter;
+	}
+	current_int_array_Node_result->value->num_of_used_ints = index_result;
+	result->num_of_used_ints = len_of_result;
+	result->num_of_intarrays_used = num_of_intarrays_in_result;
+	result->cutoff_leading_zeros(current_int_array_Node_result);
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator|(const unlimited_int& right) const\"";
+#endif
+#if DEBUG_MODE > 0
+	if (result->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator|(const unlimited_int& right) const\"";
+#endif
+	return result;
+}
+unlimited_int* unlimited_int::operator^(const unlimited_int& right) const
+{
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in beginning of function \"unlimited_int* unlimited_int::operator^(const unlimited_int& right) const\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies() || right.find_inconsistencies())
+		throw "\nThe inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator^(const unlimited_int& right) const\"";
+#endif
+	if (this->is_zero())
+	{
+		unlimited_int* right_copy = right.copy();
+		right_copy->is_negative = false;
+		return right_copy;
+	}
+	if (right.is_zero())
+	{
+		unlimited_int* this_copy = this->copy();
+		this_copy->is_negative = false;
+		return this_copy;
+	}
+	const unlimited_int* shorter_num = this;
+	const unlimited_int* longer_num = &right;
+	if (this->num_of_used_ints > right.num_of_used_ints)
+	{
+		const unlimited_int* temp_ui_ptr = shorter_num;
+		shorter_num = longer_num;
+		longer_num = temp_ui_ptr;
+	}
+	unlimited_int* result = new unlimited_int;
+	const many_bits len_of_result = longer_num->num_of_used_ints;
+	if (len_of_result == 0)
+		return result;
+	result->intarrays.increase_until_num_of_ints(len_of_result);
+	const many_bits len_of_shorter_num = shorter_num->num_of_used_ints;
+	Node* current_int_array_Node_shorter_num = shorter_num->intarrays.intarrays.first;
+	Node* current_int_array_Node_longer_num = longer_num->intarrays.intarrays.first;
+	Node* current_int_array_Node_result = result->intarrays.intarrays.first;
+	many_bits num_of_intarrays_in_result = 1;
+	int_array current_int_array_shorter_num = *current_int_array_Node_shorter_num->value;
+	int_array current_int_array_longer_num = *current_int_array_Node_longer_num->value;
+	int_array current_int_array_result = *current_int_array_Node_result->value;
+	current_int_array_Node_result->value->set_num_of_used_ints_to_maximum();
+	many_bits index_shorter_num = 0, index_longer_num = 0, index_result = 0;
+
+	const many_bits stop_for_result = current_int_array_result.intarr_len;
+	const many_bits stop_for_shorter_num = current_int_array_shorter_num.num_of_used_ints;
+	const many_bits stop_for_longer_num = current_int_array_longer_num.num_of_used_ints;
+
+	many_bits stop_at = stop_for_result;
+	if (stop_for_shorter_num < stop_at)
+		stop_at = stop_for_shorter_num;
+	if (stop_for_longer_num < stop_at)
+		stop_at = stop_for_longer_num;
+	if (len_of_result < stop_at)
+		stop_at = len_of_result;
+
+	many_bits int_num_counter = 0;
+	while (true)
+	{
+		if (int_num_counter >= stop_at)
+		{
+			if (int_num_counter >= len_of_shorter_num)
+				break;
+			if (index_result >= current_int_array_result.intarr_len)
+			{
+				index_result = 0;
+				current_int_array_Node_result = current_int_array_Node_result->next;
+				current_int_array_result = *current_int_array_Node_result->value;
+				++num_of_intarrays_in_result;
+				current_int_array_Node_result->value->set_num_of_used_ints_to_maximum();
+			}
+			if (index_shorter_num >= current_int_array_shorter_num.num_of_used_ints)
+			{
+				index_shorter_num = 0;
+				current_int_array_Node_shorter_num = current_int_array_Node_shorter_num->next;
+				current_int_array_shorter_num = *current_int_array_Node_shorter_num->value;
+			}
+			if (index_longer_num >= current_int_array_longer_num.num_of_used_ints)
+			{
+				index_longer_num = 0;
+				current_int_array_Node_longer_num = current_int_array_Node_longer_num->next;
+				current_int_array_longer_num = *current_int_array_Node_longer_num->value;
+			}
+			const many_bits stop_for_result = int_num_counter + current_int_array_result.intarr_len - index_result;
+			const many_bits stop_for_shorter_num = int_num_counter + current_int_array_shorter_num.num_of_used_ints - index_shorter_num;
+			const many_bits stop_for_longer_num = int_num_counter + current_int_array_longer_num.num_of_used_ints - index_longer_num;
+			stop_at = stop_for_result;
+			if (stop_for_shorter_num < stop_at)
+				stop_at = stop_for_shorter_num;
+			if (stop_for_longer_num < stop_at)
+				stop_at = stop_for_longer_num;
+			if (len_of_shorter_num < stop_at)
+				stop_at = len_of_shorter_num;
+			continue;
+		}
+		current_int_array_result.intarr[index_result] = current_int_array_shorter_num.intarr[index_shorter_num] ^ current_int_array_longer_num.intarr[index_longer_num];
+		++index_result;
+		++index_longer_num;
+		++index_shorter_num;
+		++int_num_counter;
+	}
+	while (true)
+	{
+		if (int_num_counter >= stop_at)
+		{
+			if (int_num_counter >= len_of_result)
+				break;
+			if (index_result >= current_int_array_result.intarr_len)
+			{
+				index_result = 0;
+				current_int_array_Node_result = current_int_array_Node_result->next;
+				current_int_array_result = *current_int_array_Node_result->value;
+				++num_of_intarrays_in_result;
+				current_int_array_Node_result->value->set_num_of_used_ints_to_maximum();
+			}
+			if (index_longer_num >= current_int_array_longer_num.num_of_used_ints)
+			{
+				index_longer_num = 0;
+				current_int_array_Node_longer_num = current_int_array_Node_longer_num->next;
+				current_int_array_longer_num = *current_int_array_Node_longer_num->value;
+			}
+			const many_bits stop_for_result = int_num_counter + current_int_array_result.intarr_len - index_result;
+			const many_bits stop_for_longer_num = int_num_counter + current_int_array_longer_num.num_of_used_ints - index_longer_num;
+			stop_at = stop_for_result;
+			if (stop_for_longer_num < stop_at)
+				stop_at = stop_for_longer_num;
+			if (len_of_result < stop_at)
+				stop_at = len_of_result;
+			continue;
+		}
+		current_int_array_result.intarr[index_result] = current_int_array_longer_num.intarr[index_longer_num];
+		++index_result;
+		++index_longer_num;
+		++int_num_counter;
+	}
+	current_int_array_Node_result->value->num_of_used_ints = index_result;
+	result->num_of_used_ints = len_of_result;
+	result->num_of_intarrays_used = num_of_intarrays_in_result;
+	result->cutoff_leading_zeros(current_int_array_Node_result);
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator^(const unlimited_int& right) const\"";
+#endif
+#if DEBUG_MODE > 0
+	if ((result->find_inconsistencies()) || this->find_inconsistencies() || right.find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator^(const unlimited_int& right) const\"";
+#endif
+	return result;
+}
+unlimited_int* unlimited_int::operator~() const
+{
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in beginning of function \"unlimited_int* unlimited_int::operator~() const\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies())
+		std::cout << "\nThe inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator~() const\"";
+#endif
+	unlimited_int* result = new unlimited_int;
+	const many_bits len_of_result = this->num_of_used_ints;
+	if (len_of_result == 0)
+		return result;
+	result->intarrays.increase_until_num_of_ints(len_of_result);
+	const many_bits len_of_this = this->num_of_used_ints;
+	Node* current_int_array_Node_this = this->intarrays.intarrays.first;
+	Node* current_int_array_Node_result = result->intarrays.intarrays.first;
+	many_bits num_of_intarrays_in_result = 1;
+	int_array current_int_array_this = *current_int_array_Node_this->value;
+	int_array current_int_array_result = *current_int_array_Node_result->value;
+	current_int_array_Node_result->value->num_of_used_ints = current_int_array_result.intarr_len;
+	many_bits index_this = 0, index_result = 0;
+
+	const many_bits stop_for_result = current_int_array_result.intarr_len;
+	const many_bits stop_for_this = current_int_array_this.num_of_used_ints;
+
+	many_bits stop_at = stop_for_result;
+	if (stop_for_this < stop_at)
+		stop_at = stop_for_this;
+	if (len_of_result < stop_at)
+		stop_at = len_of_result;
+
+	many_bits int_num_counter = 0;
+	while (true)
+	{
+		if (int_num_counter >= stop_at)
+		{
+			if (int_num_counter >= len_of_this)
+				break;
+			if (index_result >= current_int_array_result.intarr_len)
+			{
+				index_result = 0;
+				current_int_array_Node_result = current_int_array_Node_result->next;
+				current_int_array_result = *current_int_array_Node_result->value;
+				++num_of_intarrays_in_result;
+				current_int_array_Node_result->value->num_of_used_ints = current_int_array_result.intarr_len;
+			}
+			if (index_this >= current_int_array_this.num_of_used_ints)
+			{
+				index_this = 0;
+				current_int_array_Node_this = current_int_array_Node_this->next;
+				current_int_array_this = *current_int_array_Node_this->value;
+			}
+			const many_bits stop_for_result = int_num_counter + current_int_array_result.intarr_len - index_result;
+			const many_bits stop_for_this = int_num_counter + current_int_array_this.num_of_used_ints - index_this;
+			stop_at = stop_for_result;
+			if (stop_for_this < stop_at)
+				stop_at = stop_for_this;
+			if (len_of_this < stop_at)
+				stop_at = len_of_this;
+			continue;
+		}
+		current_int_array_result.intarr[index_result] = ~current_int_array_this.intarr[index_this];
+		++index_result;
+		++index_this;
+		++int_num_counter;
+	}
+	current_int_array_Node_result->value->num_of_used_ints = index_result;
+	--index_result;
+	--index_this;
+	const few_bits most_significant_int_in_this = current_int_array_this.intarr[index_this];
+	const int num_preceding_zeros = num_of_zero_bits_preceding_number(most_significant_int_in_this);
+	const few_bits inverted_most_significant_int_in_this = (few_bits)(~(most_significant_int_in_this << num_preceding_zeros)) >> num_preceding_zeros;
+	current_int_array_result.intarr[index_result] = inverted_most_significant_int_in_this;
+	result->num_of_used_ints = len_of_result;
+	result->num_of_intarrays_used = num_of_intarrays_in_result;
+	result->cutoff_leading_zeros(current_int_array_Node_result);
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator~() const\"";
+#endif
+#if DEBUG_MODE > 0
+	if (result->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator~() const\"";
+#endif
+	return result;
+}
+void insert_long_long_into_uint32_t(long long origin, uint32_t* destination_arr, size_t* counter_in_uint32_t)
+{
+#if IS_64_BIT_SYSTEM == false
+	destination_arr[*counter_in_uint32_t] = (uint32_t)origin;
+	++(*counter_in_uint32_t);
+#else
+	destination_arr[*counter_in_uint32_t] = (uint32_t)((many_bits)origin >> 32);
+	++(*counter_in_uint32_t);
+	destination_arr[*counter_in_uint32_t] = (uint32_t)((many_bits)origin & MASK_LOW_BITS);
+	++(*counter_in_uint32_t);
+#endif
+}
+//Most methods here to increase randomness don't actually work, but it's just a failsafe. Anyways the entire "uint32_t* nums_to_generate_seed" ends up getting hashed, so it can only increase randomness.
+//BTW this is not truly random, because it relies on time and memory address management, but for all intents and purposes it's truly random.
+unlimited_int* unlimited_int::generate_truly_random()
+{
+	srand((unsigned)time(NULL));
+	const int size_of_seed_arr = 4096;
+	uint32_t* nums_to_generate_seed = new uint32_t[size_of_seed_arr];
+	size_t uint32_t_index = 0;
+	std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+	long long time_in_ms_passed_since_1970 = ms.count();
+	insert_long_long_into_uint32_t(time_in_ms_passed_since_1970, nums_to_generate_seed, &uint32_t_index);
+	const size_t previous_stop = uint32_t_index;
+	for ( ; uint32_t_index < size_of_seed_arr; ++uint32_t_index)
+	{
+		unlimited_int base = (many_bits)(rand());
+		unlimited_int power = (many_bits)(rand());
+		if (base.is_zero() && power.is_zero()) //0^0 is undefined
+			base = (few_bits)1;
+		unlimited_int remainder = (many_bits)(rand());
+		if (remainder.is_zero()) //can't divide by zero
+			remainder = 1;
+		nums_to_generate_seed[uint32_t_index] = (uint32_t)(unlimited_int(unlimited_int::pow(base, power, remainder)).get_least_significant());
+	}
+	uint32_t_index = previous_stop;
+	insert_long_long_into_uint32_t((long long)(&uint32_t_index), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)nums_to_generate_seed[(size_t)(&nums_to_generate_seed) % size_of_seed_arr], nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)(&nums_to_generate_seed), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)(sizeof(void*)), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)(sizeof(short int)), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)(sizeof(int)), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)(sizeof(long int)), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)(sizeof(long long int)), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)(sizeof(float)), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)(sizeof(double)), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)(sizeof(long double)), nums_to_generate_seed, &uint32_t_index);
+#if IS_64_BIT_SYSTEM
+	unlimited_int* num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
+#else
+	unlimited_int* num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha256_hash();
+#endif
+	const long long extra_randomness_from_memory = (long long)num_to_return;
+	//using floating-point rounding errors to increase randomness
+	for (int counter = 0; counter < 20; ++counter)
+	{
+		long double random_num = std::sqrt(
+									std::abs(
+										std::pow(
+											(((long double)rand() * 15.14298572336489365L) * (double)(extra_randomness_from_memory)) / ((long double)rand() * 5.13298579236489365L),
+											(((long double)rand() * 15.14298572336489365L) * (double)(extra_randomness_from_memory)) / ((long double)rand() * 5.13298579236489365L)
+										)
+									)	
+								);
+		unsigned char* c = reinterpret_cast<unsigned char*>(&random_num); //reinterpret_cast tells the compiler to just let me do it without interfering
+		long long int_from_double = 0;
+		for (int ch_num = 0; ch_num < (int)(sizeof(long double)); ++ch_num)
+			int_from_double |= (long long)c[ch_num] << (ch_num * 8);
+		insert_long_long_into_uint32_t(int_from_double, nums_to_generate_seed, &uint32_t_index);
+	}
+	//using memory (mainly) addresses and current structure of num_to_return to increase randomness
+	insert_long_long_into_uint32_t((long long)num_to_return->get_length_in_bits(), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->get_least_significant(), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->num_of_intarrays_used, nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.num_of_ints, nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.length, nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.first, nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.last, nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.first, nums_to_generate_seed, &uint32_t_index);
+#if IS_64_BIT_SYSTEM
+	(*num_to_return) = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
+#else
+	(*num_to_return) = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha256_hash();
+#endif
+	insert_long_long_into_uint32_t((long long)num_to_return->get_length_in_bits(), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->get_least_significant(), nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->num_of_intarrays_used, nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.num_of_ints, nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.length, nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.first, nums_to_generate_seed, &uint32_t_index);
+	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.last, nums_to_generate_seed, &uint32_t_index);
+//All the rest of these lines in this function are extremely important.
+	ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+	time_in_ms_passed_since_1970 = ms.count();
+	insert_long_long_into_uint32_t(time_in_ms_passed_since_1970, nums_to_generate_seed, &uint32_t_index);
+#if IS_64_BIT_SYSTEM
+	(*num_to_return) = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
+#else
+	(*num_to_return) = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha256_hash();
+#endif
+	delete[] nums_to_generate_seed;
+	return num_to_return;
+}
+unlimited_int* unlimited_int::generate_next_random()
+{
+	if (unlimited_int::current_random.is_zero())
+		unlimited_int::current_random = unlimited_int::generate_truly_random(); //seeding random (only once in the entire program)
+#if IS_64_BIT_SYSTEM
+	unlimited_int* next_in_chain = unlimited_int::current_random.calculate_sha512_hash();
+#else
+	unlimited_int* next_in_chain = unlimited_int::current_random.calculate_sha256_hash();
+#endif
+	//Makes sure that the caller of this function can't predict what the next random number will be even if he knows the source code of this function.
+	unlimited_int* fork_of_main_chain = unlimited_int::current_random ^ (*next_in_chain); //xor produces a completely different random value that can't be traced back to this chain
+	unlimited_int::current_random = next_in_chain;
+	return fork_of_main_chain;
+}
+many_bits_signed unlimited_int::find_exact_log_2() const
+{
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in start of function \"many_bits_signed unlimited_int::find_exact_log_2() const\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function: \"many_bits_signed unlimited_int::find_exact_log_2() const\"";
+#endif
+	if (this->num_of_used_ints == 0)
+		return (many_bits_signed)(-1);
+	Node* current_int_array_Node = this->get_most_significant_used_int_array();
+	int_array current_int_array = *current_int_array_Node->value;
+	many_bits_signed index_in_int_array = current_int_array.num_of_used_ints - 1;
+	few_bits current_int = current_int_array.intarr[index_in_int_array];
+	const few_bits most_significant_int = current_int;
+	const int num_of_zeros_preceding_most_significant_int = num_of_zero_bits_preceding_number(most_significant_int);
+	const many_bits num_of_used_bits_in_most_significant_int = (many_bits)NUM_OF_BITS_few_bits - (many_bits)num_of_zeros_preceding_most_significant_int;
+	if ((few_bits)(most_significant_int << (num_of_zeros_preceding_most_significant_int + 1)) > (few_bits)0U) //there's more than one 1 bit in the number
+		return (many_bits_signed)(-1);
+	--index_in_int_array;
+	if (index_in_int_array < 0)
+	{
+		current_int_array_Node = current_int_array_Node->previous;
+		if (current_int_array_Node != nullptr)
+		{
+			current_int_array = *current_int_array_Node->value;
+			index_in_int_array = current_int_array.num_of_used_ints - 1;
+		}
+	}
+	if (current_int_array_Node != nullptr)
+	{
+		while (true)
+		{
+			if (index_in_int_array < 0)
+			{
+				current_int_array_Node = current_int_array_Node->previous;
+				if (current_int_array_Node == nullptr)
+					break;
+				current_int_array = *current_int_array_Node->value;
+				index_in_int_array = current_int_array.num_of_used_ints - 1;
+			}
+			if (current_int_array.intarr[index_in_int_array] != (few_bits)0)
+				return (many_bits_signed)(-1);
+			--index_in_int_array;
+		}
+	}
+	many_bits_signed num_of_used_bits_in_number = (this->num_of_used_ints - (many_bits)1) * (many_bits)NUM_OF_BITS_few_bits + num_of_used_bits_in_most_significant_int;
+	return num_of_used_bits_in_number - 1;
+}
+//returns the least significant few_bits as a many_bits because it also respects the sign of this unlimited_int
+//if this is within the maximum range of few_bits then get_least_significant converts an unlimited_int to many_bits
+many_bits_signed unlimited_int::get_least_significant() const
+{
+	if (this->num_of_used_ints == 0) { return 0; }
+	const many_bits_signed least_significant = (many_bits_signed)(*this->intarrays.intarrays.first->value->intarr);
+	if (this->is_negative) { return (-least_significant); }
+	else { return least_significant; }
+}
+many_bits unlimited_int::get_length_in_bits() const
+{
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in start of function \"many_bits unlimited_int::get_length_in_bits() const\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in start of function: \"many_bits unlimited_int::get_length_in_bits() const\"";
+#endif
+	if (this->num_of_used_ints == 0)
+		return (many_bits)0;
+	else
+	{
+		const Node* most_significant_used_int_array_Node = this->get_most_significant_used_int_array();
+		const int_array most_significant_used_int_array = *most_significant_used_int_array_Node->value;
+		const many_bits index_of_most_significant = most_significant_used_int_array.num_of_used_ints - 1;
+		const few_bits most_significant_value = most_significant_used_int_array.intarr[index_of_most_significant];
+		const many_bits num_of_0_bits_preceding_num = num_of_zero_bits_preceding_number(most_significant_value);
+		return (this->num_of_used_ints * (many_bits)NUM_OF_BITS_few_bits - num_of_0_bits_preceding_num);
+	}
+}
+int num_of_zero_bits_preceding_number(const few_bits original_num)
+{
+	if (original_num == (few_bits)0U)
+		return NUM_OF_BITS_few_bits;
+	few_bits original_num_cpy = original_num;
+	int amount_to_shift;
+	for (amount_to_shift = 1; amount_to_shift < NUM_OF_BITS_few_bits; ++amount_to_shift)
+	{
+		original_num_cpy <<= amount_to_shift;
+		original_num_cpy >>= amount_to_shift;
+		if (original_num_cpy != original_num)
+			break;
+	}
+	return ((many_bits)amount_to_shift - (many_bits)1);
+}
+void unlimited_int::invert_bits()
+{
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in beginning of function \"void unlimited_int::invert_bits()\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies())
+		std::cout << "\nThe inconsistency was found in beginning of function: \"void unlimited_int::invert_bits()\"";
+#endif
+	const many_bits len_of_this = this->num_of_used_ints;
+	Node* current_int_array_Node_this = this->intarrays.intarrays.first;
+	int_array current_int_array_this = *current_int_array_Node_this->value;
+	many_bits index_this = 0;
+
+	const many_bits stop_for_this = current_int_array_this.num_of_used_ints;
+
+	many_bits stop_at = stop_for_this;
+	if (len_of_this < stop_at)
+		stop_at = len_of_this;
+	many_bits int_num_counter = 0;
+	while (true)
+	{
+		if (int_num_counter >= stop_at)
+		{
+			if (int_num_counter >= len_of_this)
+				break;
+			if (index_this >= current_int_array_this.num_of_used_ints)
+			{
+				index_this = 0;
+				current_int_array_Node_this = current_int_array_Node_this->next;
+				current_int_array_this = *current_int_array_Node_this->value;
+			}
+			const many_bits stop_for_this = int_num_counter + current_int_array_this.num_of_used_ints - index_this;
+			stop_at = len_of_this;
+			if (len_of_this < stop_at)
+				stop_at = len_of_this;
+			continue;
+		}
+		current_int_array_this.intarr[index_this] = ~current_int_array_this.intarr[index_this];
+		++index_this;
+		++int_num_counter;
+	}
+	--index_this;
+	const few_bits most_significant_int_in_this = current_int_array_this.intarr[index_this];
+	const int num_preceding_zeros = num_of_zero_bits_preceding_number(most_significant_int_in_this);
+	const few_bits inverted_most_significant_int_in_this = (few_bits)(~(most_significant_int_in_this << num_preceding_zeros)) >> num_preceding_zeros;
+	current_int_array_this.intarr[index_this] = inverted_most_significant_int_in_this;
+	this->cutoff_leading_zeros(current_int_array_Node_this);
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::invert_bits()\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function: \"void unlimited_int::invert_bits()\"";
+#endif
+}
+void unlimited_int::flush_current_random()
+{
+	unlimited_int::current_random.flush();
+}
+//Miller-Rabin primality test algorithm.
+//If a number fails one of the iterations, the number is certainly composite. A composite number has a chance of 25% to pass every iteration. That's why 64 iterations ensures 1/(2^128) probability of mistake.
+bool unlimited_int::is_prime() const
+{
+	//Error probability is 1/(2^128)
+	const int num_of_iterations = 64;
+	const char comparison_to_2 = this->compare_to_ignore_sign(unlimited_int(2));
+	if ((comparison_to_2 == 'E') || (this->compare_to_ignore_sign(unlimited_int(3)) == 'E'))
+		return true;
+	if ((comparison_to_2 == 'S') || (this->modulo_2() == 0))
+		return false;
+	unlimited_int pMinusOne = this->copy();
+	pMinusOne.is_negative = false;
+	--pMinusOne;
+	many_bits_signed _k = 0;
+	unlimited_int _m = pMinusOne.copy();
+	while (_m.modulo_2() == 0)
+	{
+		_m >>= 1;
+		++_k;
+	}
+	--_k;
+	for (int iteration_counter = 0; iteration_counter < num_of_iterations; ++iteration_counter)
+	{
+		unlimited_int _a = unlimited_int::generate_random(unlimited_int(2), pMinusOne);
+		unlimited_int _x = unlimited_int::pow(_a, _m, (*this));
+		if ((_x == 1) || (_x == pMinusOne))
+			continue;
+		bool to_return_false = true;
+		for (int counter2 = 0; counter2 < _k; ++counter2)
+		{
+			_x = _x.power2();
+			_x %= (*this);
+			if (_x == 1)
+			{
+				return false;
+			}
+			if (_x == pMinusOne)
+			{
+				to_return_false = false;
+				break;
+			}
+		}
+		if (to_return_false)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+unlimited_int* unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)
+{
+	unlimited_int* current_try = new unlimited_int;
+	do
+	{
+		*current_try = unlimited_int::generate_random(min, max);
+	} while (!current_try->is_prime());
+	return current_try;
 }
