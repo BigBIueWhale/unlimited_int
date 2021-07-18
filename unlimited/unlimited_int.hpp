@@ -1,6 +1,6 @@
 #ifndef UNLIMITED_UNLIMITED_INT_H
 #define UNLIMITED_UNLIMITED_INT_H
-#include "list_of_int_arrays.h"
+#include "list_of_int_arrays.hpp"
 #include <string>
 #include <ostream>
 namespace unlimited
