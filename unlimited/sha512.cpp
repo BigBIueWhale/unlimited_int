@@ -10,7 +10,7 @@ void SHA512_compress_message_block(const uint64_t* message_block, uint64_t* para
 #define MAJORITY(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
 
 using namespace unlimited;
-unlimited_int* unlimited_int::calculate_sha512_hash() const
+std::shared_ptr<unlimited_int> unlimited_int::calculate_sha512_hash() const
 {
 	uint64_t current_hash_values[8] = {
 		0x6a09e667f3bcc908ULL, 0xbb67ae8584caa73bULL, 0x3c6ef372fe94f82bULL, 0xa54ff53a5f1d36f1ULL,
@@ -144,7 +144,7 @@ unlimited_int* unlimited_int::calculate_sha512_hash() const
 		current_block[15] = (uint64_t)length_of_preimage_in_bits;
 		SHA512_compress_message_block(current_block, current_hash_values);
 	}
-	return new unlimited_int(current_hash_values, 8);
+	return std::shared_ptr<unlimited_int>(new unlimited_int(current_hash_values, 8));
 }
 void SHA512_compress_message_block(const uint64_t* message_block, uint64_t* parameter_hash_values)
 {
