@@ -36,7 +36,7 @@ void helper()
 	unsigned long long fib_index;
 	std::cout << "\n\nEnter the index to find in Fibonacci sequence (where index 1 is 0 and index 2 is 1 etc.): ";
 	std::cin >> fib_index;
-	std::cout << "\nFibonacci num in hex: " << std::hex << *Fibonacci(fib_index);
+	std::cout << "\nFibonacci num in hex: " << std::hex << *Fibonacci(fib_index) << std::dec;
 	std::string line;
 	std::cout << "\nEnter positive or negative integer in base 10: ";
 	std::cin.ignore();
