@@ -19,4 +19,8 @@ delete cpy_num_ptr;\
 unlimited_int cpy_num = num; //Option 2 to fully copy number. Preferred option.\
 Funtions that return an unlimited_int should return: std::shared_ptr<unlimited_int>\
 For example:\
-std::shared_ptr<unlimited_int> high_five() { return std::shared_ptr<unlimited_int>(unlimited_int(5).copy()); }
+std::shared_ptr<unlimited_int> abs(const unlimited_int& num) {\
+  unlimited_int* cpy = num.copy();\
+  num.self_abs();\
+  return std::shared_ptr<unlimited_int>();\
+}
