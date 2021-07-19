@@ -13,7 +13,7 @@ For example:\
 std::cout << unlimited_int(1) + unlimited_int(2); //Wrong! This will print the pointer's address.\
 std::cout << *(unlimited_int(1) + unlimited_int(2)); //Correct! We need to dereference the smart pointer\
 unlimited_int num = unlimited_int::pow(unlimited_int(2), unlimited_int(10)); //Correct! the smart pointer will automatically be converted to unlimited_int\
-unlimited_int num = *unlimited_int::pow(unlimited_int(2), unlimited_int(10)); //Wrong! this will still work but is O(n) instead of O(1)\
+unlimited_int num = \*unlimited_int::pow(unlimited_int(2), unlimited_int(10)); //Wrong! this will still work but is O(n) instead of O(1)\
 unlimited_int* cpy_num_ptr = num.copy(); //Option 1 to fully copy number\
 delete cpy_num_ptr;\
 unlimited_int cpy_num = num; //Option 2 to fully copy number. Preferred option.
