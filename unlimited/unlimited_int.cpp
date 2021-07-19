@@ -7,7 +7,7 @@ using namespace unlimited;
 #endif
 //I need to design and write a squaring basecase multiplication algorithm
 //The most important thing, is to make the division algorithm more efficient, and at least to make the binary search faster.
-unlimited_int unlimited_int::current_random;
+std::shared_ptr<unlimited_int> unlimited_int::current_random;
 int num_of_zero_bits_preceding_number(const few_bits);
 many_bits ceiling_division(many_bits numerator, many_bits denominator)
 {
@@ -98,22 +98,27 @@ unlimited_int::unlimited_int(const unlimited_int& num_to_assign, bool auto_destr
 		throw "Inconsistency ffound in the end of function \"unlimited_int::unlimited_int(const unlimited_int& num_to_assign, bool auto_destroy_this)\"";
 #endif
 }
-void unlimited_int::operator=(unlimited_int& num_to_assign)
+unlimited_int::unlimited_int(std::shared_ptr<unlimited_int> shared_ptr_ui)
+{
+	this->auto_destroy = false;
+	(*this) = shared_ptr_ui; //now this->auto_destory becomes true again
+}
+void unlimited_int::operator=(std::shared_ptr<unlimited_int> shared_ptr_ui)
 {
 	if (this->auto_destroy) { this->flush(); }
 	else { this->forget_memory(); }
 	this->auto_destroy = true;
-	num_to_assign.auto_destroy = false;
-	this->intarrays = num_to_assign.intarrays;
-	this->is_negative = num_to_assign.is_negative;
-	this->num_of_intarrays_used = num_to_assign.num_of_intarrays_used;
-	this->num_of_used_ints = num_to_assign.num_of_used_ints;
+	shared_ptr_ui->auto_destroy = false;
+	this->intarrays = shared_ptr_ui->intarrays;
+	this->is_negative = shared_ptr_ui->is_negative;
+	this->num_of_intarrays_used = shared_ptr_ui->num_of_intarrays_used;
+	this->num_of_used_ints = shared_ptr_ui->num_of_used_ints;
 #if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in function \"void unlimited_int::operator=(unlimited_int& num_to_assign)\":";
+	std::cout << "\nFinding inconsistencies in function \"void unlimited_int::operator=(std::shared_ptr<unlimited_int> shared_ptr_ui)\":";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "Inconsistency found in the end of function \"void unlimited_int::operator=(unlimited_int& num_to_assign)\"";
+		throw "Inconsistency found in the end of function \"void unlimited_int::operator=(std::shared_ptr<unlimited_int> shared_ptr_ui)\"";
 #endif
 }
 #if DEBUG_MODE > 0
@@ -971,7 +976,6 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 	few_bits* answer_current_int_array_intarr = answer_current_int_array->intarr;
 	many_bits int_num = 0, previous_int_num = 0;
 	many_bits num_of_used_ints_subtract = num_to_subtract_copy.num_of_used_ints;
-	many_bits int_num_of_start_of_current_intarr_answer = 0;
 	many_bits next_stop = num_of_used_ints_subtract;
 	if (subtract_current_int_array_num_of_used_ints < next_stop) { next_stop = subtract_current_int_array_num_of_used_ints; }
 	if (this_current_int_array_num_of_used_ints < next_stop) { next_stop = this_current_int_array_num_of_used_ints; }
@@ -1008,7 +1012,6 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 			}
 			if (index_answer == answer_current_int_array_intarr_len)
 			{
-				int_num_of_start_of_current_intarr_answer = int_num;
 				num_of_int_arrays_used_in_answer++;
 				it_answer = it_answer->next;
 				index_answer = 0;
@@ -1068,7 +1071,6 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 		}
 		if (index_answer == answer_current_int_array_intarr_len)
 		{
-			int_num_of_start_of_current_intarr_answer = int_num;
 			num_of_int_arrays_used_in_answer++;
 			it_answer = it_answer->next;
 			index_answer = 0;
@@ -1105,7 +1107,6 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 					}
 					if (index_answer == answer_current_int_array_intarr_len)
 					{
-						int_num_of_start_of_current_intarr_answer = int_num;
 						num_of_int_arrays_used_in_answer++;
 						it_answer = it_answer->next;
 						index_answer = 0;
@@ -1157,7 +1158,6 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 			}
 			if (index_answer == answer_current_int_array_intarr_len)
 			{
-				int_num_of_start_of_current_intarr_answer = int_num;
 				num_of_int_arrays_used_in_answer++;
 				it_answer = it_answer->next;
 				index_answer = 0;
@@ -1192,7 +1192,6 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 					}
 					if (index_answer == answer_current_int_array_intarr_len)
 					{
-						int_num_of_start_of_current_intarr_answer = int_num;
 						num_of_int_arrays_used_in_answer++;
 						it_answer = it_answer->next;
 						index_answer = 0;
@@ -1310,7 +1309,6 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 	int_array* current_intarray_for_bigger = it_bigger->value;
 	int_array* current_intarray_for_smaller = it_smaller->value;
 	int_array* current_intarray_for_answer = it_answer->value;
-	many_bits num_array_in_answer = 0;
 	many_bits num_int = 0;
 	many_bits index_bigger = 0, index_smaller = 0, index_answer = 0;
 	many_bits num_of_intarrays_used_for_answer = 1;
@@ -2678,7 +2676,7 @@ unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(const unlimited_in
 	return z2;
 }
 #define MIN_KARATSUBA_SQUARING 80
-unlimited_int* unlimited_int::power2() const
+std::shared_ptr<unlimited_int> unlimited_int::power2() const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of recursive function \"power2\"";
@@ -2690,17 +2688,17 @@ unlimited_int* unlimited_int::power2() const
 	{
 		unlimited_int* answer = new unlimited_int;
 		this->multiply_basecase(this, answer);
-		return answer;
+		return std::shared_ptr<unlimited_int>(answer);
 	}
 	unlimited_int high, low;
 	many_bits m2 = this->num_of_used_ints / 2;
 	this->split_at(m2, &high, &low);
-	unlimited_int* square_of_high = high.power2();
-	unlimited_int* square_of_low = low.power2();
+	std::shared_ptr<unlimited_int> square_of_high = high.power2();
+	std::shared_ptr<unlimited_int> square_of_low = low.power2();
 	square_of_high->shift_left(2 * m2);
-	unlimited_int* answer = *square_of_high + *square_of_low;
-	delete square_of_high;
-	delete square_of_low;
+	std::shared_ptr<unlimited_int> answer = *square_of_high + *square_of_low;
+	square_of_high.reset();
+	square_of_low.reset();
 	unlimited_int* high_times_low = high.multiply_karatsuba_destroy_this_and_num_to_mult(&low);
 	*high_times_low <<= (((many_bits)1) + (m2 * NUM_OF_BITS_few_bits));
 	*answer += *high_times_low;
@@ -2714,7 +2712,7 @@ unlimited_int* unlimited_int::power2() const
 #endif
 	return answer;
 }
-unlimited_int* unlimited_int::power2_destroy_this()
+std::shared_ptr<unlimited_int> unlimited_int::power2_destroy_this()
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of recursive function \"power2_destroy_this\"";
@@ -2728,17 +2726,17 @@ unlimited_int* unlimited_int::power2_destroy_this()
 		unlimited_int* answer = new unlimited_int;
 		this->multiply_basecase(this, answer);
 		this->flush();
-		return answer;
+		return std::shared_ptr<unlimited_int>(answer);
 	}
 	unlimited_int high, low;
 	many_bits m2 = this->num_of_used_ints / 2;
 	this->split_at_and_use_original(m2, &high, &low);
-	unlimited_int* square_of_high = high.power2();
-	unlimited_int* square_of_low = low.power2();
+	std::shared_ptr<unlimited_int> square_of_high = high.power2();
+	std::shared_ptr<unlimited_int> square_of_low = low.power2();
 	square_of_high->shift_left(2 * m2);
-	unlimited_int* answer = *square_of_high + *square_of_low;
-	delete square_of_high;
-	delete square_of_low;
+	std::shared_ptr<unlimited_int> answer = *square_of_high + *square_of_low;
+	square_of_high.reset();
+	square_of_low.reset();
 	unlimited_int* high_times_low = high.multiply_karatsuba_destroy_this_and_num_to_mult(&low);
 	*high_times_low <<= (((many_bits)1) + (m2 * NUM_OF_BITS_few_bits));
 	*answer += *high_times_low;
@@ -2777,7 +2775,7 @@ void unlimited_int::shift_left(const many_bits shift_by)
 		throw "\nThe inconsistency was found in end of function \"void unlimited_int::shift_left(const many_bits shift_by)\"";
 #endif
 }
-unlimited_int* unlimited_int::operator*(const unlimited_int& other) const
+std::shared_ptr<unlimited_int> unlimited_int::operator*(const unlimited_int& other) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
@@ -2789,13 +2787,13 @@ unlimited_int* unlimited_int::operator*(const unlimited_int& other) const
 	//it's more efficient when either other or this is a power of 2 because then bit shifting can be used instead of the Karatsuba multiplication algorithm.
 	const many_bits_signed other_log2 = other.find_exact_log_2();
 	const many_bits_signed this_log2 = this->find_exact_log_2();
-	unlimited_int* answer;
+	std::shared_ptr<unlimited_int> answer;
 	if (other_log2 >= (many_bits_signed)0)
 		answer = (*this) << other_log2;
 	else if (this_log2 >= (many_bits_signed)0)
 		answer = other << this_log2;
 	else //neither numbers are powers of 2.
-		answer = this->multiply_karatsuba(&other);
+		answer = std::shared_ptr<unlimited_int>(this->multiply_karatsuba(&other));
 	if (this->num_of_used_ints == 0) { answer->is_negative = false; }
 	else if (this->is_negative != other.is_negative) { answer->is_negative = true; }
 #if DEBUG_MODE == 2
@@ -2807,25 +2805,25 @@ unlimited_int* unlimited_int::operator*(const unlimited_int& other) const
 #endif
 	return answer;
 }
-unlimited_int* unlimited_int::operator/(const unlimited_int& denominator) const
+std::shared_ptr<unlimited_int> unlimited_int::operator/(const unlimited_int& denominator) const
 {
 	if (denominator.num_of_used_ints == 0) { throw "\nError in function: \"unlimited_int* unlimited_int::operator/(const unlimited_int& denominator) const\" Can't divide by zero"; }
-	unlimited_int* answer = this->divide_by(denominator);
+	std::shared_ptr<unlimited_int> answer = this->divide_by(denominator);
 	if (this->num_of_used_ints == 0) { answer->is_negative = false; }
 	else if (this->is_negative != denominator.is_negative) { answer->is_negative = true; }
 	return answer;
 }
-unlimited_int* unlimited_int::operator*(const few_bits num) const
+std::shared_ptr<unlimited_int> unlimited_int::operator*(const few_bits num) const
 {
 	unlimited_int* answer = new unlimited_int;
 	this->multiply(num, answer);
-	return answer;
+	return std::shared_ptr<unlimited_int>(answer);
 }
-unlimited_int* unlimited::operator*(const few_bits num, const unlimited_int& ui)
+std::shared_ptr<unlimited_int> unlimited::operator*(const few_bits num, const unlimited_int& ui)
 {
 	unlimited_int* answer = new unlimited_int;
 	ui.multiply(num, answer);
-	return answer;
+	return std::shared_ptr<unlimited_int>(answer);
 }
 void unlimited_int::operator*=(const unlimited_int& other)
 {
@@ -2833,25 +2831,25 @@ void unlimited_int::operator*=(const unlimited_int& other)
 	many_bits_signed other_log2 = other.find_exact_log_2();
 	many_bits_signed this_log2 = this->find_exact_log_2();
 	if (other_log2 >= (many_bits_signed)0)
-		(*this) = (*this) << other_log2;
+		(*this) <<= other_log2;
 	else if (this_log2 >= (many_bits_signed)0)
 		(*this) = other << this_log2;
 	else //neither numbers are powers of 2.
-		(*this) = this->multiply_karatsuba_destroy_this(&other);
+		(*this) = std::shared_ptr<unlimited_int>(this->multiply_karatsuba_destroy_this(&other));
 	if (this->num_of_used_ints == 0) { this->is_negative = false; }
 	else if (this->is_negative != other.is_negative) { this->is_negative = true; }
 }
-unlimited_int* unlimited_int::operator+(const unlimited_int& other) const
+std::shared_ptr<unlimited_int> unlimited_int::operator+(const unlimited_int& other) const
 {
 	unlimited_int* answer = new unlimited_int;
 	this->add(&other, answer);
-	return answer;
+	return std::shared_ptr<unlimited_int>(answer);
 }
-unlimited_int* unlimited_int::operator-(const unlimited_int& other) const
+std::shared_ptr<unlimited_int> unlimited_int::operator-(const unlimited_int& other) const
 {
 	unlimited_int* answer = new unlimited_int;
 	this->subtract(&other, answer);
-	return answer;
+	return std::shared_ptr<unlimited_int>(answer);
 }
 void unlimited_int::operator++()
 {
@@ -2903,23 +2901,23 @@ void unlimited_int::operator--()
 		throw "\nThe inconsistency was found in end of function \"void unlimited_int::operator++()\"";
 #endif
 }
-unlimited_int* unlimited_int::operator%(const unlimited_int& ui) const
+std::shared_ptr<unlimited_int> unlimited_int::operator%(const unlimited_int& ui) const
 {
-	unlimited_int* answer_divide = this->divide_by(ui);
-	unlimited_int* answer_multiply = (*answer_divide) * ui;
-	delete answer_divide;
+	std::shared_ptr<unlimited_int> answer_divide = this->divide_by(ui);
+	std::shared_ptr<unlimited_int> answer_multiply = *answer_divide * ui;
+	answer_divide.reset();
 	unlimited_int* answer = new unlimited_int;
-	this->subtract(answer_multiply, answer);
-	delete answer_multiply;
-	return answer;
+	this->subtract(answer_multiply.get(), answer);
+	answer_multiply.reset();
+	return std::shared_ptr<unlimited_int>(answer);
 }
 void unlimited_int::operator%=(const unlimited_int& ui)
 {
-	unlimited_int* answer_divide = this->divide_by(ui);
-	unlimited_int* answer_multiply = (*answer_divide) * ui;
-	delete answer_divide;
-	this->subtract(answer_multiply, this);
-	delete answer_multiply;
+	std::shared_ptr<unlimited_int> answer_divide = this->divide_by(ui);
+	std::shared_ptr<unlimited_int> answer_multiply = *answer_divide * ui;
+	answer_divide.reset();
+	this->subtract(answer_multiply.get(), this);
+	answer_multiply.reset();
 }
 std::ostream& unlimited::operator<<(std::ostream& os, const unlimited_int& ui)
 {
@@ -3168,7 +3166,7 @@ few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_
 	}
 	return 0;
 }
-unlimited_int* unlimited_int::divide_by(const unlimited_int& num_to_divide_by) const
+std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num_to_divide_by) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"divide_by(unlimited_int& num_to_divide_by)\"";
@@ -3181,14 +3179,13 @@ unlimited_int* unlimited_int::divide_by(const unlimited_int& num_to_divide_by) c
 	many_bits num_of_used_ints_divide = num_to_divide_by.num_of_used_ints;
 	many_bits num_of_used_ints_this = this->num_of_used_ints;
 	char result_compare = this->compare_to_ignore_sign(num_to_divide_by);
-	unlimited_int* answer = nullptr;
-	if (result_compare == 'E') { answer = new unlimited_int(1); return answer; }
-	if (result_compare == 'S') { answer = new unlimited_int; return answer; }
-	if (num_of_used_ints_this == 0 || num_of_used_ints_divide == 0) { answer = new unlimited_int;  return answer; }
+	if (result_compare == 'E') { return std::shared_ptr<unlimited_int>(new unlimited_int(1)); }
+	if (result_compare == 'S') { return std::shared_ptr<unlimited_int>(new unlimited_int(0)); }
+	if (num_of_used_ints_this == 0 || num_of_used_ints_divide == 0) { return std::shared_ptr<unlimited_int>(new unlimited_int(0)); }
 	many_bits_signed exact_power_of_2 = num_to_divide_by.find_exact_log_2();
 	if (exact_power_of_2 >= 0) //more efficient method of division when dividing by power of 2
 	{
-		answer = (*this) >> (many_bits)exact_power_of_2;
+		std::shared_ptr<unlimited_int> answer = (*this) >> (many_bits)exact_power_of_2;
 #if DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
 #endif
@@ -3200,7 +3197,7 @@ unlimited_int* unlimited_int::divide_by(const unlimited_int& num_to_divide_by) c
 	}
 	if (num_of_used_ints_this == num_of_used_ints_divide)
 	{
-		answer = new unlimited_int(this->binary_search_divide(num_to_divide_by));
+		std::shared_ptr<unlimited_int> answer(new unlimited_int(this->binary_search_divide(num_to_divide_by)));
 #if DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
 #endif
@@ -3210,7 +3207,7 @@ unlimited_int* unlimited_int::divide_by(const unlimited_int& num_to_divide_by) c
 #endif
 		return answer;
 	}
-	answer = new unlimited_int;
+	unlimited_int* answer = new unlimited_int;
 	unlimited_int partial_this;
 	many_bits num_of_ints_currently_using_from_this = num_of_used_ints_divide;
 	this->copy_most_significant_to(partial_this, num_of_ints_currently_using_from_this);
@@ -3269,7 +3266,7 @@ unlimited_int* unlimited_int::divide_by(const unlimited_int& num_to_divide_by) c
 	if (answer->find_inconsistencies())
 		throw "\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
 #endif
-	return answer;
+	return std::shared_ptr<unlimited_int>(answer);
 }
 void unlimited_int::push_to_insignificant(const few_bits num_to_push)
 {
@@ -3318,13 +3315,14 @@ char* unlimited_int::to_c_string(const int base) const
 	const many_bits_signed size_of_string = (this->num_of_used_ints) * (many_bits)NUM_OF_BITS_few_bits;
 	char* string_base = new char[size_of_string];
 	many_bits_signed counter = 0;
-	unlimited_int numerator = this->copy(), base_str = ((many_bits_signed)base);
-	numerator.is_negative = false;
-	while ((numerator > ((many_bits_signed)0)) && (counter < size_of_string))
+	std::shared_ptr<unlimited_int> numerator(this->copy());
+	unlimited_int base_str = ((many_bits_signed)base);
+	numerator->is_negative = false;
+	while ((*numerator > unlimited_int(0)) && (counter < size_of_string))
 	{
-		unlimited_int current_digit_ui = (numerator % base_str);
-		string_base[counter] = unlimited_int::number_to_char((int)current_digit_ui.get_least_significant(), base);
-		numerator /= base_str;
+		std::shared_ptr<unlimited_int> current_digit_ui = (*numerator % base_str);
+		string_base[counter] = unlimited_int::number_to_char((int)current_digit_ui->get_least_significant(), base);
+		*numerator /= base_str;
 		++counter;
 	}
 	//by now we have the digits of string_base backwards
@@ -3349,14 +3347,24 @@ char* unlimited_int::to_c_string(const int base) const
 	final_str[counter] = '\0';
 	return final_str_original;
 }
-unlimited_int* unlimited_int::from_string(const char* str, const int base)
+std::shared_ptr<unlimited_int> unlimited_int::from_string(const char* str, const int base)
 {
+	bool set_is_negative_to_true = false;
+	if (str[0] == '-')
+	{
+		set_is_negative_to_true = true;
+		++str;
+	}
+	while (*str == '0')
+		++str;
 	unlimited_int* answer = new unlimited_int;
-	if (str[0] == '0') { answer->set_to_zero(); return answer; }
-	bool set_answer_to_true = false;
-	if (str[0] == '-') { set_answer_to_true = true; ++str; }
+	if (*str == '\0')
+	{
+		answer->set_to_zero();
+		return std::shared_ptr<unlimited_int>(answer);
+	}
 	if ((base <= 0) || (base > 36)) { throw "\nError in function \"from_c_string\" Invalid Argument!\nbase is out of range \"1 <= base <= 36\""; }
-	unlimited_int base_ui = base;
+	unlimited_int base_ui(base);
 	const char* it_ch = str;
 	many_bits_signed counter = 0;
 	while (*it_ch != '\0') { ++it_ch; ++counter; }
@@ -3373,8 +3381,8 @@ unlimited_int* unlimited_int::from_string(const char* str, const int base)
 		--index;
 		multiplicand *= base_ui;
 	}
-	answer->is_negative = set_answer_to_true;
-	return answer;
+	answer->is_negative = set_is_negative_to_true;
+	return std::shared_ptr<unlimited_int>(answer);
 }
 int unlimited_int::char_to_number(const char ch, const int base)
 {
@@ -3402,7 +3410,7 @@ char unlimited_int::number_to_char(const int num, const int base = 10)
 	if (num <= 9) { return (num + 48); }
 	return (num + 87);
 }
-unlimited_int* unlimited_int::generate_random_that_is_at_least(many_bits min_num_of_bits)
+std::shared_ptr<unlimited_int> unlimited_int::generate_random_that_is_at_least(many_bits min_num_of_bits)
 {
 	unlimited_int* result_random = new unlimited_int;
 #if IS_64_BIT_SYSTEM
@@ -3410,15 +3418,15 @@ unlimited_int* unlimited_int::generate_random_that_is_at_least(many_bits min_num
 	many_bits num_hash;
 	for (num_hash = 0; num_hash < num_of_sha512_hashes_needed; ++num_hash)
 	{
-		unlimited_int current_hash = generate_next_random();
-		current_hash <<= (num_hash * 512);
-		(*result_random) |= current_hash;
+		std::shared_ptr<unlimited_int> current_hash = generate_next_random();
+		*current_hash <<= (num_hash * 512);
+		*result_random |= *current_hash;
 	}
 	while (result_random->get_length_in_bits() < min_num_of_bits) //for the 1 in 1024 chance that result_random is still smaller than min_num_of_bits
 	{
-		unlimited_int current_hash = generate_next_random();
-		current_hash <<= (num_hash * 512);
-		(*result_random) |= current_hash;
+		std::shared_ptr<unlimited_int> current_hash = generate_next_random();
+		*current_hash <<= (num_hash * 512);
+		*result_random |= *current_hash;
 		++num_hash;
 	}
 #else
@@ -3426,15 +3434,15 @@ unlimited_int* unlimited_int::generate_random_that_is_at_least(many_bits min_num
 	many_bits num_hash;
 	for (num_hash = 0; num_hash < num_of_sha256_hashes_needed; ++num_hash)
 	{
-		unlimited_int current_hash = generate_next_random();
-		current_hash <<= (num_hash * 256);
-		(*result_random) |= current_hash;
+		std::shared_ptr<unlimited_int> current_hash = generate_next_random();
+		*current_hash <<= (num_hash * 256);
+		*result_random |= *current_hash;
 	}
 	while (result_random->get_length_in_bits() < min_num_of_bits) //for the 1 in 512 chance that result_random is still smaller than min_num_of_bits
 	{
-		unlimited_int current_hash = generate_next_random();
-		current_hash <<= (num_hash * 256);
-		(*result_random) |= current_hash;
+		std::shared_ptr<unlimited_int> current_hash = generate_next_random();
+		*current_hash <<= (num_hash * 256);
+		*result_random |= *current_hash;
 		++num_hash;
 	}
 #endif
@@ -3445,20 +3453,21 @@ unlimited_int* unlimited_int::generate_random_that_is_at_least(many_bits min_num
 	if (result_random->find_inconsistencies())
 		throw "\nThe inconsistency was found in start of function: \"unlimited_int* unlimited_int::generate_random_that_is_at_least(many_bits min_num_of_bits)\"";
 #endif
-	return result_random;
+	return std::shared_ptr<unlimited_int>(result_random);
 }
-unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)
+std::shared_ptr<unlimited_int> unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)
 {
 	char result_compare = min.compare_to(max);
 	if (result_compare == 'L')
 		throw "\nError found in function \"unlimited_int::generate_random(unlimited_int&, unlimited_int&)\": min > max";
 	else if (result_compare == 'E')
-		return (min.copy());
-	unlimited_int result_of_sub = max - min;
+		return std::shared_ptr<unlimited_int>(min.copy());
+	std::shared_ptr<unlimited_int> result_of_sub = max - min;
 	//Correction by 1 because max is also within range
-	++result_of_sub;
-	unlimited_int large_enough_random_num = generate_random_that_is_at_least(result_of_sub.get_length_in_bits() + (many_bits)256); //No, the 256 isn't a mistake, even when using SHA512. It's just a big number.
-	unlimited_int* answer = large_enough_random_num % result_of_sub;
+	++(*result_of_sub);
+	//No, the 256 isn't a mistake, even when using SHA512. It's just a big number.
+	std::shared_ptr<unlimited_int> large_enough_random_num = unlimited_int::generate_random_that_is_at_least(result_of_sub->get_length_in_bits() + (many_bits)256);
+	std::shared_ptr<unlimited_int> answer = *large_enough_random_num % *result_of_sub;
 	*answer += min;
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)\"";
@@ -3472,7 +3481,7 @@ unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const un
 	return answer;
 }
 //makes use if the identity (a ⋅ b) mod m = [(a mod m) ⋅ (b mod m)] mod m
-unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod)
+std::shared_ptr<unlimited_int> unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod)
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
@@ -3486,29 +3495,29 @@ unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int
 	if (mod.is_zero())
 		throw "\nInvalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod)\" division by zero is undefined";
 	unlimited_int* answer = new unlimited_int((many_bits)1);
-	if (power.num_of_used_ints == 0) { return answer; }
-	if ((base.num_of_used_ints == 0) || (power.is_negative == true)) { answer->set_to_zero(); return answer; }
-	if (mod == ((many_bits_signed)1)) { answer->set_to_zero(); return answer; }
-	unlimited_int current_power = base.copy();
-	current_power %= mod;
-	if (current_power.is_zero()) { answer->set_to_zero(); return answer; }
-	unlimited_int power_cpy = power.copy();
-	if (power_cpy.modulo_2() == 1)
+	if (power.num_of_used_ints == 0) { return std::shared_ptr<unlimited_int>(answer); }
+	if ((base.num_of_used_ints == 0) || (power.is_negative == true)) { answer->set_to_zero(); return std::shared_ptr<unlimited_int>(answer); }
+	if (mod == ((many_bits_signed)1)) { answer->set_to_zero(); return std::shared_ptr<unlimited_int>(answer); }
+	std::shared_ptr<unlimited_int> current_power(base.copy());
+	*current_power %= mod;
+	if (current_power->is_zero()) { answer->set_to_zero(); return std::shared_ptr<unlimited_int>(answer); }
+	std::shared_ptr<unlimited_int> power_cpy(power.copy());
+	if (power_cpy->modulo_2() == 1)
 	{
-		*answer *= current_power;
+		*answer *= *current_power;
 		*answer %= mod;
 	}
-	power_cpy >>= 1;
-	while (! power_cpy.is_zero())
+	*power_cpy >>= 1;
+	while (!power_cpy->is_zero())
 	{
-		current_power = current_power.power2_destroy_this();
-		current_power %= mod;
-		if (power_cpy.modulo_2() == 1)
+		current_power = current_power->power2_destroy_this();
+		*current_power %= mod;
+		if (power_cpy->modulo_2() == 1)
 		{
-			*answer *= current_power;
+			*answer *= *current_power;
 			*answer %= mod;
 		}
-		power_cpy >>= 1;
+		*power_cpy >>= 1;
 	}
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
@@ -3519,9 +3528,9 @@ unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int
 	if (answer->find_inconsistencies())
 		throw "\nThe inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\" in answer";
 #endif
-	return answer;
+	return std::shared_ptr<unlimited_int>(answer);
 }
-unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power)
+std::shared_ptr<unlimited_int> unlimited_int::pow(const unlimited_int& base, const unlimited_int& power)
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"";
@@ -3533,17 +3542,17 @@ unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int
 	if (base.is_zero() && power.is_zero())
 		throw "\nInvalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power)\" pow(0, 0) is mathematically undefined";
 	unlimited_int* answer = new unlimited_int(((many_bits_signed)1));
-	if (power.num_of_used_ints == 0) { return answer; }
-	if ((base.num_of_used_ints == 0) || power.is_negative) { answer->set_to_zero(); return answer; }
-	unlimited_int current_power = base.copy();
-	unlimited_int power_cpy = power.copy();
-	if (power_cpy.modulo_2() == 1) { *answer *= current_power; }
-	power_cpy >>= 1;
-	while (!power_cpy.is_zero())
+	if (power.num_of_used_ints == 0) { return std::shared_ptr<unlimited_int>(answer); }
+	if ((base.num_of_used_ints == 0) || power.is_negative) { answer->set_to_zero(); return std::shared_ptr<unlimited_int>(answer); }
+	std::shared_ptr<unlimited_int> current_power(base.copy());
+	std::shared_ptr<unlimited_int> power_cpy(power.copy());
+	if (power_cpy->modulo_2() == 1) { *answer *= *current_power; }
+	*power_cpy >>= 1;
+	while (!power_cpy->is_zero())
 	{
-		current_power = current_power.power2_destroy_this();
-		if (power_cpy.modulo_2() == 1) { *answer *= current_power; }
-		power_cpy >>= 1;
+		current_power = current_power->power2_destroy_this();
+		if (power_cpy->modulo_2() == 1) { *answer *= *current_power; }
+		*power_cpy >>= 1;
 	}
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"";
@@ -3554,30 +3563,28 @@ unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int
 	if (answer->find_inconsistencies())
 		throw "\nThe inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\" in answer";
 #endif
-	return answer;
+	return std::shared_ptr<unlimited_int>(answer);
 }
-unlimited_int* unlimited_int::gcd(const unlimited_int& a, const unlimited_int& b)
+std::shared_ptr<unlimited_int> unlimited_int::gcd(const unlimited_int& a, const unlimited_int& b)
 {
-	unlimited_int* a_editable = a.copy();
-	unlimited_int* b_editable = b.copy();
+	std::shared_ptr<unlimited_int> a_editable(a.copy());
+	std::shared_ptr<unlimited_int> b_editable(b.copy());
 	a_editable->is_negative = false;
 	b_editable->is_negative = false;
 	while (!b_editable->is_zero())
 	{
-		unlimited_int* modulo_result = (*a_editable) % (*b_editable);
-		delete a_editable;
+		std::shared_ptr<unlimited_int> modulo_result = (*a_editable) % (*b_editable);
 		a_editable = b_editable;
 		b_editable = modulo_result;
 	}
-	delete b_editable;
 	return a_editable;
 }
 //lcm(a, b) = abs(a * b) / gcd(a, b)
-unlimited_int* unlimited_int::lcm(const unlimited_int& a, const unlimited_int& b)
+std::shared_ptr<unlimited_int> unlimited_int::lcm(const unlimited_int& a, const unlimited_int& b)
 {
-	unlimited_int gcd = unlimited::unlimited_int::gcd(a, b);
-	unlimited_int result_of_division = a / gcd;
-	unlimited_int* result = b * result_of_division;
+	std::shared_ptr<unlimited_int> gcd = unlimited::unlimited_int::gcd(a, b);
+	std::shared_ptr<unlimited_int> result_of_division = a / *gcd;
+	std::shared_ptr<unlimited_int> result = b * (*result_of_division);
 	result->is_negative = false;
 	return result;
 }
@@ -3729,7 +3736,7 @@ void unlimited_int::assign(uint32_t* arr, many_bits len)
 		throw "\nThe inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"";
 #endif
 }
-unlimited_int* unlimited_int::operator&(const unlimited_int& right) const
+std::shared_ptr<unlimited_int> unlimited_int::operator&(const unlimited_int& right) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in beginning of function \"unlimited_int* unlimited_int::operator&(const unlimited_int& right) const\"";
@@ -3739,7 +3746,7 @@ unlimited_int* unlimited_int::operator&(const unlimited_int& right) const
 		throw "\nThe inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator&(const unlimited_int& right) const\"";
 #endif
 	if (this->is_zero() || right.is_zero())
-		return new unlimited_int; //returns 0
+		return std::shared_ptr<unlimited_int>(new unlimited_int); //returns 0
 	const unlimited_int* shorter_num = this;
 	const unlimited_int* longer_num = &right;
 	if (this->num_of_used_ints > right.num_of_used_ints)
@@ -3751,7 +3758,7 @@ unlimited_int* unlimited_int::operator&(const unlimited_int& right) const
 	unlimited_int* result = new unlimited_int;
 	const many_bits len_of_result = shorter_num->num_of_used_ints;
 	if (len_of_result == 0)
-		return result;
+		return std::shared_ptr<unlimited_int>(result);
 	result->intarrays.increase_until_num_of_ints(len_of_result);
 	Node* current_int_array_Node_shorter_num = shorter_num->intarrays.intarrays.first;
 	Node* current_int_array_Node_longer_num = longer_num->intarrays.intarrays.first;
@@ -3831,9 +3838,9 @@ unlimited_int* unlimited_int::operator&(const unlimited_int& right) const
 	if (result->find_inconsistencies())
 		throw "\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator&(const unlimited_int& right) const\"";
 #endif
-	return result;
+	return std::shared_ptr<unlimited_int>(result);
 }
-unlimited_int* unlimited_int::operator|(const unlimited_int& right) const
+std::shared_ptr<unlimited_int> unlimited_int::operator|(const unlimited_int& right) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in beginning of function \"unlimited_int* unlimited_int::operator|(const unlimited_int& right) const\"";
@@ -3846,13 +3853,13 @@ unlimited_int* unlimited_int::operator|(const unlimited_int& right) const
 	{
 		unlimited_int* right_copy = right.copy();
 		right_copy->is_negative = false;
-		return right_copy;
+		return std::shared_ptr<unlimited_int>(right_copy);
 	}
 	if (right.is_zero())
 	{
 		unlimited_int* this_copy = this->copy();
 		this_copy->is_negative = false;
-		return this_copy;
+		return std::shared_ptr<unlimited_int>(this_copy);
 	}
 	const unlimited_int* shorter_num = this;
 	const unlimited_int* longer_num = &right;
@@ -3978,9 +3985,9 @@ unlimited_int* unlimited_int::operator|(const unlimited_int& right) const
 	if (result->find_inconsistencies())
 		throw "\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator|(const unlimited_int& right) const\"";
 #endif
-	return result;
+	return std::shared_ptr<unlimited_int>(result);
 }
-unlimited_int* unlimited_int::operator^(const unlimited_int& right) const
+std::shared_ptr<unlimited_int> unlimited_int::operator^(const unlimited_int& right) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in beginning of function \"unlimited_int* unlimited_int::operator^(const unlimited_int& right) const\"";
@@ -3993,13 +4000,13 @@ unlimited_int* unlimited_int::operator^(const unlimited_int& right) const
 	{
 		unlimited_int* right_copy = right.copy();
 		right_copy->is_negative = false;
-		return right_copy;
+		return std::shared_ptr<unlimited_int>(right_copy);
 	}
 	if (right.is_zero())
 	{
 		unlimited_int* this_copy = this->copy();
 		this_copy->is_negative = false;
-		return this_copy;
+		return std::shared_ptr<unlimited_int>(this_copy);
 	}
 	const unlimited_int* shorter_num = this;
 	const unlimited_int* longer_num = &right;
@@ -4012,7 +4019,7 @@ unlimited_int* unlimited_int::operator^(const unlimited_int& right) const
 	unlimited_int* result = new unlimited_int;
 	const many_bits len_of_result = longer_num->num_of_used_ints;
 	if (len_of_result == 0)
-		return result;
+		return std::shared_ptr<unlimited_int>(result);
 	result->intarrays.increase_until_num_of_ints(len_of_result);
 	const many_bits len_of_shorter_num = shorter_num->num_of_used_ints;
 	Node* current_int_array_Node_shorter_num = shorter_num->intarrays.intarrays.first;
@@ -4127,9 +4134,9 @@ unlimited_int* unlimited_int::operator^(const unlimited_int& right) const
 	if ((result->find_inconsistencies()) || this->find_inconsistencies() || right.find_inconsistencies())
 		throw "\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator^(const unlimited_int& right) const\"";
 #endif
-	return result;
+	return std::shared_ptr<unlimited_int>(result);
 }
-unlimited_int* unlimited_int::operator~() const
+std::shared_ptr<unlimited_int> unlimited_int::operator~() const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in beginning of function \"unlimited_int* unlimited_int::operator~() const\"";
@@ -4141,7 +4148,7 @@ unlimited_int* unlimited_int::operator~() const
 	unlimited_int* result = new unlimited_int;
 	const many_bits len_of_result = this->num_of_used_ints;
 	if (len_of_result == 0)
-		return result;
+		return std::shared_ptr<unlimited_int>(result);
 	result->intarrays.increase_until_num_of_ints(len_of_result);
 	const many_bits len_of_this = this->num_of_used_ints;
 	Node* current_int_array_Node_this = this->intarrays.intarrays.first;
@@ -4213,7 +4220,63 @@ unlimited_int* unlimited_int::operator~() const
 	if (result->find_inconsistencies())
 		throw "\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator~() const\"";
 #endif
-	return result;
+	return std::shared_ptr<unlimited_int>(result);
+}
+void unlimited_int::invert_bits()
+{
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in beginning of function \"void unlimited_int::invert_bits()\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies())
+		std::cout << "\nThe inconsistency was found in beginning of function: \"void unlimited_int::invert_bits()\"";
+#endif
+	const many_bits len_of_this = this->num_of_used_ints;
+	Node* current_int_array_Node_this = this->intarrays.intarrays.first;
+	int_array current_int_array_this = *current_int_array_Node_this->value;
+	many_bits index_this = 0;
+
+	const many_bits stop_for_this = current_int_array_this.num_of_used_ints;
+
+	many_bits stop_at = stop_for_this;
+	if (len_of_this < stop_at)
+		stop_at = len_of_this;
+	many_bits int_num_counter = 0;
+	while (true)
+	{
+		if (int_num_counter >= stop_at)
+		{
+			if (int_num_counter >= len_of_this)
+				break;
+			if (index_this >= current_int_array_this.num_of_used_ints)
+			{
+				index_this = 0;
+				current_int_array_Node_this = current_int_array_Node_this->next;
+				current_int_array_this = *current_int_array_Node_this->value;
+			}
+			const many_bits stop_for_this = int_num_counter + current_int_array_this.num_of_used_ints - index_this;
+			stop_at = stop_for_this;
+			if (len_of_this < stop_at)
+				stop_at = len_of_this;
+			continue;
+		}
+		current_int_array_this.intarr[index_this] = ~current_int_array_this.intarr[index_this];
+		++index_this;
+		++int_num_counter;
+	}
+	--index_this;
+	const few_bits most_significant_int_in_this = current_int_array_this.intarr[index_this];
+	const int num_preceding_zeros = num_of_zero_bits_preceding_number(most_significant_int_in_this);
+	const few_bits inverted_most_significant_int_in_this = (few_bits)(~(most_significant_int_in_this << num_preceding_zeros)) >> num_preceding_zeros;
+	current_int_array_this.intarr[index_this] = inverted_most_significant_int_in_this;
+	this->cutoff_leading_zeros(current_int_array_Node_this);
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::invert_bits()\"";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies())
+		throw "\nThe inconsistency was found in end of function: \"void unlimited_int::invert_bits()\"";
+#endif
 }
 void insert_long_long_into_uint32_t(long long origin, uint32_t* destination_arr, size_t* counter_in_uint32_t)
 {
@@ -4229,7 +4292,7 @@ void insert_long_long_into_uint32_t(long long origin, uint32_t* destination_arr,
 }
 //Most methods here to increase randomness don't actually work, but it's just a failsafe. Anyways the entire "uint32_t* nums_to_generate_seed" ends up getting hashed, so it can only increase randomness.
 //BTW this is not truly random, because it relies on time and memory address management, but for all intents and purposes it's truly random.
-unlimited_int* unlimited_int::generate_truly_random()
+std::shared_ptr<unlimited_int> unlimited_int::generate_truly_random()
 {
 	srand((unsigned)time(NULL));
 	const int size_of_seed_arr = 4096;
@@ -4248,7 +4311,7 @@ unlimited_int* unlimited_int::generate_truly_random()
 		unlimited_int remainder = (many_bits)(rand());
 		if (remainder.is_zero()) //can't divide by zero
 			remainder = 1;
-		nums_to_generate_seed[uint32_t_index] = (uint32_t)(unlimited_int(unlimited_int::pow(base, power, remainder)).get_least_significant());
+		nums_to_generate_seed[uint32_t_index] = (uint32_t)(unlimited_int::pow(base, power, remainder)->get_least_significant());
 	}
 	uint32_t_index = previous_stop;
 	insert_long_long_into_uint32_t((long long)(&uint32_t_index), nums_to_generate_seed, &uint32_t_index);
@@ -4263,11 +4326,11 @@ unlimited_int* unlimited_int::generate_truly_random()
 	insert_long_long_into_uint32_t((long long)(sizeof(double)), nums_to_generate_seed, &uint32_t_index);
 	insert_long_long_into_uint32_t((long long)(sizeof(long double)), nums_to_generate_seed, &uint32_t_index);
 #if IS_64_BIT_SYSTEM
-	unlimited_int* num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
+	std::shared_ptr<unlimited_int> num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
 #else
-	unlimited_int* num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha256_hash();
+	std::shared_ptr<unlimited_int> num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha256_hash();
 #endif
-	const long long extra_randomness_from_memory = (long long)num_to_return;
+	const long long extra_randomness_from_memory = (long long)(num_to_return.get());
 	//using floating-point rounding errors to increase randomness
 	for (int counter = 0; counter < 20; ++counter)
 	{
@@ -4295,7 +4358,7 @@ unlimited_int* unlimited_int::generate_truly_random()
 	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.last, nums_to_generate_seed, &uint32_t_index);
 	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.first, nums_to_generate_seed, &uint32_t_index);
 #if IS_64_BIT_SYSTEM
-	(*num_to_return) = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
+	num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
 #else
 	(*num_to_return) = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha256_hash();
 #endif
@@ -4311,24 +4374,24 @@ unlimited_int* unlimited_int::generate_truly_random()
 	time_in_ms_passed_since_1970 = ms.count();
 	insert_long_long_into_uint32_t(time_in_ms_passed_since_1970, nums_to_generate_seed, &uint32_t_index);
 #if IS_64_BIT_SYSTEM
-	(*num_to_return) = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
+	num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
 #else
 	(*num_to_return) = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha256_hash();
 #endif
 	delete[] nums_to_generate_seed;
 	return num_to_return;
 }
-unlimited_int* unlimited_int::generate_next_random()
+std::shared_ptr<unlimited_int> unlimited_int::generate_next_random()
 {
-	if (unlimited_int::current_random.is_zero())
+	if (! unlimited_int::current_random) //if not initialized yet
 		unlimited_int::current_random = unlimited_int::generate_truly_random(); //seeding random (only once in the entire program)
 #if IS_64_BIT_SYSTEM
-	unlimited_int* next_in_chain = unlimited_int::current_random.calculate_sha512_hash();
+	std::shared_ptr<unlimited_int> next_in_chain = unlimited_int::current_random->calculate_sha512_hash();
 #else
-	unlimited_int* next_in_chain = unlimited_int::current_random.calculate_sha256_hash();
+	std::shared_ptr<unlimited_int> next_in_chain = unlimited_int::current_random->calculate_sha256_hash();
 #endif
 	//Makes sure that the caller of this function can't predict what the next random number will be even if he knows the source code of this function.
-	unlimited_int* fork_of_main_chain = unlimited_int::current_random ^ (*next_in_chain); //xor produces a completely different random value that can't be traced back to this chain
+	std::shared_ptr<unlimited_int> fork_of_main_chain = (*unlimited_int::current_random) ^ (*next_in_chain); //xor produces a completely different random value that can't be traced back to this chain
 	unlimited_int::current_random = next_in_chain;
 	return fork_of_main_chain;
 }
@@ -4427,65 +4490,9 @@ int num_of_zero_bits_preceding_number(const few_bits original_num)
 	}
 	return ((many_bits)amount_to_shift - (many_bits)1);
 }
-void unlimited_int::invert_bits()
-{
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in beginning of function \"void unlimited_int::invert_bits()\"";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-		std::cout << "\nThe inconsistency was found in beginning of function: \"void unlimited_int::invert_bits()\"";
-#endif
-	const many_bits len_of_this = this->num_of_used_ints;
-	Node* current_int_array_Node_this = this->intarrays.intarrays.first;
-	int_array current_int_array_this = *current_int_array_Node_this->value;
-	many_bits index_this = 0;
-
-	const many_bits stop_for_this = current_int_array_this.num_of_used_ints;
-
-	many_bits stop_at = stop_for_this;
-	if (len_of_this < stop_at)
-		stop_at = len_of_this;
-	many_bits int_num_counter = 0;
-	while (true)
-	{
-		if (int_num_counter >= stop_at)
-		{
-			if (int_num_counter >= len_of_this)
-				break;
-			if (index_this >= current_int_array_this.num_of_used_ints)
-			{
-				index_this = 0;
-				current_int_array_Node_this = current_int_array_Node_this->next;
-				current_int_array_this = *current_int_array_Node_this->value;
-			}
-			const many_bits stop_for_this = int_num_counter + current_int_array_this.num_of_used_ints - index_this;
-			stop_at = len_of_this;
-			if (len_of_this < stop_at)
-				stop_at = len_of_this;
-			continue;
-		}
-		current_int_array_this.intarr[index_this] = ~current_int_array_this.intarr[index_this];
-		++index_this;
-		++int_num_counter;
-	}
-	--index_this;
-	const few_bits most_significant_int_in_this = current_int_array_this.intarr[index_this];
-	const int num_preceding_zeros = num_of_zero_bits_preceding_number(most_significant_int_in_this);
-	const few_bits inverted_most_significant_int_in_this = (few_bits)(~(most_significant_int_in_this << num_preceding_zeros)) >> num_preceding_zeros;
-	current_int_array_this.intarr[index_this] = inverted_most_significant_int_in_this;
-	this->cutoff_leading_zeros(current_int_array_Node_this);
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::invert_bits()\"";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function: \"void unlimited_int::invert_bits()\"";
-#endif
-}
 void unlimited_int::flush_current_random()
 {
-	unlimited_int::current_random.flush();
+	unlimited_int::current_random->flush();
 }
 //Miller-Rabin primality test algorithm.
 //If a number fails one of the iterations, the number is certainly composite. A composite number has a chance of 25% to pass every iteration. That's why 64 iterations ensures 1/(2^128) probability of mistake.
@@ -4498,33 +4505,31 @@ bool unlimited_int::is_prime() const
 		return true;
 	if ((comparison_to_2 == 'S') || (this->modulo_2() == 0))
 		return false;
-	unlimited_int pMinusOne = this->copy();
-	pMinusOne.is_negative = false;
-	--pMinusOne;
+	std::unique_ptr<unlimited_int> pMinusOne(this->copy());
+	(*pMinusOne).is_negative = false;
+	--(*pMinusOne);
 	many_bits_signed _k = 0;
-	unlimited_int _m = pMinusOne.copy();
-	while (_m.modulo_2() == 0)
+	std::unique_ptr<unlimited_int> _m((*pMinusOne).copy());
+	while ((*_m).modulo_2() == 0)
 	{
-		_m >>= 1;
+		(*_m) >>= 1;
 		++_k;
 	}
 	--_k;
 	for (int iteration_counter = 0; iteration_counter < num_of_iterations; ++iteration_counter)
 	{
-		unlimited_int _a = unlimited_int::generate_random(unlimited_int(2), pMinusOne);
-		unlimited_int _x = unlimited_int::pow(_a, _m, (*this));
-		if ((_x == 1) || (_x == pMinusOne))
+		std::shared_ptr<unlimited_int> _a = unlimited_int::generate_random(unlimited_int(2), *pMinusOne);
+		std::shared_ptr<unlimited_int> _x = unlimited_int::pow(*_a, *_m, *this);
+		if ((*_x == unlimited_int(1)) || (*_x == *pMinusOne))
 			continue;
 		bool to_return_false = true;
 		for (int counter2 = 0; counter2 < _k; ++counter2)
 		{
-			_x = _x.power2();
-			_x %= (*this);
-			if (_x == 1)
-			{
+			_x = _x->power2();
+			*_x %= (*this);
+			if (*_x == unlimited_int(1))
 				return false;
-			}
-			if (_x == pMinusOne)
+			if (*_x == *pMinusOne)
 			{
 				to_return_false = false;
 				break;
@@ -4537,12 +4542,12 @@ bool unlimited_int::is_prime() const
 	}
 	return true;
 }
-unlimited_int* unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)
+std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)
 {
-	unlimited_int* current_try = new unlimited_int;
+	std::shared_ptr<unlimited_int> current_try;
 	do
 	{
-		*current_try = unlimited_int::generate_random(min, max);
+		current_try = unlimited_int::generate_random(min, max);
 	} while (!current_try->is_prime());
 	return current_try;
 }
