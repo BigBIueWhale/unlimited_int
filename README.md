@@ -11,7 +11,7 @@ To use the library you must include "unlimited_int.h" and then use "unlimited_in
 The syntax is exactly the same as the regular built-in int except that the arithmetic functions return a smart pointer to unlimited_int.\
 For example:\
 std::cout << unlimited_int(1) + unlimited_int(2); //Wrong! This will print the pointer's address.\
-std::cout << *(unlimited_int(1) + unlimited_int(2)); //Correct! We need to dereference the smart pointer\
+std::cout << \*(unlimited_int(1) + unlimited_int(2)); //Correct! We need to dereference the smart pointer\
 unlimited_int num = unlimited_int::pow(unlimited_int(2), unlimited_int(10)); //Correct! the smart pointer will automatically be converted to unlimited_int\
 unlimited_int num = \*unlimited_int::pow(unlimited_int(2), unlimited_int(10)); //Wrong! this will still work but is O(n) instead of O(1)\
 unlimited_int* cpy_num_ptr = num.copy(); //Option 1 to fully copy number\
