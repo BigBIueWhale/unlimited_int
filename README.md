@@ -16,4 +16,7 @@ unlimited_int num = unlimited_int::pow(unlimited_int(2), unlimited_int(10)); //C
 unlimited_int num = \*unlimited_int::pow(unlimited_int(2), unlimited_int(10)); //Wrong! this will still work but is O(n) instead of O(1)\
 unlimited_int* cpy_num_ptr = num.copy(); //Option 1 to fully copy number\
 delete cpy_num_ptr;\
-unlimited_int cpy_num = num; //Option 2 to fully copy number. Preferred option.
+unlimited_int cpy_num = num; //Option 2 to fully copy number. Preferred option.\
+Funtions that return an unlimited_int should return: std::shared_ptr<unlimited_int>\
+For example:\
+std::shared_ptr<unlimited_int> high_five() { return std::shared_ptr<unlimited_int>(unlimited_int(5).copy()); }
