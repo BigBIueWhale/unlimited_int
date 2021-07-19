@@ -9,7 +9,7 @@
 void SHA256_compress_message_block(const uint32_t* message_block, uint32_t* parameter_hash_values); //accepts a message block with 512 bits, meaning an array of 16 32bit integers
 using namespace unlimited;
 
-unlimited_int* unlimited_int::calculate_sha256_hash() const
+std::shared_ptr<unlimited_int> unlimited_int::calculate_sha256_hash() const
 {
 	uint32_t current_hash_values[8] = {
 		0x6a09e667U, 0xbb67ae85U, 0x3c6ef372U, 0xa54ff53aU,
@@ -126,7 +126,7 @@ unlimited_int* unlimited_int::calculate_sha256_hash() const
 #endif
 		SHA256_compress_message_block(current_block, current_hash_values);
 	}
-	return new unlimited_int(current_hash_values, 8);
+	return std::shared_ptr<unlimited_int>(new unlimited_int(current_hash_values, 8));
 }
 void SHA256_compress_message_block(const uint32_t* message_block, uint32_t* parameter_hash_values)
 {
