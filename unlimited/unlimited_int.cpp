@@ -2901,6 +2901,22 @@ void unlimited_int::operator--()
 		throw "\nThe inconsistency was found in end of function \"void unlimited_int::operator++()\"";
 #endif
 }
+std::shared_ptr<unlimited_int> unlimited_int::operator-()
+{
+	if (this->is_zero())
+		return std::shared_ptr<unlimited_int>(new unlimited_int(0));
+	unlimited_int* cpy = this->copy();
+	cpy->is_negative = !cpy->is_negative;
+	return std::shared_ptr<unlimited_int>(cpy);
+}
+std::shared_ptr<unlimited_int> unlimited_int::abs()
+{
+	if (this->is_zero())
+		return std::shared_ptr<unlimited_int>(new unlimited_int(0));
+	unlimited_int* cpy = this->copy();
+	cpy->is_negative = false;
+	return std::shared_ptr<unlimited_int>(cpy);
+}
 std::shared_ptr<unlimited_int> unlimited_int::operator%(const unlimited_int& ui) const
 {
 	std::shared_ptr<unlimited_int> answer_divide = this->divide_by(ui);
