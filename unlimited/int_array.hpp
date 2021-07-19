@@ -17,11 +17,11 @@
 #define IS_64_BIT_SYSTEM false
 #endif
 #else
-#error "FATAL COMPILATION ERROR in unlimited::unlimited_int: Compiler is not GCC and not Microsoft. Try manually changing int_array.h to specify whether the compiler is 64 bits or 32 bits"
+#error "FATAL COMPILATION ERROR in unlimited::unlimited_int: Compiler is not GCC and not Microsoft. Try manually editing int_array.h to specify whether the compiler is 64 bits or 32 bits"
 #endif
 
 
-#define DEBUG_MODE -2 //0 for no error scanning using function(s) "find_inconsistencies", 1 for yes, 2 for scan with print, -2 for only memory counting
+#define DEBUG_MODE 0 //0 for no error scanning using function(s) "find_inconsistencies", 1 for yes, 2 for scan with print, -2 for only memory counting
 #include <stdint.h> //for the typenames uint32_t etc.
 
 namespace unlimited
