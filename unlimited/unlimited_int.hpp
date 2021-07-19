@@ -195,6 +195,16 @@ namespace unlimited
 		void operator++();
 		//expected Efficiency O(1)
 		void operator--();
+		//Creates full copy with opposite sign, unless number is zero because then the sign stays positive.
+		std::shared_ptr<unlimited_int> operator-();
+		//O(1) operation to flip a numbers sign from positive to negative or from negative to positive. Doesn't do anything when the number is 0.
+		void flip_sign() { if (!this->is_zero()) this->is_negative = !this->is_negative; }
+		//Creates full copy with positive, unless number is zero because then the sign stays positive.
+		std::shared_ptr<unlimited_int> abs();
+		//O(1) operation to flip a number's sign to positive.
+		void self_abs() { this->is_negative = false; }
+		//O(1) operation to flip a number's sign to negative. Doesn't do anything when the number is 0.
+		void make_negative() { if (!this->is_zero()) this->is_negative = false; }
 		void operator=(const many_bits_signed num) { this->assign(num); }
 		friend std::ostream& operator<<(std::ostream& os, const unlimited_int& ui);
 		void operator<<=(const many_bits num_to_shift_by) { this->shift_left_by_bits(num_to_shift_by); }
