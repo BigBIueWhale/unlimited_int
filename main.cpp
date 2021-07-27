@@ -1,78 +1,42 @@
 //This is just an example file. "The best way to learn is through example"
 #include "unlimited/unlimited.hpp"
 #include <iostream>
-#if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
-unlimited::many_bits unlimited::int_array::num_of_ints_created = 0;
-unlimited::many_bits unlimited::int_array::num_of_ints_destroyed = 0;
-#endif
+#include <chrono>
 void helper();
 int main(int argc, char* argv[])
 {
 	helper();
 
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
-	unlimited::delete_all_static_memory();
+	unlimited::delete_all_static_memory(); //not actually required, it's just so that when we print num_of_ints_created and num_of_ints_destroyed we can ensure that there's no memory leak.
 	std::cout << "\n\nDEBUG INFORMATION:\n" << std::dec;
 	std::cout << "\n$$num_of_ints_created: " << unlimited::int_array::num_of_ints_created;
-	std::cout << "\nnum_of_ints_destroyed: " << unlimited::int_array::num_of_ints_destroyed;
+	std::cout << "\nnum_of_ints_destroyed: " << unlimited::int_array::num_of_ints_destroyed << "\n";
 #endif
 	return 0;
 }
 using namespace unlimited;
-std::shared_ptr<unlimited_int> Fibonacci(unsigned long long index);
 void helper()
 {
 	std::cout << "\nEnter the number of bits for prime number: ";
 	int bits;
 	std::cin >> bits;
-	unlimited_int prime = unlimited_int::generate_random_prime(*unlimited_int::pow(2, bits - 1), *unlimited_int::pow(2, bits) - 1);
-	std::cout << "\nprime number calculated.\nIn hexadecimal: " << std::hex << prime << "\nIn decimal: " << std::dec << prime;
-	std::cout << "\nSHA256 of prime number: " << std::hex << *prime.calculate_sha256_hash() << std::dec;
-	std::cout << "\nSHA512 of prime number: " << std::hex << *prime.calculate_sha512_hash() << std::dec;
-	std::cout << "\nRandom number between 0 and the prime number (including): " << *unlimited_int::generate_random(0, prime);
-	std::cout << "\nThe random number in base 36: " << prime.to_string(36);
-	std::cout << "\nThe greatest common divisor of two random numbers: " << *unlimited_int::gcd(unlimited_int::generate_random(0, 1000), unlimited_int::generate_random(0, 1000));
-	std::cout << "\nThe lowest common multiple of two random numbers: " << *unlimited_int::lcm(unlimited_int::generate_random(0, 1000), unlimited_int::generate_random(0, 1000));
-	unsigned long long fib_index;
-	std::cout << "\n\nEnter the index to find in Fibonacci sequence (where index 1 is 0 and index 2 is 1 etc.): ";
-	std::cin >> fib_index;
-	std::cout << "\nFibonacci num in hex: " << std::hex << *Fibonacci(fib_index) << std::dec;
-	std::string line;
-	std::cout << "\nEnter positive or negative integer in base 10: ";
-	std::cin.ignore();
-	std::getline(std::cin, line);
-	std::cout << "\nThat same number squared: " << *unlimited_int::from_string(line)->power2();
-}
-std::shared_ptr<unlimited_int> Fibonacci(unsigned long long index)
-{
-	if (index == 0)
-		throw "index 0 is invalid";
-	else if (index == 1)
-		return std::shared_ptr<unlimited_int>(unlimited_int(0).copy());
-	else if (index == 2)
-		return std::shared_ptr<unlimited_int>(unlimited_int(1).copy());
-	unlimited_int a = 1, b = 0;
-	bool a_is_bigger = true;
-	for (unsigned long long counter = 3; counter <= index; ++counter)
+	unlimited_int min = unlimited_int::pow(unlimited_int(2), unlimited_int(bits - 1));
+	unlimited_int max = *unlimited_int::pow(unlimited_int(2), unlimited_int(bits)) - unlimited_int(1);
+	long double sum_seconds = 0.0;
+	const int num_of_primes = 20;
+	for (int counter = 0; counter < num_of_primes; ++counter)
 	{
-		if (counter % 10000 == 0)
-		{
-			std::cout << "\nProgress Fibonacci: " << (((double)counter / (double)index) * 100) << "%";
-		}
-		if (a_is_bigger)
-		{
-			b = a + b;
-			a_is_bigger = false;
-		}
-		else
-		{
-			a = a + b;
-			a_is_bigger = true;
-		}
+		const auto start_time = std::chrono::high_resolution_clock::now();
+		unlimited_int prime = unlimited_int::generate_random_prime(min, max);
+		std::cout << "\nPrime number " << (counter + 1) << ": " << std::dec << prime;
+		const auto end_time = std::chrono::high_resolution_clock::now();
+		const auto difference_time = end_time - start_time;
+		const auto difference_time_seconds = std::chrono::duration_cast<std::chrono::seconds>(difference_time);
+		const auto time_took = difference_time_seconds.count();
+		sum_seconds += (long double)time_took;
+		std::cout << "\nTime took for previous prime: " << time_took;
 	}
-	std::cout << "\n";
-	if (a_is_bigger)
-		return std::shared_ptr<unlimited_int>(a.copy());
-	else
-		return std::shared_ptr<unlimited_int>(b.copy());
+	const long double average_seconds = sum_seconds / (long double)num_of_primes;
+	std::cout << "\nAverage amount of time took: " << average_seconds << " seconds.\n";
 }
