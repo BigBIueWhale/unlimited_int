@@ -4,7 +4,11 @@ using namespace unlimited;
 #include <iostream>
 #endif
 //makes use if the identity (a ⋅ b) mod m = [(a mod m) ⋅ (b mod m)] mod m
-std::shared_ptr<unlimited_int> unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod, bool* terminator)
+std::shared_ptr<unlimited_int> unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
+						, bool* terminator
+#endif
+							)
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
@@ -26,9 +30,11 @@ std::shared_ptr<unlimited_int> unlimited_int::pow(const unlimited_int& base, con
 	*current_power %= mod;
 	if (current_power->is_zero()) { answer->set_to_zero(); return std::shared_ptr<unlimited_int>(answer); }
 	std::shared_ptr<unlimited_int> power_cpy(power.copy());
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 	if (terminator != nullptr)
 		if (*terminator)
 			return std::shared_ptr<unlimited_int>(answer);
+#endif
 	if (power_cpy->modulo_2() == 1)
 	{
 		*answer *= *current_power;
@@ -37,9 +43,11 @@ std::shared_ptr<unlimited_int> unlimited_int::pow(const unlimited_int& base, con
 	*power_cpy >>= 1;
 	while (!power_cpy->is_zero())
 	{
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		if (terminator != nullptr)
 			if (*terminator)
 				return std::shared_ptr<unlimited_int>(answer);
+#endif
 		current_power = current_power->power2_destroy_this();
 		*current_power %= mod;
 		if (power_cpy->modulo_2() == 1)

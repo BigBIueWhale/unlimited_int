@@ -10,9 +10,13 @@ namespace unlimited
 	{
 	private:
 		//Defined in unlimited/unlimited.cpp
-		//thread_local insures that each thread generates its own version of current_random (otherwise corruption will occur, an std::mutex will slow down the program).
 		//Holds the current random number in the chain of random numbers. The chain is generated using the SHA256 or SHA512 hash function (depending on whether compiler is 64bits or 32bits).
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
+		//thread_local insures that each thread generates its own version of current_random (otherwise corruption will occur, an std::mutex will slow down the program).
 		static thread_local unlimited_int current_random;
+#else
+		static unlimited_int current_random;
+#endif
 	protected:
 //Member Variables
 		many_bits num_of_used_ints; //number of used ints int the entire list_of_int_arrays
@@ -310,7 +314,11 @@ namespace unlimited
 		std::string to_string(const int base = 16) const;
 //Power (^)
 		//efficient method for power (math function) with remainder as well. Receives boolean pointer used for early termination of calculation.
-		static std::shared_ptr<unlimited_int> pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod, bool* terminator = nullptr);
+		static std::shared_ptr<unlimited_int> pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
+								, bool* terminator = nullptr
+#endif
+								);
 		//efficient method for power (math function)
 		static std::shared_ptr<unlimited_int> pow(const unlimited_int& base, const unlimited_int& power);
 //Random
@@ -329,11 +337,19 @@ namespace unlimited
 //Prime
 		//Miller-Rabin primality test: 1/2^128 chance of mistake, no "special cases" like 561 that satisfies Fermat test.
 		//Ignores that sign of a number: -2 is prime. Receives a pointer to a boolean that tells it to stop early.
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		bool is_prime(bool* terminator = nullptr) const;
+#else
+		bool is_prime() const;
+#endif
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		//Receives optional argument: bool* terminator that when true, the function will terminate itself a.s.a.p and return unlimited_int that's equal to 0
 		//Receives optional argument: int num_threads that specified how many threads are to be run concurrently to try to find the prime number.
 		//If int num_threads is not specified then the number of threads used will be equal to the number of cores (logical processors) on the system.
 		static std::shared_ptr<unlimited_int> generate_random_prime(const unlimited_int& min, const unlimited_int& max, bool* terminator = nullptr, int num_threads = -1);
+#else
+		static std::shared_ptr<unlimited_int> generate_random_prime(const unlimited_int& min, const unlimited_int& max);
+#endif
 //Abstract Math
 		//greatest common divisor- treats negative numbers as positive
 		static std::shared_ptr<unlimited_int> gcd(const unlimited_int& a, const unlimited_int& b);

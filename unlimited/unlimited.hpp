@@ -1,6 +1,7 @@
 #ifndef UNLIMITED_H
 #define UNLIMITED_H
 #include "unlimited_int/unlimited_int.hpp"
+//You can change unlimited's library settings in file unlimited/unlimited_int/structures/settings.hpp
 namespace unlimited
 {
 	//Deletes all dynamically allocated memory that is tied to static variables such as unlimited::list_of_int_arrays::piggy_bank and such as unlimited::unlimited_int::current_random.

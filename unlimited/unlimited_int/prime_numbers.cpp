@@ -1,11 +1,17 @@
 #include "unlimited_int.hpp"
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 #include <thread>
 #include <vector>
 #include <mutex>
+#endif
 using namespace unlimited;
 //Miller-Rabin primality test algorithm.
 //If a number fails one of the iterations, the number is certainly composite. A composite number has a chance of 25% to pass every iteration. That's why 64 iterations ensures 1/(2^128) probability of mistake.
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 bool unlimited_int::is_prime(bool* terminator) const
+#else
+bool unlimited_int::is_prime() const
+#endif
 {
 	//Error probability is 1/(2^128)
 	const int num_of_iterations = 64;
@@ -27,11 +33,17 @@ bool unlimited_int::is_prime(bool* terminator) const
 	--_k;
 	for (int iteration_counter = 0; iteration_counter < num_of_iterations; ++iteration_counter)
 	{
+		std::shared_ptr<unlimited_int> _a = unlimited_int::generate_random(unlimited_int(2), *pMinusOne);
+		std::shared_ptr<unlimited_int> _x = unlimited_int::pow(*_a, *_m, *this
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
+								,terminator
+#endif
+								);
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		if (terminator != nullptr)
 			if (*terminator)
 				return false;
-		std::shared_ptr<unlimited_int> _a = unlimited_int::generate_random(unlimited_int(2), *pMinusOne);
-		std::shared_ptr<unlimited_int> _x = unlimited_int::pow(*_a, *_m, *this);
+#endif
 		if ((*_x == unlimited_int(1)) || (*_x == *pMinusOne))
 			continue;
 		bool to_return_false = true;
@@ -52,6 +64,7 @@ bool unlimited_int::is_prime(bool* terminator) const
 	}
 	return true;
 }
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 void generate_random_prime_single_thread(const unlimited_int& min, const unlimited_int& max, bool* is_ending, unlimited_int* result, std::mutex* result_lock, int index_thread)
 {
 	std::shared_ptr<unlimited_int> current_try;
@@ -111,3 +124,15 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimi
 	}
 	return std::shared_ptr<unlimited_int>(result);
 }
+#else
+std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)
+{
+	unlimited_int range_size = max - min;
+	if (range_size.is_negative)
+		throw "Error in function \"std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)\". Invalid arguments: max is smaller than min.";
+	std::shared_ptr<unlimited_int> current_try;
+	do current_try = unlimited_int::generate_random(min, max);
+	while (!current_try->is_prime());
+	return current_try;
+}
+#endif

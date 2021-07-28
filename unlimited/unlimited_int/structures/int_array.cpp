@@ -8,8 +8,10 @@ using namespace unlimited;
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
 many_bits int_array::num_of_ints_created = 0;
 many_bits int_array::num_of_ints_destroyed = 0;
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 std::mutex int_array::num_of_ints_created_guard;
 std::mutex int_array::num_of_ints_destroyed_guard;
+#endif
 #endif
 void int_array::assign(const few_bits num_to_assign)
 {
@@ -77,8 +79,6 @@ bool int_array::find_inconsistencies()
 	}
 	return false;
 }
-#endif
-#if DEBUG_MODE > 0
 void int_array::print_all() const
 {
 	std::stringstream message;
@@ -172,7 +172,7 @@ void int_array::resize_and_fillzero(many_bits size_to_make)
 	{
 		this->intarr_len = size_to_make;
 		this->intarr = new few_bits[size_to_make];
-#if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
+#if ((DEBUG_MODE > 0) || (DEBUG_MODE == -2)) && UNLIMITED_INT_SUPPORT_MULTITHREADING
 		int_array::num_of_ints_created_guard.lock();
 		int_array::num_of_ints_created += size_to_make;
 		int_array::num_of_ints_created_guard.unlock();
@@ -187,7 +187,7 @@ void int_array::resize(many_bits size_to_make)
 	{
 		this->intarr_len = size_to_make;
 		this->intarr = new few_bits[size_to_make];
-#if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
+#if ((DEBUG_MODE > 0) || (DEBUG_MODE == -2)) && UNLIMITED_INT_SUPPORT_MULTITHREADING
 		int_array::num_of_ints_created_guard.lock();
 		int_array::num_of_ints_created += size_to_make;
 		int_array::num_of_ints_created_guard.unlock();
@@ -196,7 +196,7 @@ void int_array::resize(many_bits size_to_make)
 }
 void int_array::destroy()
 {
-#if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
+#if ((DEBUG_MODE > 0) || (DEBUG_MODE == -2)) && UNLIMITED_INT_SUPPORT_MULTITHREADING
 	int_array::num_of_ints_destroyed_guard.lock();
 	int_array::num_of_ints_destroyed += this->intarr_len;
 	int_array::num_of_ints_destroyed_guard.unlock();

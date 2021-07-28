@@ -20,7 +20,7 @@
 #endif
 
 //0 for no debugging at all, 1 for all debugging except verbose print, 2 for all debugging with verbose print, -2 for only memory counting (check for memory leaks)
-#define DEBUG_MODE 1
+#define DEBUG_MODE -2
 #if (DEBUG_MODE <= -3) || (DEBUG_MODE == -1) || (DEBUG_MODE >= 3) //Invalid options
 #error "FATAL COMPILATION ERROR of \"unlimited\" library. The DEBUG_MODE macro is set to an invalid option. Try manually editing the valud of DEBUG_MODE in file: \"unlimited/unlimited_int/structures/settings.h\""
 #endif
@@ -59,6 +59,8 @@ namespace unlimited //macros aren't inside the namespace, but it does affect the
 	//#define MAX_ALLOC 1048576 //2^20
 #define MAX_ALLOC 16384 //per single int array.
 #define MIN_ALLOC 4096 //per single int array (2048 32bits)^2 = (64 32bit integers)^2
+//set the multithreading macro to false if you want to compile for Linux using g++ with -static flag because that causes issues with multithreading
+#define UNLIMITED_INT_SUPPORT_MULTITHREADING true
 //#define MIN_ALLOC 1
 //#define MAX_ALLOC 20
 

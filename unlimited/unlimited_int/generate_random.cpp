@@ -1,7 +1,7 @@
 #include "unlimited_int.hpp"
 //for the truly random number generator
-#include <chrono>
-#include <cmath>
+#include <chrono> //for generating truly random numbers
+#include <cmath> //Attempt at using floating point operation errors
 using namespace unlimited;
 many_bits ceiling_division(many_bits, many_bits);
 #if DEBUG_MODE == 2
@@ -28,21 +28,14 @@ void unlimited_int::flush_current_random()
 //BTW this is not truly random, because it relies on time and memory address management, but for all intents and purposes it's truly random.
 std::shared_ptr<unlimited_int> unlimited_int::generate_truly_random()
 {
-	srand((unsigned)time(NULL));
 	//don't let this confuse you. There aren't actually 4096 * sizeof(int) bytes of randomness.
 	//I don't have a camera pointing at a lava lamp in real time.
-	const int size_of_seed_arr = 4096;
+	const int size_of_seed_arr = 1024; //should be enough
 	uint32_t* nums_to_generate_seed = new uint32_t[size_of_seed_arr];
 	size_t uint32_t_index = 0;
 	std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 	long long time_in_ms_passed_since_1970 = ms.count();
 	insert_long_long_into_uint32_t(time_in_ms_passed_since_1970, nums_to_generate_seed, &uint32_t_index);
-	const size_t previous_stop = uint32_t_index;
-	for (; uint32_t_index < size_of_seed_arr; ++uint32_t_index)
-	{
-		nums_to_generate_seed[uint32_t_index] = rand();
-	}
-	uint32_t_index = previous_stop;
 	insert_long_long_into_uint32_t((long long)(&uint32_t_index), nums_to_generate_seed, &uint32_t_index);
 	insert_long_long_into_uint32_t((long long)nums_to_generate_seed[(size_t)(&nums_to_generate_seed) % size_of_seed_arr], nums_to_generate_seed, &uint32_t_index);
 	insert_long_long_into_uint32_t((long long)(&nums_to_generate_seed), nums_to_generate_seed, &uint32_t_index);
@@ -66,8 +59,8 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_truly_random()
 		long double random_num = std::sqrt(
 			std::abs(
 				std::pow(
-					(((long double)rand() * 15.14298572336489365L) * (double)(extra_randomness_from_memory)) / ((long double)rand() * 5.13298579236489365L),
-					(((long double)rand() * 15.14298572336489365L) * (double)(extra_randomness_from_memory)) / ((long double)rand() * 5.13298579236489365L)
+					(15.14298572336489365L * (double)(extra_randomness_from_memory)) / 5.13298579236489365L,
+					(15.14298572336489365L * (double)(extra_randomness_from_memory)) / 5.13298579236489365L
 				)
 			)
 		);
