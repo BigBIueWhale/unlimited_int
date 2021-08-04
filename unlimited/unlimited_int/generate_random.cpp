@@ -47,11 +47,7 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_truly_random()
 	insert_long_long_into_uint32_t((long long)(sizeof(float)), nums_to_generate_seed, &uint32_t_index);
 	insert_long_long_into_uint32_t((long long)(sizeof(double)), nums_to_generate_seed, &uint32_t_index);
 	insert_long_long_into_uint32_t((long long)(sizeof(long double)), nums_to_generate_seed, &uint32_t_index);
-#if IS_64_BIT_SYSTEM
-	std::shared_ptr<unlimited_int> num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
-#else
-	std::shared_ptr<unlimited_int> num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha256_hash();
-#endif
+	std::shared_ptr<unlimited_int> num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_efficient_cryptographic_hash();
 	const long long extra_randomness_from_memory = (long long)(num_to_return.get());
 	//using floating-point rounding errors to increase randomness
 	for (int counter = 0; counter < 20; ++counter)
@@ -80,11 +76,7 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_truly_random()
 	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.first, nums_to_generate_seed, &uint32_t_index);
 	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.last, nums_to_generate_seed, &uint32_t_index);
 	insert_long_long_into_uint32_t((long long)num_to_return->intarrays.intarrays.first, nums_to_generate_seed, &uint32_t_index);
-#if IS_64_BIT_SYSTEM
-	num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
-#else
-	(*num_to_return) = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha256_hash();
-#endif
+	num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_efficient_cryptographic_hash();
 	insert_long_long_into_uint32_t((long long)num_to_return->get_length_in_bits(), nums_to_generate_seed, &uint32_t_index);
 	insert_long_long_into_uint32_t((long long)num_to_return->get_least_significant(), nums_to_generate_seed, &uint32_t_index);
 	insert_long_long_into_uint32_t((long long)num_to_return->num_of_intarrays_used, nums_to_generate_seed, &uint32_t_index);
@@ -96,11 +88,7 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_truly_random()
 	ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 	time_in_ms_passed_since_1970 = ms.count();
 	insert_long_long_into_uint32_t(time_in_ms_passed_since_1970, nums_to_generate_seed, &uint32_t_index);
-#if IS_64_BIT_SYSTEM
-	num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha512_hash();
-#else
-	(*num_to_return) = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_sha256_hash();
-#endif
+	num_to_return = unlimited_int(nums_to_generate_seed, size_of_seed_arr).calculate_efficient_cryptographic_hash();
 	delete[] nums_to_generate_seed;
 	return num_to_return;
 }
@@ -108,11 +96,7 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_next_random()
 {
 	if (unlimited_int::current_random.is_zero()) //if not initialized yet
 		unlimited_int::current_random = unlimited_int::generate_truly_random(); //seeding random (only once in the entire program)
-#if IS_64_BIT_SYSTEM
-	std::shared_ptr<unlimited_int> next_in_chain = unlimited_int::current_random.calculate_sha512_hash();
-#else
-	std::shared_ptr<unlimited_int> next_in_chain = unlimited_int::current_random.calculate_sha256_hash();
-#endif
+	std::shared_ptr<unlimited_int> next_in_chain = unlimited_int::current_random.calculate_efficient_cryptographic_hash();
 	//Makes sure that the caller of this function can't predict what the next random number will be even if he knows the source code of this function.
 	std::shared_ptr<unlimited_int> fork_of_main_chain = unlimited_int::current_random ^ (*next_in_chain); //xor produces a completely different random value that can't be traced back to this chain
 	unlimited_int::current_random = next_in_chain;

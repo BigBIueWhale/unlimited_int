@@ -1,6 +1,8 @@
 //This is just an example file. "The best way to learn is through example"
 #include "unlimited/unlimited.hpp"
 #include <iostream>
+#include <string>
+#include <sstream>
 #include <chrono>
 void helper();
 int main(int argc, char* argv[])
@@ -18,25 +20,73 @@ int main(int argc, char* argv[])
 using namespace unlimited;
 void helper()
 {
-	std::cout << "\nEnter the number of bits for prime number: ";
-	int bits;
-	std::cin >> bits;
-	unlimited_int min = unlimited_int::pow(unlimited_int(2), unlimited_int(bits - 1));
-	unlimited_int max = *unlimited_int::pow(unlimited_int(2), unlimited_int(bits)) - unlimited_int(1);
-	long double sum_seconds = 0.0;
-	const int num_of_primes = 20;
-	for (int counter = 0; counter < num_of_primes; ++counter)
+	const std::string valid_digits = "0123456789";
+	while (true)
 	{
-		const auto start_time = std::chrono::high_resolution_clock::now();
-		unlimited_int prime = unlimited_int::generate_random_prime(min, max);
-		std::cout << "\nPrime number " << (counter + 1) << ": " << std::dec << prime;
-		const auto end_time = std::chrono::high_resolution_clock::now();
-		const auto difference_time = end_time - start_time;
-		const auto difference_time_seconds = std::chrono::duration_cast<std::chrono::seconds>(difference_time);
-		const auto time_took = difference_time_seconds.count();
-		sum_seconds += (long double)time_took;
-		std::cout << "\nTime took for previous prime: " << time_took;
+		int num_digits = -1;
+		bool input_is_valid = false;
+		while (!input_is_valid)
+		{
+			input_is_valid = true;
+			std::cout << "\n\nEnter number of digits for prime number (or \"exit\" to exit program): ";
+			std::string user_input;
+			std::getline(std::cin, user_input);
+			if (user_input == "exit" || user_input == "\"exit\"")
+			{
+				return; //exit from this damn program
+			}
+			if (user_input.length() > 5)
+			{
+				std::cout << "\nUser input is too long. Try again.";
+				input_is_valid = false;
+				continue;
+			}
+			bool all_characters_are_valid = true;
+			for (const char& ch : user_input)
+			{
+				if (valid_digits.find(ch) == std::string::npos) //not a digit
+				{
+					std::cout << "\nUser input is invalid. (At least) one of the characters isn\'t a digit in base 10. Try again.";
+					all_characters_are_valid = false;
+					break;
+				}
+			}
+			if (!all_characters_are_valid)
+			{
+				input_is_valid = false;
+				continue;
+			}
+			std::stringstream user_input_ss;
+			user_input_ss << user_input;
+			try
+			{
+				user_input_ss >> num_digits;
+			}
+			catch (std::exception& e)
+			{
+				std::cout << "\nError parsing input: " << e.what() << ". Try again.";
+				input_is_valid = false;
+			}
+		}
+		if (num_digits == 1)
+		{
+			std::cout << "\nThere\'s no prime number with one bit only.";
+			continue;
+		}
+		else if (num_digits == 0)
+		{
+			std::cout << "\n0 is not a prime number.";
+			continue;
+		}
+		else if (num_digits < 0)
+		{
+			std::cout << "\nThere can\'t be a negative number of bits.";
+			continue;
+		}
+		unlimited_int min(unlimited_int(1) << ((many_bits)num_digits - (many_bits)1));
+		unlimited_int max(unlimited_int(1) << (num_digits));
+		--max;
+		unlimited_int prime(unlimited_int::generate_random_prime(min, max));
+		std::cout << "\nPrime number: " << prime;
 	}
-	const long double average_seconds = sum_seconds / (long double)num_of_primes;
-	std::cout << "\nAverage amount of time took: " << average_seconds << " seconds.\n";
 }

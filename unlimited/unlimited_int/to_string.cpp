@@ -27,7 +27,7 @@ char* unlimited_int::to_c_string(const int base) const
 	char* string_base = new char[size_of_string];
 	many_bits_signed counter = 0;
 	std::shared_ptr<unlimited_int> numerator(this->copy());
-	unlimited_int base_str = unlimited_int((many_bits_signed)base);
+	unlimited_int base_str((many_bits_signed)base);
 	numerator->is_negative = false;
 	while ((*numerator > unlimited_int(0)) && (counter < size_of_string))
 	{

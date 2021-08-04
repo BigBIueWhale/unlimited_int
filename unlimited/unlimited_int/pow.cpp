@@ -27,7 +27,7 @@ std::shared_ptr<unlimited_int> unlimited_int::pow(const unlimited_int& base, con
 	if ((base.num_of_used_ints == 0) || (power.is_negative == true)) { answer->set_to_zero(); return std::shared_ptr<unlimited_int>(answer); }
 	if (mod == unlimited_int((many_bits_signed)1)) { answer->set_to_zero(); return std::shared_ptr<unlimited_int>(answer); }
 	std::shared_ptr<unlimited_int> current_power(base.copy());
-	*current_power %= mod;
+	current_power = unlimited_int::remainder_recurring_divison(*current_power, mod);
 	if (current_power->is_zero()) { answer->set_to_zero(); return std::shared_ptr<unlimited_int>(answer); }
 	std::shared_ptr<unlimited_int> power_cpy(power.copy());
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
@@ -38,7 +38,7 @@ std::shared_ptr<unlimited_int> unlimited_int::pow(const unlimited_int& base, con
 	if (power_cpy->modulo_2() == 1)
 	{
 		*answer *= *current_power;
-		*answer %= mod;
+		*answer = unlimited_int::remainder_recurring_divison(*answer, mod);
 	}
 	*power_cpy >>= 1;
 	while (!power_cpy->is_zero())
@@ -49,11 +49,11 @@ std::shared_ptr<unlimited_int> unlimited_int::pow(const unlimited_int& base, con
 				return std::shared_ptr<unlimited_int>(answer);
 #endif
 		current_power = current_power->power2_destroy_this();
-		*current_power %= mod;
+		*current_power = unlimited_int::remainder_recurring_divison(*current_power, mod);
 		if (power_cpy->modulo_2() == 1)
 		{
 			*answer *= *current_power;
-			*answer %= mod;
+			*answer = unlimited_int::remainder_recurring_divison(*answer, mod);
 		}
 		*power_cpy >>= 1;
 	}

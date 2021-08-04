@@ -1,11 +1,47 @@
 #ifndef UNLIMITED_UNLIMITED_INT_H
 #define UNLIMITED_UNLIMITED_INT_H
 #include "structures/list_of_int_arrays.hpp"
+#include "structures/custom_linked_list.h"
 #include <string>
 #include <ostream>
 #include <memory> //for std::shared_ptr
+#include <unordered_map>
+#include <list>
 namespace unlimited
 {
+	class unlimited_int;
+	struct reciprocal_information
+	{
+	public:
+		std::shared_ptr<unlimited_int> reciprocal; //the reciprocal_itself
+		many_bits amount_shifted; //the amount shifted left during the reciprocal calculation
+		reciprocal_information(std::shared_ptr<unlimited_int> reciprocal, many_bits amount_shifted);
+		reciprocal_information(const reciprocal_information&); //copy constructor
+		reciprocal_information() { amount_shifted = 0; }
+	};
+	struct reciprocal_information_for_database : public reciprocal_information
+	{
+		std::shared_ptr<unlimited_int> hash_of_dividend;
+		//Only my custom doubly-linked list is guaranteed to support keeping a valid pointer to a node in the list without that pointer becoming invalidated after changing the list
+		custom_Node<size_t>* link_to_list;
+		reciprocal_information_for_database(reciprocal_information, std::shared_ptr<unlimited_int>, custom_Node<size_t>*);
+		reciprocal_information_for_database(const reciprocal_information_for_database&);
+		reciprocal_information_for_database()
+		{
+			amount_shifted = 0;
+			this->link_to_list = nullptr;
+		}
+	};
+	struct reciprocals_database
+	{
+	public:
+		std::unordered_map<size_t, reciprocal_information_for_database> reciprocals_map;
+		//I need to do things with this list that aren't guaranteed to work with std::list, like for example: save a pointer to a node for later, without that pointer / iterator becoming invalidated.
+		//We don't want to be dependent on the implementation of our specific compiler's standard library.
+		custom_List<size_t> most_recent; //fingerprints of the most recent.
+		//clears the saved reciprocals in the database
+		void clear();
+	};
 	class unlimited_int
 	{
 	private:
@@ -16,6 +52,11 @@ namespace unlimited
 		static thread_local unlimited_int current_random;
 #else
 		static unlimited_int current_random;
+#endif
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
+		static thread_local reciprocals_database Newton_Raphson_lookup;
+#else
+		static reciprocals_database Newton_Raphson_lookup;
 #endif
 	protected:
 //Member Variables
@@ -65,7 +106,7 @@ namespace unlimited
 		//sets all variables to their default values without deleting anything that is dynamically allocated and without flushing into the piggy bank.
 		void forget_memory();
 		//copies the most significant part of an unlimited_int into another unlimited_int. Specifically the first num_of_ints_to_copy "few_bits"s. It pastes into the least significant portion of other.
-		//Other doesn't need to be prepared.
+		//Other doesn't need to be prepared. It causes other to be non-negative
 		void copy_most_significant_to(unlimited_int& other, const many_bits num_of_ints_to_copy) const;
 //Compare
 		//returns 'L', 'S' or 'E' based on the length of the numbers, and the negativity. Not accurate when both numbers are the same length and the same sign (except that when both numbers are 0 it is accurate).
@@ -177,14 +218,14 @@ namespace unlimited
 		explicit unlimited_int(const few_bits_signed num_to_assign);
 		explicit unlimited_int(const many_bits_signed num_to_assign);
 		//copy constructor- creates full independent copy.
-		unlimited_int(const unlimited_int& num_to_assign) { num_to_assign.copy_to(*this); };
+		explicit unlimited_int(const unlimited_int& num_to_assign) { num_to_assign.copy_to(*this); };
 		//Assign Integer
 		void operator=(const many_bits_signed num) { this->assign(num); }
 //Transfers And Copies
 		//just like copy() except that this is O(1) time because it uses the original to construct unlimited_int. this will be 0 after the function runs.
 		unlimited_int* to_dynamic();
 		//takes a shared_ptr and transfers it's content to an unlimited_int in O(1) time. It sets the auto_destroy tag of the shared_ptr to false and resets it to zero.
-		unlimited_int(std::shared_ptr<unlimited_int>);
+		explicit unlimited_int(std::shared_ptr<unlimited_int>);
 		//takes a shared_ptr and transfers its contents to an unlimited_int in O(1) time. It sets the auto_destroy tag of the shared_ptr to false and resets it to zero.
 		void operator=(std::shared_ptr<unlimited_int>);
 		//O(1) efficiency to swap two unlimited_int numbers. Also swaps the bool "auto_destroy" values
@@ -228,6 +269,7 @@ namespace unlimited
 		friend std::shared_ptr<unlimited_int> operator*(const few_bits, const unlimited_int&);
 		//A little bit more efficient than using the regular multiplication by few_bits function.
 		void operator*=(const few_bits num) { this->multiply(num, this); }
+		//interface to access multiply functions. It multiplies an unlimited_int by few_bits. Efficiency: O(n) where n is the number of digits in the unlimited_int number.
 		std::shared_ptr<unlimited_int> operator*(const few_bits num) const;
 //Karatsuba power2
 		//more efficient Karatsube algorithm specifically for squaring numbers
@@ -240,12 +282,28 @@ namespace unlimited
 		//Interface through which to use "unlimited_int* divide_by(const unlimited_int& num_to_divide_by) const" (which is quite inefficient, uses binary search). Also this function deals with the sign of the numbers.
 		std::shared_ptr<unlimited_int> operator/(const unlimited_int& denominator) const;
 		void operator/=(const unlimited_int& denominator) { (*this) = (*this) / denominator; }
+//Newton Raphson
+		//Newton-Raphson method (kind of like binary search but faster) to find the reciprocal of an integer.
+		//Received an integer telling it how precise the reciprocal needs to be calculated.
+		//The precision is measured by how long a dividend can be and still use the reciprocal to get an accurate division.
+		//For example: if you're gonna use dividends with a maximum size of 90 few_bits then send this function 90
+		//and it will automatically discern how much the reciprocal needs to be shifted. The amount shifted is returned as part of the reciprocal_information struct.
+		//The reciprocal is will always be positive
+		reciprocal_information calculate_reciprocal_ceiling(const many_bits length_dividend_to_support) const;
+		//reciprocal must be with enough precision and also be positive (even if the dividend is negative). Otherwise an exception is thrown.
+		//Returns the division result, and puts the remainder in "remainder" if it's given.
+		//Calculates the correct sign for the results
+		static std::shared_ptr<unlimited_int> divide_using_reciprocal(const unlimited_int& dividend, const reciprocal_information reciprocal, const unlimited_int& divisor, unlimited_int* remainder = nullptr);
+		//divides using Newton Raphson method and saves the reciprocal for later. More efficient when dividing by the same divisor again and again.
+		//returns the division result, and puts the remainder in "remainder" if it's given as an unlimited_int*
+		static std::shared_ptr<unlimited_int> recurring_division(const unlimited_int& dividend, const unlimited_int& divisor, unlimited_int* remainder = nullptr);
 //Remainder Of Division
 		//Remainder (of division) operator. Not modulo. The sign of the result will always be the same as the left side of the operator.
 		std::shared_ptr<unlimited_int> operator%(const unlimited_int& ui) const;
 		//Remainder functions- remainder of division. NOT MUDULO (difference in treatment of negative values). Sign this won't change.
 		void operator%=(const unlimited_int& ui);
-		//interface to access multiply functions. It multiplies an unlimited_int by few_bits. Efficiency: O(n) where n is the number of digits in the unlimited_int number.
+		//Use this only when doing repeated division. Equivalend to operator%
+		static std::shared_ptr<unlimited_int> remainder_recurring_divison(const unlimited_int& dividend, const unlimited_int& divisor);
 //Arithmetic (addition and subtraction)
 		//Slightly more efficient than operator+
 		void operator+=(const unlimited_int& other) { this->add(&other, this); }
@@ -334,13 +392,25 @@ namespace unlimited
 		//The hash function produces the same output whether this library is in 32bit mode or in 64bit mode.
 		//It directly iterates through the unlimited_int so there's no RAM risk of hashing huge unlimited_int numbers.
 		std::shared_ptr<unlimited_int> calculate_sha512_hash() const;
-//Prime
-		//Miller-Rabin primality test: 1/2^128 chance of mistake, no "special cases" like 561 that satisfies Fermat test.
-		//Ignores that sign of a number: -2 is prime. Receives a pointer to a boolean that tells it to stop early.
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
-		bool is_prime(bool* terminator = nullptr) const;
+		//uses sha512 when compiling in 64bit mode, and sha256 when compiling in 32bit mode
+		std::shared_ptr<unlimited_int> calculate_efficient_cryptographic_hash() const
+		{
+#if IS_64_BIT_SYSTEM
+			return this->calculate_sha512_hash();
 #else
-		bool is_prime() const;
+			return this->calculate_sha256_hash();
+#endif
+		}
+		//O(n) hash function where n is the number of few_bits in the unlimited_int. Ignores sign.
+		size_t fingerprint() const;
+//Prime
+		//Miller-Rabin primality test: 1/(0.75^num_of_iterations) chance of mistake, exposes Carmichael numbers like 561 that satisfy the Fermat test.
+		//Ignores that sign of a number: -2 is prime. Optional argument: num_of_iterations. 20 iterations will give you a 1 in a trillion chance of mistake.
+		//Receives a pointer to a boolean that tells it to stop early and return false (in case of multithreading).
+#if UNLIMITED_INT_SUPPORT_MULTITHREADING
+		bool is_prime(const int num_of_iterations = 64, bool* terminator = nullptr) const;
+#else
+		bool is_prime(const int num_of_iterations = 64) const;
 #endif
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		//Receives optional argument: bool* terminator that when true, the function will terminate itself a.s.a.p and return unlimited_int that's equal to 0
@@ -359,6 +429,7 @@ namespace unlimited
 		bool get_is_negative() const { return this->is_negative; }
 		bool get_auto_destroy() const { return this->auto_destroy; }
 		list_of_int_arrays& get_intarrays() { return this->intarrays; }
+		many_bits get_num_of_used_ints() { return this->num_of_used_ints; }
 
 		void set_auto_destroy(bool tof) { this->auto_destroy = tof; }
 		void set_num_of_intarrays_used(many_bits set_to) { this->num_of_intarrays_used = set_to; }
@@ -374,6 +445,7 @@ namespace unlimited
 		//Resets the random number generator's chain. If the random number function is called again after calling this function, is will still work.
 		//No need to call this function, because the destructor of the static variable will do its job automatically
 		static void flush_current_random();
+		static void clear_Newton_Raphson_lookup() { unlimited_int::Newton_Raphson_lookup.clear(); }
 //Automatic Destructor
 		//respects this->auto_destroy tag.
 		~unlimited_int() { if (this->auto_destroy) { this->flush(); this->auto_destroy = false; } }

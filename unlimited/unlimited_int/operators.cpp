@@ -51,53 +51,13 @@ std::shared_ptr<unlimited_int> unlimited_int::operator-(const unlimited_int& oth
 }
 void unlimited_int::operator++()
 {
-#if DEBUG_MODE == 2
-	std::cout << "Finding inconsistencies in start of function \"unlimited_int::operator++()\"";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in start of function \"void unlimited_int::operator++()\"";
-#endif
-	if (this->num_of_used_ints == 0) { this->assign((few_bits)1); return; }
-	few_bits* current_intarr = this->intarrays.intarrays.first->value->intarr;
-	if (current_intarr[0] < (few_bits)MAX_few_bits_NUM) { ++current_intarr[0]; return; }
-	else
-	{
-		unlimited_int one((few_bits)1);
-		this->add(&one, this);
-	}
-#if DEBUG_MODE == 2
-	std::cout << "Finding inconsistencies in end of function \"unlimited_int::operator++()\"";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"void unlimited_int::operator++()\"";
-#endif
+	unlimited_int one((few_bits)1);
+	this->add(&one, this);
 }
 void unlimited_int::operator--()
 {
-#if DEBUG_MODE == 2
-	std::cout << "Finding inconsistencies in start of function \"unlimited_int::operator--()\"";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in start of function \"void unlimited_int::operator++()\"";
-#endif
-	if (this->num_of_used_ints == 0) { this->assign((few_bits_signed)-1); return; }
-	few_bits* current_intarr = this->intarrays.intarrays.first->value->intarr;
-	if (current_intarr[0] > 0) { --current_intarr[0]; return; }
-	else
-	{
-		unlimited_int one((few_bits)1);
-		this->subtract(&one, this);
-	}
-#if DEBUG_MODE == 2
-	std::cout << "Finding inconsistencies in end of function \"unlimited_int::operator--()\"";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"void unlimited_int::operator++()\"";
-#endif
+	unlimited_int one((few_bits)1);
+	this->subtract(&one, this);
 }
 std::shared_ptr<unlimited_int> unlimited_int::operator-() const
 {
@@ -131,7 +91,6 @@ void unlimited_int::operator%=(const unlimited_int& ui)
 	std::shared_ptr<unlimited_int> answer_multiply = *answer_divide * ui;
 	answer_divide.reset();
 	this->subtract(answer_multiply.get(), this);
-	answer_multiply.reset();
 }
 std::ostream& unlimited::operator<<(std::ostream& os, const unlimited_int& ui)
 {

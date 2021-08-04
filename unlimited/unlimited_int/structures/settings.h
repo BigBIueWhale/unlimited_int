@@ -19,8 +19,8 @@
 #error "FATAL COMPILATION ERROR of \"unlimited\" library. Compiler is not GCC and not Microsoft. Try manually editing \"unlimited/unlimited_int/structures/settings.h\" to specify whether the compiler is 64 bits or 32 bits"
 #endif
 
-//0 for no debugging at all, 1 for all debugging except verbose print, 2 for all debugging with verbose print, -2 for only memory counting (check for memory leaks)
-#define DEBUG_MODE -2
+//0 for no debugging at all, 1 for all debugging except verbose print, 2 for all debugging with (super-)verbose print, -2 for only memory counting (check for memory leaks)
+#define DEBUG_MODE 0
 #if (DEBUG_MODE <= -3) || (DEBUG_MODE == -1) || (DEBUG_MODE >= 3) //Invalid options
 #error "FATAL COMPILATION ERROR of \"unlimited\" library. The DEBUG_MODE macro is set to an invalid option. Try manually editing the valud of DEBUG_MODE in file: \"unlimited/unlimited_int/structures/settings.h\""
 #endif

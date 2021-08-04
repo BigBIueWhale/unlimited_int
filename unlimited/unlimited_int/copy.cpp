@@ -12,7 +12,6 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 	if (this->find_inconsistencies())
 		throw "inconsistency found in the beginning of \"void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const\"";
 #endif
-	num_to_paste_into.flush();
 	num_to_paste_into.auto_destroy = true;
 	many_bits this_num_of_used_ints = this->num_of_used_ints;
 	num_to_paste_into.intarrays.increase_until_num_of_ints(this_num_of_used_ints);
@@ -30,7 +29,6 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 	int_array* current_int_array_paste = it_paste->value;
 	many_bits index_this = 0, index_paste = 0;
 	many_bits num_int = 0, previous_num_int = 0;
-	current_int_array_paste->set_num_of_used_ints_to_maximum();
 	many_bits current_int_array_this_num_of_used_ints = current_int_array_this->num_of_used_ints;
 	many_bits current_int_array_paste_intarr_len = current_int_array_paste->intarr_len;
 	few_bits* current_int_array_paste_intarr = current_int_array_paste->intarr;
@@ -40,6 +38,7 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 		stop_at = current_int_array_this_num_of_used_ints;
 	if (current_int_array_paste_intarr_len < stop_at)
 		stop_at = current_int_array_paste_intarr_len;
+	current_int_array_paste->set_num_of_used_ints_to_maximum();
 	while (true)
 	{
 		if (num_int == stop_at)
@@ -84,6 +83,7 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 	}
 	num_to_paste_into.num_of_intarrays_used = num_of_used_arrays_in_paste;
 	current_int_array_paste->num_of_used_ints = index_paste;
+	num_to_paste_into.flush_unused();
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"copy_to\":";
 #endif

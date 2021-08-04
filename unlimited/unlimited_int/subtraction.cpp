@@ -119,7 +119,8 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 			index_subtract += previous_int_num;
 			index_this += previous_int_num;
 			previous_int_num = int_num;
-			if (int_num == num_of_used_ints_subtract) { break; }
+			if (int_num == num_of_used_ints_subtract)
+				break;
 			if (index_this == this_current_int_array_num_of_used_ints)
 			{
 				it_this = it_this->next;
@@ -149,27 +150,22 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 			many_bits remaining_intarr_len_subtract = subtract_current_int_array_num_of_used_ints - index_subtract;
 			remaining_intarr_len_this = this_current_int_array_num_of_used_ints - index_this;
 			remaining_intarr_len_answer = answer_current_int_array_intarr_len - index_answer;
-			bool subtract_smaller_than_this = remaining_intarr_len_subtract < remaining_intarr_len_this;
-			bool answer_smaller_than_this = remaining_intarr_len_answer < remaining_intarr_len_this;
-			bool answer_smaller_than_subtract = remaining_intarr_len_answer < remaining_intarr_len_subtract;
+			const bool subtract_smaller_than_this = remaining_intarr_len_subtract < remaining_intarr_len_this;
+			const bool answer_smaller_than_this = remaining_intarr_len_answer < remaining_intarr_len_this;
+			const bool answer_smaller_than_subtract = remaining_intarr_len_answer < remaining_intarr_len_subtract;
 			if (subtract_smaller_than_this && !answer_smaller_than_subtract)
-			{
 				next_stop += remaining_intarr_len_subtract;
-			}
 			else if (answer_smaller_than_this && answer_smaller_than_subtract)
-			{
 				next_stop += remaining_intarr_len_answer;
-			}
 			else { next_stop += remaining_intarr_len_this; }
 			continue;
 		}
 		many_bits_signed current_value_in_this;
 		many_bits_signed current_value_in_subtract = *subtract_current_int_array_intarr;
 		if (is_carry)
-		{
 			current_value_in_this = (many_bits_signed)(*this_current_int_array_intarr) - 1;
-		}
-		else { current_value_in_this = *this_current_int_array_intarr; }
+		else
+			current_value_in_this = *this_current_int_array_intarr;
 		if (current_value_in_this < current_value_in_subtract)
 		{
 			*answer_current_int_array_intarr = (few_bits)(current_value_in_this + (many_bits_signed)MAX_few_bits_NUM_PLUS_ONE - current_value_in_subtract);
@@ -208,17 +204,17 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 		remaining_intarr_len_this = this_current_int_array_num_of_used_ints - index_this;
 		remaining_intarr_len_answer = answer_current_int_array_intarr_len - index_answer;
 		if (remaining_intarr_len_this < remaining_intarr_len_answer)
-		{
 			next_stop = remaining_intarr_len_this + int_num;
-		}
-		else { next_stop = remaining_intarr_len_answer + int_num; }
+		else
+			next_stop = remaining_intarr_len_answer + int_num;
 		if (is_carry)
 		{
 			while (true)
 			{
 				if (int_num == next_stop)
 				{
-					if (int_num == num_of_used_ints_this) { break; }
+					if (int_num == num_of_used_ints_this)
+						break;
 					previous_int_num = int_num - previous_int_num;
 					index_answer += previous_int_num;
 					index_this += previous_int_num;
@@ -244,13 +240,13 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 					remaining_intarr_len_this = this_current_int_array_num_of_used_ints - index_this;
 					remaining_intarr_len_answer = answer_current_int_array_intarr_len - index_answer;
 					if (remaining_intarr_len_answer < remaining_intarr_len_this)
-					{
 						next_stop += remaining_intarr_len_answer;
-					}
-					else { next_stop += remaining_intarr_len_this; }
+					else
+						next_stop += remaining_intarr_len_this;
 					continue;
 				}
-				if (!is_carry) { break; }
+				if (!is_carry)
+					break;
 				few_bits current_value_in_this;
 				current_value_in_this = *this_current_int_array_intarr;
 				if (current_value_in_this == 0)
@@ -295,10 +291,9 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 			remaining_intarr_len_this = this_current_int_array_num_of_used_ints - index_this;
 			remaining_intarr_len_answer = answer_current_int_array_intarr_len - index_answer;
 			if (remaining_intarr_len_this < remaining_intarr_len_answer)
-			{
 				next_stop = remaining_intarr_len_this + int_num;
-			}
-			else { next_stop = remaining_intarr_len_answer + int_num; }
+			else
+				next_stop = remaining_intarr_len_answer + int_num;
 			while (true)
 			{
 				if (int_num == next_stop)
@@ -329,10 +324,9 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 					remaining_intarr_len_this = this_current_int_array_num_of_used_ints - index_this;
 					remaining_intarr_len_answer = answer_current_int_array_intarr_len - index_answer;
 					if (remaining_intarr_len_answer < remaining_intarr_len_this)
-					{
 						next_stop += remaining_intarr_len_answer;
-					}
-					else { next_stop += remaining_intarr_len_this; }
+					else
+						next_stop += remaining_intarr_len_this;
 					continue;
 				}
 				*answer_current_int_array_intarr = *this_current_int_array_intarr;

@@ -58,7 +58,6 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num
 	{
 		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
 		++num_of_ints_currently_using_from_this;
-		result_compare = partial_this.compare_to_ignore_sign(num_to_divide_by);
 		--index_this;
 		if (index_this < 0)
 		{
@@ -70,20 +69,9 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num
 			}
 		}
 	}
-	few_bits binary_search_division_result;
 	unlimited_int result_of_multiplication;
 	while (true)
 	{
-		binary_search_division_result = partial_this.binary_search_divide(num_to_divide_by);
-		answer->push_to_insignificant(binary_search_division_result);
-		num_to_divide_by.multiply(binary_search_division_result, &result_of_multiplication);
-		partial_this.subtract(&result_of_multiplication, &partial_this);
-		result_of_multiplication.flush();
-		if (num_of_ints_currently_using_from_this == num_of_used_ints_this)
-			break;
-		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
-		++num_of_ints_currently_using_from_this;
-		--index_this;
 		if (index_this < 0)
 		{
 			if (it_this != nullptr)
@@ -92,10 +80,24 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num
 				if (it_this != nullptr)
 				{
 					current_int_array_this = it_this->value;
-					index_this = current_int_array_this->num_of_used_ints - 1;
+					index_this = (many_bits_signed)current_int_array_this->num_of_used_ints - (many_bits_signed)1;
 				}
+				else
+					index_this = (many_bits_signed)0; //just to stop the loop
+				continue;
 			}
 		}
+		const few_bits binary_search_division_result = partial_this.binary_search_divide(num_to_divide_by);
+		answer->push_to_insignificant(binary_search_division_result);
+		num_to_divide_by.multiply(binary_search_division_result, &result_of_multiplication);
+		result_of_multiplication.is_negative = false;
+		partial_this.subtract(&result_of_multiplication, &partial_this);
+		result_of_multiplication.flush();
+		if (num_of_ints_currently_using_from_this >= num_of_used_ints_this)
+			break;
+		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
+		++num_of_ints_currently_using_from_this;
+		--index_this;
 	}
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
@@ -115,7 +117,7 @@ void unlimited_int::push_to_insignificant(const few_bits num_to_push)
 	if (this->find_inconsistencies())
 		throw "\nThe inconsistency was found in start of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"";
 #endif
-	if (this->num_of_used_ints == 0) { this->assign(num_to_push); return; }
+	if (this->num_of_used_ints == 0) { this->assign(num_to_push); this->self_abs(); return; }
 	int_array* int_array_first = this->intarrays.intarrays.first->value;
 	if (int_array_first->is_full())
 	{
@@ -148,7 +150,8 @@ few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_
 	char result_compare = unlimited_int::compare_multiplication_to_num(num_to_divide_by, min, *this);
 	if (result_compare == 'E') { return min; }
 	result_compare = unlimited_int::compare_multiplication_to_num(num_to_divide_by, max, *this);
-	if ((result_compare == 'E') || (result_compare == 'S')) { return max; }
+	if ((result_compare == 'E') || (result_compare == 'S'))
+		return max;
 	while (true)
 	{
 		few_bits average = (((many_bits)min) + ((many_bits)max)) / 2;
