@@ -1,163 +1,111 @@
 #include "int_array_list.hpp"
 using namespace unlimited;
-#if DEBUG_MODE > 0
-#include <iostream>
-#endif
-void unlimited::int_array_list::operator=(const int_array_list& num_to_assign)
-{
-	this->intarrays = num_to_assign.intarrays;
-	this->num_of_ints = num_to_assign.num_of_ints;
-}
-void int_array_list::destroy_and_reset()
-{
-#if DEBUG_MODE > 1
-	std::cout << "\nDestroying " << this->num_of_ints << " ints.";
-#endif
-	Node* it_this = this->intarrays.first;
-	while (it_this != nullptr)
-	{
-		int_array* it_this_value = it_this->value;
-		it_this_value->destroy();
-		delete it_this_value;
-		Node* it_this_cpy = it_this;
-		it_this = it_this->next;
-		delete it_this_cpy;
-	}
-	this->intarrays.length = 0;
-	this->num_of_ints = 0;
-	this->intarrays.first = nullptr;
-	this->intarrays.last = nullptr;
-}
-#if DEBUG_MODE > 0
-void int_array_list::print_properties() const
-{
-	this->intarrays.print_properties();
-	std::cout << "\nint_array_list->num_of_ints: " << this->num_of_ints;
-}
-#endif
 void int_array_list::swap(int_array_list& int_array_list_to_swap_with)
 {
-	many_bits temp_int = this->num_of_ints;
+	const size_t temp_int = this->num_of_ints;
 	this->num_of_ints = int_array_list_to_swap_with.num_of_ints;
 	int_array_list_to_swap_with.num_of_ints = temp_int;
 
-	this->intarrays.swap(int_array_list_to_swap_with.intarrays);
+	this->custom_linked_list::swap(int_array_list_to_swap_with);
 }
-#if DEBUG_MODE > 0
-bool int_array_list::find_inconsistencies() const
-{
-#if DEBUG_MODE > 1
-	std::cout << "\nFinding inconsistencies from \"int_array_list::find_inconsistencies\" of this->intarrays";
-#endif
-	if (this->intarrays.find_inconsistencies()) { return true; }
-	if (this->intarrays.length == 0)
-	{
-		if (this->num_of_ints != 0)
-		{
-			std::cerr << "\nError found by function \"int_array_list::find_inconsistencies\", this->num_of_ints is not 0 even though this->intarrays.length == 0";
-			return true;
-		}
-	}
-	else
-	{
-		if (this->num_of_ints < this->intarrays.length)
-		{
-			std::cerr << "\nError found by function \"int_array_list::find_inconsistencies\", variable this->intarrays_len is: " << this->intarrays.length << " and this->num_of_ints is: " << this->num_of_ints << " which means that there are less ints than arrays of ints!!";
-			return true;
-		}
-		if (!(this->intarrays.length == 0))
-		{
-			Node* it = this->intarrays.first;
-			many_bits num_of_ints_counter = 0;
-			many_bits num_of_int_arrays_went_through_so_far = 0;
-			while (it != nullptr)
-			{
-				int_array* current_int_array = it->value;
-				if (current_int_array == nullptr)
-				{
-					std::cerr << "\nError found by function \"int_array_list::find_inconsistencies\": One of the \"int_array\" objects in list: \"this->intarrays\" is nullptr\n";
-					return true;
-				}
-				else
-				{
-					current_int_array->find_inconsistencies();
-					if (current_int_array->intarr == nullptr)
-					{
-						std::cerr << "\nError found by function \"int_array_list::find_inconsistencies\": the pointer to one of the actual integer arrays inside of an \"int_array\" object in list: \"this->intarrays\" is nullptr\n";
-						return true;
-					}
-				}
-				num_of_ints_counter += current_int_array->intarr_len;
-				it = it->next;
-				++num_of_int_arrays_went_through_so_far;
-			}
-			if (num_of_int_arrays_went_through_so_far != this->intarrays.length)
-			{
-				std::cerr << "\nError found by function \"int_array_list::find_inconsistencies\": the number of int_arrays" <<
-					" according to \"this->intarrays.length\" is: " << this->intarrays.length << "  but the" <<
-					" number of int_arrays found by iterating through the list is: " << num_of_int_arrays_went_through_so_far;
-				return true;
-			}
-			if (num_of_ints_counter != this->num_of_ints)
-			{
-				std::cerr << "\nError found by function \"int_array_list::find_inconsistencies\": the sum of the \"intarr_len\" variables in the \"int_array\"s pointed to in \"this->intarr\" list, doesn\'t equal \"this->num_of_ints\"" << " because the sum equals: " << num_of_ints_counter <<
-					" and the official variable \"this->num_of_ints\" equals: " << this->num_of_ints;
-				return true;
-			}
-		}
-	}
-	return false;
-}
-#endif
 void int_array_list::append(int_array_list& list_to_append)
 {
-	this->intarrays.append(list_to_append.intarrays);
+	this->custom_linked_list::append(list_to_append);
 	this->num_of_ints += list_to_append.num_of_ints;
-	list_to_append.num_of_ints = 0;
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in function \"append(list_of_int_arrays list_to_append)\":";
-#endif
-#if DEBUG_MODE > 0
-	this->find_inconsistencies();
-#endif
+	list_to_append.num_of_ints = (size_t)0;
 }
 void int_array_list::prepend(int_array_list& list_to_prepend)
 {
-	this->intarrays.prepend(list_to_prepend.intarrays);
+	this->custom_linked_list::prepend(list_to_prepend);
 	this->num_of_ints += list_to_prepend.num_of_ints;
-	list_to_prepend.num_of_ints = 0;
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in function \"prepend(list_of_int_arrays list_to_prepend)\":";
-#endif
-#if DEBUG_MODE > 0
-	this->find_inconsistencies();
-#endif
+	list_to_prepend.num_of_ints = (size_t)0;
 }
-__list_location__ int_array_list::find_num_of_int_from_insignificant(many_bits num_int_to_find)
+custom_linked_list_node<int_array>* int_array_list::erase(custom_linked_list_node<int_array>* node_to_remove)
 {
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in function: \"find_num_of_int_from_insignificant(many_bits num_int_to_find)\"";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-	{
-		throw "\nThe inconsistency was found in function: \"find_num_of_int_from_insignificant(many_bits num_int_to_find)\"";
-	}
-#endif
-	__list_location__ ll;
-	if (num_int_to_find > this->num_of_ints) { num_int_to_find = this->num_of_ints; }
-	Node* it = this->intarrays.first;
-	many_bits sum_of_all_ints = 0, num_of_arrays = 1;
+	if (node_to_remove->value != nullptr)
+		this->num_of_ints -= node_to_remove->value->intarr_len;
+	return this->custom_linked_list::erase(node_to_remove);
+}
+int_array_list* int_array_list::sublist(custom_linked_list_node<int_array>* start_sublist, custom_linked_list_node<int_array>* end_sublist, size_t sublist_len, size_t sum_ints)
+{
+	custom_linked_list<int_array>* substr_base = this->custom_linked_list::sublist(start_sublist, end_sublist, sublist_len);
+	this->num_of_ints -= sum_ints;
+	int_array_list* substr_derived = new int_array_list(*substr_base);
+	substr_derived->num_of_ints = sum_ints;
+	substr_base->reset_without_deleting_nodes();
+	delete substr_base;
+	return substr_derived;
+}
+int_array_list::list_location int_array_list::find_num_of_int_from_insignificant(size_t num_int_to_find)
+{
+	list_location ll;
+	if (num_int_to_find > this->num_of_ints)
+		throw std::out_of_range("Error in function \"find_num_of_int_from_insignificant\", the num of int to find is too large for the current int_array_list");
+	if (num_int_to_find == (size_t)0)
+		throw std::out_of_range("Error in function \"find_num_of_int_from_insignificant\" the num of int to find is 0. This function counts from 1.");
+	custom_linked_list_node<int_array>* it = this->custom_linked_list::first();
+	size_t sum_of_all_ints = (size_t)0, num_of_arrays = (size_t)1;
 	while (true)
 	{
-		many_bits temp_sum = sum_of_all_ints + it->value->intarr_len;
-		if (temp_sum >= num_int_to_find) { break; }
+		const size_t temp_sum = sum_of_all_ints + it->value->intarr_len;
+		if (temp_sum >= num_int_to_find)
+			break;
 		sum_of_all_ints = temp_sum;
 		it = it->next;
 		++num_of_arrays;
 	}
 	ll.node = it;
-	ll.index = num_int_to_find - sum_of_all_ints - 1;
+	ll.index = num_int_to_find - sum_of_all_ints - (size_t)1;
 	ll.num_array = num_of_arrays;
 	return ll;
 }
+int_array_list::~int_array_list()
+{
+	this->num_of_ints = (size_t)0;
+	custom_linked_list_node<int_array>* it = this->first();
+	const custom_linked_list_node<int_array> *const this_end = this->end();
+	while (it != this_end)
+	{
+		it->value->destroy();
+		it = it->next;
+	}
+	//Now the destructor of this->custom_linked_list::~custom_linked_list() will automatically be called.
+}
+void int_array_list::clear()
+{
+	this->num_of_ints = (size_t)0;
+	custom_linked_list_node<int_array>* it = this->first();
+	const custom_linked_list_node<int_array>* const this_end = this->end();
+	while (it != this_end)
+	{
+		it->value->destroy();
+		it = it->next;
+	}
+	this->custom_linked_list::clear();
+}
+#if DEBUG_MODE > 0
+size_t int_array_list::double_check_length()
+{
+	custom_linked_list_node<int_array>* it = this->first();
+	size_t length_counter = 0;
+	const custom_linked_list_node<int_array> *const this_end = this->end();
+	while (it != this_end)
+	{
+		it = it->next;
+		++length_counter;
+	}
+	custom_linked_list_node<int_array>* it_backwards = this->last();
+	size_t length_counter_reverse = 0;
+	const custom_linked_list_node<int_array> *const this_begin = this->begin();
+	while (it_backwards != this_begin)
+	{
+		it_backwards = it_backwards->previous;
+		++length_counter_reverse;
+	}
+	if (length_counter != length_counter_reverse)
+		throw std::logic_error("\nError in function \"size_t int_array_list::double_check_length()\" the length of the doubly-linked list going forward is not the same as the length going in reverse.");
+	if (length_counter != this->_length)
+		throw std::logic_error("\nError in function \"size_t int_array_list::double_check_length()\" the length of the doubly-linked list measured manually is not the same as the _length variable");
+	return length_counter;
+}
+#endif

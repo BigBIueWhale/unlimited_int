@@ -1,5 +1,5 @@
 #include "unlimited_int.hpp"
-void SHA512_compress_message_block(const uint64_t* message_block, uint64_t* parameter_hash_values); //accepts a message block with 1024 bits, meaning an array of 16 32bit integers
+void SHA512_compress_message_block(const uint64_t message_block[16], uint64_t parameter_hash_values[8]); //accepts a message block with 1024 bits, meaning an array of 16 32bit integers
 
 #define ROTATER(x, amount) ((x >> amount) | (x << (64 - amount)))
 #define LOWERCASE_SIGMA0(x) ((ROTATER(x, 1)) ^ (ROTATER(x, 8)) ^ (x >> 7))
@@ -19,25 +19,26 @@ std::shared_ptr<unlimited_int> unlimited_int::calculate_sha512_hash() const
 	uint64_t current_block[16];
 	if (this->is_zero())
 	{
-		current_block[0] = 1ULL << 63; //the 1 at the end of the message
-		for (int word_index = 1; word_index < 16; ++word_index)
-			current_block[word_index] = 0U;
+		current_block[0] = (uint64_t)1 << 63; //the 1 at the end of the message
+		for (size_t word_index = (size_t)1; word_index < (size_t)16; ++word_index)
+			current_block[word_index] = (uint64_t)0;
 		SHA512_compress_message_block(current_block, current_hash_values);
 	}
 	else
 	{
-		const Node* current_int_array_Node = this->get_most_significant_used_int_array();
+		const custom_linked_list_node<int_array>* current_int_array_Node = this->get_most_significant_used_int_array();
+		const custom_linked_list_node<int_array> *const node_begin = this->intarrays->begin();
 		int_array current_int_array = *current_int_array_Node->value;
-		many_bits_signed current_index_in_int_array = current_int_array.num_of_used_ints - 1;
+		size_t current_index_in_int_array = current_int_array.num_of_used_ints - (size_t)1;
 		const few_bits most_significant_used_few_bits_in_number = current_int_array.intarr[current_index_in_int_array];
-		many_bits length_of_preimage_in_bits = this->num_of_used_ints * (many_bits)(sizeof(few_bits)) * (many_bits)8U;
+		size_t length_of_preimage_in_bits = this->num_of_used_ints * (size_t)(sizeof(few_bits)) * (size_t)8U;
 		int index_in_block = 0;
 #if NUM_OF_BITS_few_bits == 16
 		int progress_to_reach_64_bits = 0;
-		uint64_t number_builder = 0U;
+		uint64_t number_builder = (uint64_t)0;
 		const uint64_t top_num = (uint64_t)most_significant_used_few_bits_in_number;
-		const int len_mod_4 = this->num_of_used_ints % 4;
-		length_of_preimage_in_bits += ((4 - len_mod_4) % 4) * 16;
+		const int len_mod_4 = this->num_of_used_ints % (size_t)4;
+		length_of_preimage_in_bits += (size_t)(((4 - len_mod_4) % 4) * 16);
 		const int amount_to_shift = ((len_mod_4 == 0) ? 3 : (len_mod_4 - 1)) * 16;
 		number_builder = top_num << amount_to_shift;
 		progress_to_reach_64_bits = 64 - amount_to_shift;
@@ -45,16 +46,16 @@ std::shared_ptr<unlimited_int> unlimited_int::calculate_sha512_hash() const
 		{
 			current_block[index_in_block] = number_builder;
 			++index_in_block;
-			number_builder = 0U;
+			number_builder = (uint64_t)0;
 			progress_to_reach_64_bits = 0;
 		}
 #elif NUM_OF_BITS_few_bits == 32
 		few_bits previous_few_bits;
 		bool have_beginning_of_number;
-		if (this->num_of_used_ints % 2 == 1)
+		if (this->num_of_used_ints % (size_t)2 == 1)
 		{
-			length_of_preimage_in_bits += 32;
-			previous_few_bits = 0U;
+			length_of_preimage_in_bits += (size_t)32;
+			previous_few_bits = (few_bits)0;
 			current_block[index_in_block] = (uint64_t)most_significant_used_few_bits_in_number;
 			++index_in_block;
 			have_beginning_of_number = false;
@@ -65,17 +66,16 @@ std::shared_ptr<unlimited_int> unlimited_int::calculate_sha512_hash() const
 			have_beginning_of_number = true;
 		}
 #endif
-		--current_index_in_int_array;
-		if (current_index_in_int_array < 0)
+		if (current_index_in_int_array-- == (size_t)0)
 		{
 			current_int_array_Node = current_int_array_Node->previous;
-			if (current_int_array_Node != nullptr) //reached the end of the list_of_int_arrays
+			if (current_int_array_Node != node_begin) //reached the end of the list_of_int_arrays
 			{
 				current_int_array = *current_int_array_Node->value;
-				current_index_in_int_array = current_int_array.num_of_used_ints - 1;
+				current_index_in_int_array = current_int_array.num_of_used_ints - (size_t)1;
 			}
 		}
-		if (current_int_array_Node != nullptr)
+		if (current_int_array_Node != node_begin)
 		{
 			while (true)
 			{
@@ -89,7 +89,7 @@ std::shared_ptr<unlimited_int> unlimited_int::calculate_sha512_hash() const
 				{
 					current_block[index_in_block] = number_builder;
 					++index_in_block;
-					number_builder = 0U;
+					number_builder = (uint64_t)0;
 					progress_to_reach_64_bits = 0;
 				}
 #elif NUM_OF_BITS_few_bits == 32
@@ -110,14 +110,13 @@ std::shared_ptr<unlimited_int> unlimited_int::calculate_sha512_hash() const
 					index_in_block = 0;
 					SHA512_compress_message_block(current_block, current_hash_values);
 				}
-				--current_index_in_int_array;
-				if (current_index_in_int_array < 0)
+				if (current_index_in_int_array-- == (size_t)0)
 				{
 					current_int_array_Node = current_int_array_Node->previous;
-					if (current_int_array_Node == nullptr) //reached the end of the list_of_int_arrays
+					if (current_int_array_Node == node_begin) //reached the end of the list_of_int_arrays
 						break;
 					current_int_array = *current_int_array_Node->value;
-					current_index_in_int_array = current_int_array.num_of_used_ints - 1;
+					current_index_in_int_array = current_int_array.num_of_used_ints - (size_t)1;
 				}
 			}
 		}
@@ -125,34 +124,34 @@ std::shared_ptr<unlimited_int> unlimited_int::calculate_sha512_hash() const
 		{
 			index_in_block = 0;
 			SHA512_compress_message_block(current_block, current_hash_values);
-			for (int word_index = 0; word_index < 16; ++word_index)
-				current_block[word_index] = 0x0U;
+			for (size_t word_index = (size_t)0; word_index < (size_t)16; ++word_index)
+				current_block[word_index] = (uint64_t)0;
 		}
 		else
 		{
-			for (int word_index = index_in_block; word_index < 16; ++word_index)
-				current_block[word_index] = 0x0U;
+			for (size_t word_index = index_in_block; word_index < (size_t)16; ++word_index)
+				current_block[word_index] = (uint64_t)0;
 		}
-		current_block[index_in_block] |= (uint64_t)0x1U << 63; //sets the 1 bit in the end of the data
+		current_block[index_in_block] |= (uint64_t)1 << 63; //sets the 1 bit in the end of the data
 		const int num_of_uint64s_left = 16 - (index_in_block + 1);
 		if (num_of_uint64s_left < 2) //not enough place left in current_block to assign the 64-bit length of the data in bits.
 		{
 			SHA512_compress_message_block(current_block, current_hash_values);
-			for (int word_index = 0; word_index < 16; ++word_index)
-				current_block[word_index] = 0x0U;
+			for (size_t word_index = (size_t)0; word_index < (size_t)16; ++word_index)
+				current_block[word_index] = (uint64_t)0;
 		}
 		current_block[15] = (uint64_t)length_of_preimage_in_bits;
 		SHA512_compress_message_block(current_block, current_hash_values);
 	}
-	return std::shared_ptr<unlimited_int>(new unlimited_int(current_hash_values, 8));
+	return std::shared_ptr<unlimited_int>(new unlimited_int(current_hash_values, (size_t)8));
 }
-void SHA512_compress_message_block(const uint64_t* message_block, uint64_t* parameter_hash_values)
+void SHA512_compress_message_block(const uint64_t message_block[16], uint64_t parameter_hash_values[8])
 {
     uint64_t message_schedule[80];
-    for (size_t word_index = 0; word_index < 64; ++word_index)
+    for (size_t word_index = (size_t)0; word_index < (size_t)64; ++word_index)
         message_schedule[word_index] = message_block[word_index];
-    for (size_t word_index = 16; word_index < 80; ++word_index)
-        message_schedule[word_index] = LOWERCASE_SIGMA1(message_schedule[word_index - 2]) + message_schedule[word_index - 7] + LOWERCASE_SIGMA0(message_schedule[word_index - 15]) + message_schedule[word_index - 16];
+    for (size_t word_index = (size_t)16; word_index < (size_t)80; ++word_index)
+        message_schedule[word_index] = LOWERCASE_SIGMA1(message_schedule[word_index - (size_t)2]) + message_schedule[word_index - (size_t)7] + LOWERCASE_SIGMA0(message_schedule[word_index - (size_t)15]) + message_schedule[word_index - (size_t)16];
 
     const uint64_t constants[80] = {
         0x428a2f98d728ae22ULL, 0x7137449123ef65cdULL, 0xb5c0fbcfec4d3b2fULL, 0xe9b5dba58189dbbcULL, 0x3956c25bf348b538ULL,
@@ -180,7 +179,7 @@ void SHA512_compress_message_block(const uint64_t* message_block, uint64_t* para
     uint64_t f = parameter_hash_values[5];
     uint64_t g = parameter_hash_values[6];
     uint64_t h = parameter_hash_values[7];
-    for (size_t word_index = 0; word_index < 80; ++word_index)
+    for (size_t word_index = (size_t)0; word_index < (size_t)80; ++word_index)
     {
         const uint64_t T1 = UPPERCASE_SIGMA1(e) + CHOICE(e, f, g) + h + constants[word_index] + message_schedule[word_index];
         const uint64_t T2 = UPPERCASE_SIGMA0(a) + MAJORITY(a, b, c);

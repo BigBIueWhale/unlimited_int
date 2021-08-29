@@ -1,6 +1,6 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-reciprocal_information::reciprocal_information(std::shared_ptr<unlimited_int> reciprocal, many_bits amount_shifted)
+reciprocal_information::reciprocal_information(std::shared_ptr<unlimited_int> reciprocal, size_t amount_shifted)
 {
 	this->reciprocal = reciprocal;
 	this->amount_shifted = amount_shifted;
@@ -15,7 +15,7 @@ reciprocal_information::reciprocal_information(const reciprocal_information& oth
 	this->amount_shifted = other.amount_shifted;
 	this->reciprocal = other.reciprocal;
 }
-reciprocal_information_for_database::reciprocal_information_for_database(reciprocal_information reciprocal_info, std::shared_ptr<unlimited_int> hash_of_dividend, custom_Node<size_t>* link_to_list)
+reciprocal_information_for_database::reciprocal_information_for_database(reciprocal_information reciprocal_info, std::shared_ptr<unlimited_int> hash_of_dividend, custom_linked_list_node<size_t>* link_to_list)
 {
 	this->reciprocal = reciprocal_info.reciprocal;
 	this->amount_shifted = reciprocal_info.amount_shifted;

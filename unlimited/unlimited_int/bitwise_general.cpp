@@ -16,26 +16,26 @@ int unlimited_int::num_of_zero_bits_preceding_number(const few_bits original_num
 		if (original_num_cpy != original_num)
 			break;
 	}
-	return ((many_bits)amount_to_shift - (many_bits)1);
+	return (amount_to_shift - 1);
 }
-many_bits unlimited_int::get_length_in_bits() const
+size_t unlimited_int::get_length_in_bits() const
 {
 #if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"many_bits unlimited_int::get_length_in_bits() const\"";
+	std::cout << "\nFinding inconsistencies in start of function \"size_t unlimited_int::get_length_in_bits() const\"";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in start of function: \"many_bits unlimited_int::get_length_in_bits() const\"";
+		throw std::logic_error("\nThe inconsistency was found in start of function: \"size_t unlimited_int::get_length_in_bits() const\"");
 #endif
 	if (this->num_of_used_ints == 0)
-		return (many_bits)0;
+		return (size_t)0;
 	else
 	{
-		const Node* most_significant_used_int_array_Node = this->get_most_significant_used_int_array();
+		const custom_linked_list_node<int_array>* most_significant_used_int_array_Node = this->get_most_significant_used_int_array();
 		const int_array most_significant_used_int_array = *most_significant_used_int_array_Node->value;
-		const many_bits index_of_most_significant = most_significant_used_int_array.num_of_used_ints - 1;
+		const size_t index_of_most_significant = most_significant_used_int_array.num_of_used_ints - (size_t)1;
 		const few_bits most_significant_value = most_significant_used_int_array.intarr[index_of_most_significant];
-		const many_bits num_of_0_bits_preceding_num = unlimited_int::num_of_zero_bits_preceding_number(most_significant_value);
-		return (this->num_of_used_ints * (many_bits)NUM_OF_BITS_few_bits - num_of_0_bits_preceding_num);
+		const int num_of_0_bits_preceding_num = unlimited_int::num_of_zero_bits_preceding_number(most_significant_value);
+		return (this->num_of_used_ints * (size_t)NUM_OF_BITS_few_bits - (size_t)num_of_0_bits_preceding_num);
 	}
 }

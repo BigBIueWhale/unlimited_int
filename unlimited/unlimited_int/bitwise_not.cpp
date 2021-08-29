@@ -10,32 +10,32 @@ std::shared_ptr<unlimited_int> unlimited_int::operator~() const
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator~() const\"";
+		throw std::logic_error("\nThe inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator~() const\"");
 #endif
 	unlimited_int* result = new unlimited_int;
-	const many_bits len_of_result = this->num_of_used_ints;
-	if (len_of_result == 0)
+	const size_t len_of_result = this->num_of_used_ints;
+	if (len_of_result == (size_t)0)
 		return std::shared_ptr<unlimited_int>(result);
-	result->intarrays.increase_until_num_of_ints(len_of_result);
-	const many_bits len_of_this = this->num_of_used_ints;
-	Node* current_int_array_Node_this = this->intarrays.intarrays.first;
-	Node* current_int_array_Node_result = result->intarrays.intarrays.first;
-	many_bits num_of_intarrays_in_result = 1;
+	result->increase_until_num_of_ints(len_of_result);
+	const size_t len_of_this = this->num_of_used_ints;
+	custom_linked_list_node<int_array>* current_int_array_Node_this = this->intarrays->first();
+	custom_linked_list_node<int_array>* current_int_array_Node_result = result->intarrays->first();
+	size_t num_of_intarrays_in_result = (size_t)1;
 	int_array current_int_array_this = *current_int_array_Node_this->value;
 	int_array current_int_array_result = *current_int_array_Node_result->value;
 	current_int_array_Node_result->value->num_of_used_ints = current_int_array_result.intarr_len;
-	many_bits index_this = 0, index_result = 0;
+	size_t index_this = (size_t)0, index_result = (size_t)0;
 
-	const many_bits stop_for_result = current_int_array_result.intarr_len;
-	const many_bits stop_for_this = current_int_array_this.num_of_used_ints;
+	const size_t stop_for_result = current_int_array_result.intarr_len;
+	const size_t stop_for_this = current_int_array_this.num_of_used_ints;
 
-	many_bits stop_at = stop_for_result;
+	size_t stop_at = stop_for_result;
 	if (stop_for_this < stop_at)
 		stop_at = stop_for_this;
 	if (len_of_result < stop_at)
 		stop_at = len_of_result;
 
-	many_bits int_num_counter = 0;
+	size_t int_num_counter = (size_t)0;
 	while (true)
 	{
 		if (int_num_counter >= stop_at)
@@ -44,7 +44,7 @@ std::shared_ptr<unlimited_int> unlimited_int::operator~() const
 				break;
 			if (index_result >= current_int_array_result.intarr_len)
 			{
-				index_result = 0;
+				index_result = (size_t)0;
 				current_int_array_Node_result = current_int_array_Node_result->next;
 				current_int_array_result = *current_int_array_Node_result->value;
 				++num_of_intarrays_in_result;
@@ -52,12 +52,12 @@ std::shared_ptr<unlimited_int> unlimited_int::operator~() const
 			}
 			if (index_this >= current_int_array_this.num_of_used_ints)
 			{
-				index_this = 0;
+				index_this = (size_t)0;
 				current_int_array_Node_this = current_int_array_Node_this->next;
 				current_int_array_this = *current_int_array_Node_this->value;
 			}
-			const many_bits stop_for_result = int_num_counter + current_int_array_result.intarr_len - index_result;
-			const many_bits stop_for_this = int_num_counter + current_int_array_this.num_of_used_ints - index_this;
+			const size_t stop_for_result = int_num_counter + current_int_array_result.intarr_len - index_result;
+			const size_t stop_for_this = int_num_counter + current_int_array_this.num_of_used_ints - index_this;
 			stop_at = stop_for_result;
 			if (stop_for_this < stop_at)
 				stop_at = stop_for_this;
@@ -85,7 +85,7 @@ std::shared_ptr<unlimited_int> unlimited_int::operator~() const
 #endif
 #if DEBUG_MODE > 0
 	if (result->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator~() const\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator~() const\"");
 #endif
 	return std::shared_ptr<unlimited_int>(result);
 }
@@ -96,19 +96,19 @@ void unlimited_int::invert_bits()
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in beginning of function: \"void unlimited_int::invert_bits()\"";
+		throw std::logic_error("\nThe inconsistency was found in beginning of function: \"void unlimited_int::invert_bits()\"");
 #endif
-	const many_bits len_of_this = this->num_of_used_ints;
-	Node* current_int_array_Node_this = this->intarrays.intarrays.first;
+	const size_t len_of_this = this->num_of_used_ints;
+	custom_linked_list_node<int_array>* current_int_array_Node_this = this->intarrays->first();
 	int_array current_int_array_this = *current_int_array_Node_this->value;
-	many_bits index_this = 0;
+	size_t index_this = (size_t)0;
 
-	const many_bits stop_for_this = current_int_array_this.num_of_used_ints;
+	const size_t stop_for_this = current_int_array_this.num_of_used_ints;
 
-	many_bits stop_at = stop_for_this;
+	size_t stop_at = stop_for_this;
 	if (len_of_this < stop_at)
 		stop_at = len_of_this;
-	many_bits int_num_counter = 0;
+	size_t int_num_counter = (size_t)0;
 	while (true)
 	{
 		if (int_num_counter >= stop_at)
@@ -117,7 +117,7 @@ void unlimited_int::invert_bits()
 				break;
 			if (index_this >= current_int_array_this.num_of_used_ints)
 			{
-				index_this = 0;
+				index_this = (size_t)0;
 				current_int_array_Node_this = current_int_array_Node_this->next;
 				current_int_array_this = *current_int_array_Node_this->value;
 			}
@@ -142,6 +142,6 @@ void unlimited_int::invert_bits()
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function: \"void unlimited_int::invert_bits()\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function: \"void unlimited_int::invert_bits()\"");
 #endif
 }

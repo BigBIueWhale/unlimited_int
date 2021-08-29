@@ -5,10 +5,13 @@ using namespace unlimited;
 #endif
 std::shared_ptr<unlimited_int> unlimited_int::operator/(const unlimited_int& denominator) const
 {
-	if (denominator.num_of_used_ints == 0) { throw "\nError in function: \"unlimited_int* unlimited_int::operator/(const unlimited_int& denominator) const\" Can't divide by zero"; }
+	if (denominator.num_of_used_ints == (size_t)0)
+		throw std::invalid_argument("\nError in function: \"unlimited_int* unlimited_int::operator/(const unlimited_int& denominator) const\" Can't divide by zero");
 	std::shared_ptr<unlimited_int> answer = this->divide_by(denominator);
-	if (answer->num_of_used_ints == 0) { answer->is_negative = false; }
-	else if (this->is_negative != denominator.is_negative) { answer->is_negative = true; }
+	if (answer->num_of_used_ints == (size_t)0)
+		answer->is_negative = false;
+	else if (this->is_negative != denominator.is_negative)
+		answer->is_negative = true;
 	return answer;
 }
 std::shared_ptr<unlimited_int> unlimited_int::operator*(const few_bits num) const
@@ -25,17 +28,20 @@ std::shared_ptr<unlimited_int> unlimited::operator*(const few_bits num, const un
 }
 void unlimited_int::operator*=(const unlimited_int& other)
 {
+	bool other_is_a_power_of_2, this_is_a_power_of_2;
 	//it's more efficient when either other or this is a power of 2 because then bit shifting can be used instead of the Karatsuba multiplication algorithm.
-	many_bits_signed other_log2 = other.find_exact_log_2();
-	many_bits_signed this_log2 = this->find_exact_log_2();
-	if (other_log2 >= (many_bits_signed)0)
+	const size_t other_log2 = other.find_exact_log_2(&other_is_a_power_of_2);
+	const size_t this_log2 = this->find_exact_log_2(&this_is_a_power_of_2);
+	if (other_is_a_power_of_2)
 		(*this) <<= other_log2;
-	else if (this_log2 >= (many_bits_signed)0)
+	else if (this_is_a_power_of_2)
 		(*this) = other << this_log2;
 	else //neither numbers are powers of 2.
 		(*this) = std::shared_ptr<unlimited_int>(this->multiply_karatsuba_destroy_this(&other));
-	if (this->num_of_used_ints == 0) { this->is_negative = false; }
-	else if (this->is_negative != other.is_negative) { this->is_negative = true; }
+	if (this->num_of_used_ints == (size_t)0)
+		this->is_negative = false;
+	else if (this->is_negative != other.is_negative)
+		this->is_negative = true;
 }
 std::shared_ptr<unlimited_int> unlimited_int::operator+(const unlimited_int& other) const
 {
@@ -94,7 +100,7 @@ void unlimited_int::operator%=(const unlimited_int& ui)
 }
 std::ostream& unlimited::operator<<(std::ostream& os, const unlimited_int& ui)
 {
-	char* str_of_this;
+	const char* str_of_this;
 	auto current_flags = os.flags();
 	if (current_flags & std::ios::hex)
 		str_of_this = ui.to_c_string(16);
@@ -105,6 +111,6 @@ std::ostream& unlimited::operator<<(std::ostream& os, const unlimited_int& ui)
 	else
 		str_of_this = ui.to_c_string(16);
 	os << str_of_this;
-	delete[]str_of_this;
+	delete[] str_of_this;
 	return os;
 }

@@ -29,7 +29,7 @@ unlimited_int::unlimited_int(const few_bits_signed num_to_assign)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "Inconsistency found in the end of function \"unlimited_int::unlimited_int(const few_bits_signed num_to_assign)\"";
+		throw std::logic_error("Inconsistency found in the end of function \"unlimited_int::unlimited_int(const few_bits_signed num_to_assign)\"");
 #endif
 }
 unlimited_int::unlimited_int(const many_bits_signed num_to_assign)
@@ -58,7 +58,7 @@ unlimited_int::unlimited_int(const many_bits_signed num_to_assign)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "Inconsistency found in the end of function \"unlimited_int::unlimited_int(const many_bits_signed num_to_assign)\"";
+		throw std::logic_error("Inconsistency found in the end of function \"unlimited_int::unlimited_int(const many_bits_signed num_to_assign)\"");
 #endif
 }
 unlimited_int::unlimited_int(const unlimited_int& num_to_assign, bool auto_destroy_this)
@@ -73,7 +73,7 @@ unlimited_int::unlimited_int(const unlimited_int& num_to_assign, bool auto_destr
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "Inconsistency found in the end of function \"unlimited_int::unlimited_int(const unlimited_int& num_to_assign, bool auto_destroy_this)\"";
+		throw std::logic_error("Inconsistency found in the end of function \"unlimited_int::unlimited_int(const unlimited_int& num_to_assign, bool auto_destroy_this)\"");
 #endif
 }
 unlimited_int::unlimited_int(std::shared_ptr<unlimited_int> shared_ptr_ui)
@@ -81,13 +81,13 @@ unlimited_int::unlimited_int(std::shared_ptr<unlimited_int> shared_ptr_ui)
 	this->auto_destroy = false;
 	(*this) = shared_ptr_ui; //now this->auto_destory becomes true again
 }
-unlimited_int::unlimited_int(uint32_t* arr, many_bits len)
+unlimited_int::unlimited_int(uint32_t* arr, size_t len)
 {
 	this->auto_destroy = false;
-	this->assign(arr, len);
+	this->assign(arr, len); //now this->auto_destory becomes true again
 }
-unlimited_int::unlimited_int(uint64_t* arr, many_bits len)
+unlimited_int::unlimited_int(uint64_t* arr, size_t len)
 {
 	this->auto_destroy = false;
-	this->assign(arr, len);
+	this->assign(arr, len); //now this->auto_destory becomes true again
 }

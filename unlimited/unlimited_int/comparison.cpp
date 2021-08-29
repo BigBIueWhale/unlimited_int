@@ -10,7 +10,7 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-		throw "Inconsistencies found in start of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
+		throw std::logic_error("Inconsistencies found in start of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
 	if (this->is_zero() && num_to_compare_to.is_zero())
 	{
@@ -19,7 +19,7 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 #endif
 #if DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
+			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
 		return 'E';
 	}
@@ -30,7 +30,7 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 #endif
 #if DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
+			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
 		return 'S';
 	}
@@ -41,7 +41,7 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 #endif
 #if DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
+			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
 		return 'L';
 	}
@@ -57,7 +57,7 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 #endif
 #if DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
+			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
 		if (both_negative)
 		{
@@ -75,7 +75,7 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 #endif
 #if DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
+			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
 		if (both_negative)
 		{
@@ -91,7 +91,7 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-		throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"";
+		throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
 	return 'E';
 }
@@ -102,7 +102,7 @@ char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-		throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
+		throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"");
 #endif
 	if (this->num_of_used_ints > num_to_compare_to.num_of_used_ints)
 	{
@@ -111,7 +111,7 @@ char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_
 #endif
 #if DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
+			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"");
 #endif
 		return 'L';
 	}
@@ -122,7 +122,7 @@ char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_
 #endif
 #if DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-			throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
+			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"");
 #endif
 		return 'S';
 	}
@@ -131,7 +131,7 @@ char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-		throw "Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
+		throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"");
 #endif
 	return 'E';
 }
@@ -143,75 +143,87 @@ char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const
 #if DEBUG_MODE > 0
 
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-		throw "Inconsistencies found in start of function \"char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const\"";
+		throw std::logic_error("Inconsistencies found in start of function \"char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
 	char value_compare_estimation = this->estimate_compare_to(num_to_compare_to);
 	if (value_compare_estimation != 'E')
 		return value_compare_estimation;
 	const bool both_are_negative = this->is_negative;
-	if (this->num_of_intarrays_used == 0) //meaning they're both zero
+	if (this->num_of_intarrays_used == (size_t)0) //meaning they're both zero
 		return 'E';
-	Node* it_this = this->intarrays.intarrays.first;
-	many_bits this_num_of_used_int_arrays = this->num_of_intarrays_used;
-	for (many_bits num_int_array_in_list_this = 1; num_int_array_in_list_this < this_num_of_used_int_arrays; num_int_array_in_list_this++, it_this = it_this->next);
-	Node* it_compare = num_to_compare_to.intarrays.intarrays.first;
-	many_bits compare_num_of_used_int_arrays = num_to_compare_to.num_of_intarrays_used;
-	for (many_bits num_int_array_in_list_compare = 1; num_int_array_in_list_compare < compare_num_of_used_int_arrays; num_int_array_in_list_compare++, it_compare = it_compare->next);
+	const custom_linked_list_node<int_array>* it_this = this->intarrays->first();
+	const size_t this_num_of_used_int_arrays = this->num_of_intarrays_used;
+	for (size_t num_int_array_in_list_this = (size_t)1; num_int_array_in_list_this < this_num_of_used_int_arrays; num_int_array_in_list_this++, it_this = it_this->next);
+	const custom_linked_list_node<int_array>* it_compare = num_to_compare_to.intarrays->first();
+	const size_t compare_num_of_used_int_arrays = num_to_compare_to.num_of_intarrays_used;
+	for (size_t num_int_array_in_list_compare = (size_t)1; num_int_array_in_list_compare < compare_num_of_used_int_arrays; num_int_array_in_list_compare++, it_compare = it_compare->next);
 	int_array* current_int_array_this = it_this->value;
 	int_array* current_int_array_compare = it_compare->value;
-	many_bits_signed index_this = current_int_array_this->num_of_used_ints - 1;
-	many_bits_signed index_compare = current_int_array_compare->num_of_used_ints - 1;
-	many_bits num_int = 0;
-	many_bits_signed previous_num_int = 0;
-	many_bits num_of_used_ints_both = this->num_of_used_ints;
-	many_bits stop_at;
-	many_bits length_left_in_this = index_this + 1, length_left_in_compare = index_compare + 1;
-	if (length_left_in_this < length_left_in_compare) { stop_at = length_left_in_this; }
-	else { stop_at = length_left_in_compare; }
-	if (num_of_used_ints_both < stop_at) { stop_at = num_of_used_ints_both; }
-	few_bits* current_int_array_this_intarr = &current_int_array_this->intarr[current_int_array_this->num_of_used_ints - 1];
-	few_bits* current_int_array_compare_intarr = &current_int_array_compare->intarr[current_int_array_compare->num_of_used_ints - 1];
+	size_t index_this = current_int_array_this->num_of_used_ints - (size_t)1;
+	size_t index_compare = current_int_array_compare->num_of_used_ints - (size_t)1;
+	size_t num_int = (size_t)0;
+	size_t previous_num_int = (size_t)0;
+	const size_t num_of_used_ints_both = this->num_of_used_ints;
+	size_t stop_at;
+	const size_t length_left_in_this = index_this + (size_t)1, length_left_in_compare = index_compare + (size_t)1;
+	if (length_left_in_this < length_left_in_compare)
+		stop_at = length_left_in_this;
+	else
+		stop_at = length_left_in_compare;
+	if (num_of_used_ints_both < stop_at)
+		stop_at = num_of_used_ints_both;
+	const few_bits* current_int_array_this_intarr = current_int_array_this->intarr + (current_int_array_this->num_of_used_ints - (size_t)1);
+	const few_bits* current_int_array_compare_intarr = current_int_array_compare->intarr + (current_int_array_compare->num_of_used_ints - (size_t)1);
 	while (true)
 	{
-		if (num_int == stop_at)
+		if (num_int >= stop_at)
 		{
-			previous_num_int = num_int - previous_num_int;
-			index_this -= previous_num_int;
-			index_compare -= previous_num_int;
+			const size_t difference = num_int - previous_num_int;
+			const bool index_this_reached_end = difference > index_this;
+			index_this -= difference;
+			const bool index_compare_reached_end = difference > index_compare;
+			index_compare -= difference;
 			previous_num_int = num_int;
-			if (num_int == num_of_used_ints_both) { break; }
-			if (index_this < 0)
+			if (num_int >= num_of_used_ints_both)
+				break;
+			if (index_this_reached_end)
 			{
 				it_this = it_this->previous;
 				current_int_array_this = it_this->value;
-				current_int_array_this_intarr = &current_int_array_this->intarr[current_int_array_this->num_of_used_ints - 1];
-				index_this = current_int_array_this->num_of_used_ints - 1;
+				current_int_array_this_intarr = current_int_array_this->intarr + (current_int_array_this->num_of_used_ints - (size_t)1);
+				index_this = current_int_array_this->num_of_used_ints - (size_t)1;
 			}
-			if (index_compare < 0)
+			if (index_compare_reached_end)
 			{
 				it_compare = it_compare->previous;
 				current_int_array_compare = it_compare->value;
-				current_int_array_compare_intarr = &current_int_array_compare->intarr[current_int_array_compare->num_of_used_ints - 1];
-				index_compare = current_int_array_compare->num_of_used_ints - 1;
+				current_int_array_compare_intarr = current_int_array_compare->intarr + (current_int_array_compare->num_of_used_ints - (size_t)1);
+				index_compare = current_int_array_compare->num_of_used_ints - (size_t)1;
 			}
-			length_left_in_this = index_this + 1;
-			length_left_in_compare = index_compare + 1;
-			if (length_left_in_this < length_left_in_compare) { stop_at += length_left_in_this; }
-			else { stop_at += length_left_in_compare; }
-			if (num_of_used_ints_both < stop_at) { stop_at = num_of_used_ints_both; }
+			const size_t length_left_in_this = index_this + (size_t)1, length_left_in_compare = index_compare + (size_t)1;
+			if (length_left_in_this < length_left_in_compare)
+				stop_at += length_left_in_this;
+			else
+				stop_at += length_left_in_compare;
+			if (num_of_used_ints_both < stop_at)
+				stop_at = num_of_used_ints_both;
 			continue;
 		}
-		few_bits this_value_current = *current_int_array_this_intarr;
-		few_bits compare_value_current = *current_int_array_compare_intarr;
+		const few_bits this_value_current = *current_int_array_this_intarr;
+		const few_bits compare_value_current = *current_int_array_compare_intarr;
 		if (this_value_current < compare_value_current)
 		{
-			if (both_are_negative) { return 'L'; }
-			else { return 'S'; }
+			if (both_are_negative)
+				return 'L';
+			else
+				return 'S';
 		}
-		if (compare_value_current < this_value_current)
+		else if (compare_value_current < this_value_current)
 		{
-			if (both_are_negative) { return 'S'; }
-			else { return 'L'; }
+			if (both_are_negative)
+				return 'S';
+			else
+				return 'L';
 		}
 		++num_int;
 		--current_int_array_this_intarr;
@@ -222,94 +234,17 @@ char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-		throw "Inconsistencies found in end of function \"char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const\"";
+		throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
 	return 'E';
 }
 char unlimited_int::compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const
 {
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"compare_to(unlimited_int* num_to_compare_to)\":";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-		throw "Inconsistencies found in the start of function \"char unlimited_int::compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
-#endif
-	char value_compare_estimation = this->estimate_compare_to_ignore_sign(num_to_compare_to);
-	if (value_compare_estimation != 'E')
-		return value_compare_estimation;
-	if ((this->num_of_intarrays_used == 0) && (num_to_compare_to.num_of_intarrays_used == 0)) //meaning they're both zero
-		return 'E';
-	Node* it_this = this->intarrays.intarrays.first;
-	many_bits this_num_of_used_int_arrays = this->num_of_intarrays_used;
-	for (many_bits num_int_array_in_list_this = 1; num_int_array_in_list_this < this_num_of_used_int_arrays; num_int_array_in_list_this++, it_this = it_this->next);
-	Node* it_compare = num_to_compare_to.intarrays.intarrays.first;
-	many_bits compare_num_of_used_int_arrays = num_to_compare_to.num_of_intarrays_used;
-	for (many_bits num_int_array_in_list_compare = 1; num_int_array_in_list_compare < compare_num_of_used_int_arrays; num_int_array_in_list_compare++, it_compare = it_compare->next);
-	int_array* current_int_array_this = it_this->value;
-	int_array* current_int_array_compare = it_compare->value;
-	many_bits_signed index_this = current_int_array_this->num_of_used_ints - 1;
-	many_bits_signed index_compare = current_int_array_compare->num_of_used_ints - 1;
-	many_bits num_int = 0;
-	many_bits_signed previous_num_int = 0;
-	many_bits num_of_used_ints_both = this->num_of_used_ints;
-	many_bits stop_at;
-	many_bits length_left_in_this = index_this + 1, length_left_in_compare = index_compare + 1;
-	if (length_left_in_this < length_left_in_compare) { stop_at = length_left_in_this; }
-	else { stop_at = length_left_in_compare; }
-	if (num_of_used_ints_both < stop_at) { stop_at = num_of_used_ints_both; }
-	few_bits* current_int_array_this_intarr = &current_int_array_this->intarr[current_int_array_this->num_of_used_ints - 1];
-	few_bits* current_int_array_compare_intarr = &current_int_array_compare->intarr[current_int_array_compare->num_of_used_ints - 1];
-	while (true)
-	{
-		if (num_int == stop_at)
-		{
-			previous_num_int = num_int - previous_num_int;
-			index_this -= previous_num_int;
-			index_compare -= previous_num_int;
-			previous_num_int = num_int;
-			if (num_int == num_of_used_ints_both) { break; }
-			if (index_this < 0)
-			{
-				it_this = it_this->previous;
-				current_int_array_this = it_this->value;
-				current_int_array_this_intarr = &current_int_array_this->intarr[current_int_array_this->num_of_used_ints - 1];
-				index_this = current_int_array_this->num_of_used_ints - 1;
-			}
-			if (index_compare < 0)
-			{
-				it_compare = it_compare->previous;
-				current_int_array_compare = it_compare->value;
-				current_int_array_compare_intarr = &current_int_array_compare->intarr[current_int_array_compare->num_of_used_ints - 1];
-				index_compare = current_int_array_compare->num_of_used_ints - 1;
-			}
-			length_left_in_this = index_this + 1;
-			length_left_in_compare = index_compare + 1;
-			if (length_left_in_this < length_left_in_compare) { stop_at += length_left_in_this; }
-			else { stop_at += length_left_in_compare; }
-			if (num_of_used_ints_both < stop_at) { stop_at = num_of_used_ints_both; }
-			continue;
-		}
-		few_bits this_value_current = *current_int_array_this_intarr;
-		few_bits compare_value_current = *current_int_array_compare_intarr;
-		if (this_value_current < compare_value_current)
-		{
-			return 'S';
-		}
-		if (compare_value_current < this_value_current)
-		{
-			return 'L';
-		}
-		++num_int;
-		--current_int_array_this_intarr;
-		--current_int_array_compare_intarr;
-	}
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"compare_to(unlimited_int* num_to_compare_to)\":";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
-		throw "Inconsistencies found in the end of function \"char unlimited_int::compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"";
-#endif
-	return 'E';
+//Get rid of the sign
+	unlimited_int this_cpy(*this, false);
+	this_cpy.is_negative = false;
+	unlimited_int num_to_compare_to_cpy(num_to_compare_to, false);
+	num_to_compare_to_cpy.is_negative = false;
+//Compare using the normal compare_to function (that does care about sign)
+	return this_cpy.compare_to(num_to_compare_to_cpy);
 }

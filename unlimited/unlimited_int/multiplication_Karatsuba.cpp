@@ -36,17 +36,19 @@ def karatsuba(num1, num2):
 #define MIN_KARATSUBA 80
 unlimited_int* unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const
 {
-	many_bits num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
-	many_bits this_num_of_used_ints = this->num_of_used_ints;
-	if ((num_to_mult_num_of_used_ints <= MIN_KARATSUBA) || (this_num_of_used_ints <= MIN_KARATSUBA))
+	const size_t num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
+	const size_t this_num_of_used_ints = this->num_of_used_ints;
+	if (num_to_mult_num_of_used_ints <= (size_t)MIN_KARATSUBA || this_num_of_used_ints <= (size_t)MIN_KARATSUBA)
 	{
 		unlimited_int* answer = new unlimited_int;
 		this->multiply_basecase(num_to_mult, answer);
 		return answer;
 	}
-	many_bits m2;
-	if (num_to_mult_num_of_used_ints < this_num_of_used_ints) { m2 = num_to_mult_num_of_used_ints / 2; }
-	else { m2 = this_num_of_used_ints / 2; }
+	size_t m2;
+	if (num_to_mult_num_of_used_ints < this_num_of_used_ints)
+		m2 = num_to_mult_num_of_used_ints / (size_t)2;
+	else
+		m2 = this_num_of_used_ints / (size_t)2;
 	unlimited_int high1, low1, high2, low2;
 	this->split_at(m2, &high1, &low1);
 	num_to_mult->split_at(m2, &high2, &low2);
@@ -62,7 +64,7 @@ unlimited_int* unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mul
 	z1->subtract(z2, z1);
 	z1->subtract(z0, z1); //z1 will become z1 - z2 - z0
 	z1->shift_left(m2);
-	z2->shift_left(m2 * 2);
+	z2->shift_left(m2 * (size_t)2);
 	z2->add(z1, z2);
 	delete z1;
 	z2->add(z0, z2); //z2 now holds the final answer to return
@@ -72,15 +74,15 @@ unlimited_int* unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mul
 #endif
 #if DEBUG_MODE > 0
 	if (z2->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const\"");
 #endif
 	return z2;
 }
 unlimited_int* unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unlimited_int* num_to_mult)
 {
-	many_bits num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
-	many_bits this_num_of_used_ints = this->num_of_used_ints;
-	if ((num_to_mult_num_of_used_ints <= MIN_KARATSUBA) || (this_num_of_used_ints <= MIN_KARATSUBA))
+	const size_t num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
+	const size_t this_num_of_used_ints = this->num_of_used_ints;
+	if (num_to_mult_num_of_used_ints <= (size_t)MIN_KARATSUBA || this_num_of_used_ints <= (size_t)MIN_KARATSUBA)
 	{
 		unlimited_int* answer = new unlimited_int;
 		this->multiply_basecase(num_to_mult, answer);
@@ -88,9 +90,11 @@ unlimited_int* unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(un
 		num_to_mult->flush();
 		return answer;
 	}
-	many_bits m2;
-	if (num_to_mult_num_of_used_ints < this_num_of_used_ints) { m2 = num_to_mult_num_of_used_ints / 2; }
-	else { m2 = this_num_of_used_ints / 2; }
+	size_t m2;
+	if (num_to_mult_num_of_used_ints < this_num_of_used_ints)
+		m2 = num_to_mult_num_of_used_ints / (size_t)2;
+	else
+		m2 = this_num_of_used_ints / (size_t)2;
 	unlimited_int high1, low1, high2, low2;
 	this->split_at_and_use_original(m2, &high1, &low1);
 	num_to_mult->split_at_and_use_original(m2, &high2, &low2);
@@ -106,7 +110,7 @@ unlimited_int* unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(un
 	z1->subtract(z2, z1);
 	z1->subtract(z0, z1); //z1 will become z1 - z2 - z0
 	z1->shift_left(m2);
-	z2->shift_left(m2 * 2);
+	z2->shift_left(m2 * (size_t)2);
 	z2->add(z1, z2);
 	delete z1;
 	z2->add(z0, z2); //z2 now holds the final answer to return
@@ -116,24 +120,24 @@ unlimited_int* unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(un
 #endif
 #if DEBUG_MODE > 0
 	if (z2->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unlimited_int* num_to_mult)\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unlimited_int* num_to_mult)\"");
 #endif
 	return z2;
 }
 unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult)
 {
-	many_bits num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
-	many_bits this_num_of_used_ints = this->num_of_used_ints;
-	if ((num_to_mult_num_of_used_ints <= MIN_KARATSUBA) || (this_num_of_used_ints <= MIN_KARATSUBA))
+	const size_t num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
+	const size_t this_num_of_used_ints = this->num_of_used_ints;
+	if (num_to_mult_num_of_used_ints <= (size_t)MIN_KARATSUBA || this_num_of_used_ints <= (size_t)MIN_KARATSUBA)
 	{
 		unlimited_int* answer = new unlimited_int;
 		this->multiply_basecase(num_to_mult, answer); //need to create a special function of power2_basecase
 		this->flush();
 		return answer;
 	}
-	many_bits m2;
-	if (num_to_mult_num_of_used_ints < this_num_of_used_ints) { m2 = num_to_mult_num_of_used_ints / 2; }
-	else { m2 = this_num_of_used_ints / 2; }
+	size_t m2;
+	if (num_to_mult_num_of_used_ints < this_num_of_used_ints) { m2 = num_to_mult_num_of_used_ints / (size_t)2; }
+	else { m2 = this_num_of_used_ints / (size_t)2; }
 	unlimited_int high1, low1, high2, low2;
 	num_to_mult->split_at(m2, &high2, &low2);
 	this->split_at_and_use_original(m2, &high1, &low1);
@@ -149,7 +153,7 @@ unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(const unlimited_in
 	z1->subtract(z2, z1);
 	z1->subtract(z0, z1); //z1 will become z1 - z2 - z0
 	z1->shift_left(m2);
-	z2->shift_left(m2 * 2);
+	z2->shift_left(m2 * (size_t)2);
 	z2->add(z1, z2);
 	delete z1;
 	z2->add(z0, z2); //z2 now holds the final answer to return
@@ -159,7 +163,7 @@ unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(const unlimited_in
 #endif
 #if DEBUG_MODE > 0
 	if (z2->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult)\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult)\"");
 #endif
 	return z2;
 }
@@ -173,23 +177,23 @@ std::shared_ptr<unlimited_int> unlimited_int::power2() const
 #if DEBUG_MODE > 0
 	this->find_inconsistencies();
 #endif
-	if (this->num_of_used_ints <= MIN_KARATSUBA_SQUARING)
+	if (this->num_of_used_ints <= (size_t)MIN_KARATSUBA_SQUARING)
 	{
 		unlimited_int* answer = new unlimited_int;
 		this->multiply_basecase(this, answer);
 		return std::shared_ptr<unlimited_int>(answer);
 	}
 	unlimited_int high, low;
-	many_bits m2 = this->num_of_used_ints / 2;
+	const size_t m2 = this->num_of_used_ints / (size_t)2;
 	this->split_at(m2, &high, &low);
 	std::shared_ptr<unlimited_int> square_of_high = high.power2();
 	std::shared_ptr<unlimited_int> square_of_low = low.power2();
-	square_of_high->shift_left(2 * m2);
+	square_of_high->shift_left(m2 * (size_t)2);
 	std::shared_ptr<unlimited_int> answer = *square_of_high + *square_of_low;
 	square_of_high.reset();
 	square_of_low.reset();
 	unlimited_int* high_times_low = high.multiply_karatsuba_destroy_this_and_num_to_mult(&low);
-	*high_times_low <<= (((many_bits)1) + (m2 * NUM_OF_BITS_few_bits));
+	*high_times_low <<= ((size_t)1 + m2 * (size_t)NUM_OF_BITS_few_bits);
 	*answer += *high_times_low;
 	delete high_times_low;
 #if DEBUG_MODE == 2
@@ -197,7 +201,7 @@ std::shared_ptr<unlimited_int> unlimited_int::power2() const
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies() || this->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::power2() const\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::power2() const\"");
 #endif
 	return answer;
 }
@@ -208,9 +212,9 @@ std::shared_ptr<unlimited_int> unlimited_int::power2_destroy_this()
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in start of function \"unlimited_int* unlimited_int::power2_destroy_this()\"";
+		throw std::logic_error("\nThe inconsistency was found in start of function \"unlimited_int* unlimited_int::power2_destroy_this()\"");
 #endif
-	if (this->num_of_used_ints <= MIN_KARATSUBA_SQUARING)
+	if (this->num_of_used_ints <= (size_t)MIN_KARATSUBA_SQUARING)
 	{
 		unlimited_int* answer = new unlimited_int;
 		this->multiply_basecase(this, answer);
@@ -218,16 +222,16 @@ std::shared_ptr<unlimited_int> unlimited_int::power2_destroy_this()
 		return std::shared_ptr<unlimited_int>(answer);
 	}
 	unlimited_int high, low;
-	many_bits m2 = this->num_of_used_ints / 2;
+	const size_t m2 = this->num_of_used_ints / (size_t)2;
 	this->split_at_and_use_original(m2, &high, &low);
 	std::shared_ptr<unlimited_int> square_of_high = high.power2();
 	std::shared_ptr<unlimited_int> square_of_low = low.power2();
-	square_of_high->shift_left(2 * m2);
+	square_of_high->shift_left(m2 * (size_t)2);
 	std::shared_ptr<unlimited_int> answer = *square_of_high + *square_of_low;
 	square_of_high.reset();
 	square_of_low.reset();
 	unlimited_int* high_times_low = high.multiply_karatsuba_destroy_this_and_num_to_mult(&low);
-	*high_times_low <<= (((many_bits)1) + (m2 * NUM_OF_BITS_few_bits));
+	*high_times_low <<= ((size_t)1 + m2 * (size_t)NUM_OF_BITS_few_bits);
 	*answer += *high_times_low;
 	delete high_times_low;
 #if DEBUG_MODE == 2
@@ -235,7 +239,7 @@ std::shared_ptr<unlimited_int> unlimited_int::power2_destroy_this()
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || answer->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::power2_destroy_this()\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::power2_destroy_this()\"");
 #endif
 	return answer;
 }
@@ -246,15 +250,16 @@ std::shared_ptr<unlimited_int> unlimited_int::operator*(const unlimited_int& oth
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || other.find_inconsistencies())
-		throw "\nThe inconsistency was found in start of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
+		throw std::logic_error("\nThe inconsistency was found in start of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"");
 #endif
+	bool other_is_a_power_of_2, this_is_a_power_of_2;
 	//it's more efficient when either other or this is a power of 2 because then bit shifting can be used instead of the Karatsuba multiplication algorithm.
-	const many_bits_signed other_log2 = other.find_exact_log_2();
-	const many_bits_signed this_log2 = this->find_exact_log_2();
+	const size_t other_log2 = other.find_exact_log_2(&other_is_a_power_of_2);
+	const size_t this_log2 = this->find_exact_log_2(&this_is_a_power_of_2);
 	std::shared_ptr<unlimited_int> answer;
-	if (other_log2 >= (many_bits_signed)0)
+	if (other_is_a_power_of_2)
 		answer = (*this) << other_log2;
-	else if (this_log2 >= (many_bits_signed)0)
+	else if (this_is_a_power_of_2)
 		answer = other << this_log2;
 	else //neither numbers are powers of 2.
 	{
@@ -268,14 +273,16 @@ std::shared_ptr<unlimited_int> unlimited_int::operator*(const unlimited_int& oth
 		else
 			answer = std::shared_ptr<unlimited_int>(this->multiply_karatsuba(&other));
 	}
-	if (this->num_of_used_ints == 0) { answer->is_negative = false; }
-	else if (this->is_negative != other.is_negative) { answer->is_negative = true; }
+	if (this->num_of_used_ints == (size_t)0)
+		answer->is_negative = false;
+	else if (this->is_negative != other.is_negative)
+		answer->is_negative = true;
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || other.find_inconsistencies() || answer->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"");
 #endif
 	return answer;
 }

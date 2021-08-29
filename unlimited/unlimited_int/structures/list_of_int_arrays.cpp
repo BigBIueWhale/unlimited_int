@@ -1,208 +1,81 @@
 #include "list_of_int_arrays.hpp"
 using namespace unlimited;
-#if DEBUG_MODE > 0
-#include <iostream>
-#endif
 void list_of_int_arrays::increase_by_one_array_and_zero()
 {
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"increase_by_one_array_and_zero()\":";
-#endif
-#if DEBUG_MODE > 0
-	this->find_inconsistencies();
-#endif
-	many_bits current_len_arr_to_add;
-	if (this->num_of_ints > MIN_ALLOC) { current_len_arr_to_add = this->num_of_ints; }
-	else { current_len_arr_to_add = MIN_ALLOC; }
-	if (MAX_ALLOC < current_len_arr_to_add) { current_len_arr_to_add = MAX_ALLOC; }
-	this->num_of_ints += current_len_arr_to_add;
-	int_array* new_int_array = new int_array();
-	new_int_array->resize_and_fillzero(current_len_arr_to_add);
-	Node* new_node = new Node(new_int_array);
-	if (this->intarrays.length == 0)
-	{
-		this->intarrays.first = new_node;
-		this->intarrays.last = new_node;
-	}
+	size_t current_len_arr_to_add;
+	if (this->num_of_ints > (size_t)MIN_ALLOC)
+		current_len_arr_to_add = this->num_of_ints;
 	else
-	{
-		this->intarrays.last->next = new_node;
-		new_node->previous = this->intarrays.last;
-		this->intarrays.last = new_node;
-	}
-	++this->intarrays.length;
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"increase_by_one_array_and_zero()\":";
-#endif
-#if DEBUG_MODE > 0
-	this->find_inconsistencies();
-#endif
+		current_len_arr_to_add = (size_t)MIN_ALLOC;
+	if ((size_t)MAX_ALLOC < current_len_arr_to_add)
+		current_len_arr_to_add = (size_t)MAX_ALLOC;
+	int_array *const new_int_array = new int_array();
+	new_int_array->resize_and_fillzero(current_len_arr_to_add);
+	this->push_back(new_int_array);
+	this->num_of_ints += current_len_arr_to_add;
 }
 void list_of_int_arrays::increase_by_one_array()
 {
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"increase_by_one_array()\":";
-#endif
-#if DEBUG_MODE > 0
-	this->find_inconsistencies();
-#endif
-	many_bits current_len_arr_to_add;
-	if (this->num_of_ints > MIN_ALLOC) { current_len_arr_to_add = this->num_of_ints; }
-	else { current_len_arr_to_add = MIN_ALLOC; }
-	if (MAX_ALLOC < current_len_arr_to_add) { current_len_arr_to_add = MAX_ALLOC; }
-	this->num_of_ints += current_len_arr_to_add;
-	int_array* new_int_array = new int_array;
-	new_int_array->resize(current_len_arr_to_add);
-	Node* new_node = new Node(new_int_array);
-	if (this->intarrays.length == 0)
-	{
-		this->intarrays.first = new_node;
-		this->intarrays.last = new_node;
-	}
+	size_t current_len_arr_to_add;
+	if (this->num_of_ints > (size_t)MIN_ALLOC)
+		current_len_arr_to_add = this->num_of_ints;
 	else
+		current_len_arr_to_add = (size_t)MIN_ALLOC;
+	if ((size_t)MAX_ALLOC < current_len_arr_to_add)
+		current_len_arr_to_add = (size_t)MAX_ALLOC;
+	int_array *const new_int_array = new int_array();
+	new_int_array->resize(current_len_arr_to_add);
+	this->push_back(new_int_array);
+	this->num_of_ints += current_len_arr_to_add;
+}
+void list_of_int_arrays::increase_until_num_of_ints(const size_t num_of_ints_to_increase_until)
+{
+	if (num_of_ints_to_increase_until > this->num_of_ints)
 	{
-		this->intarrays.last->next = new_node;
-		new_node->previous = this->intarrays.last;
-		this->intarrays.last = new_node;
+		list_of_int_arrays::bank_storage.withdraw(*this, num_of_ints_to_increase_until);
+		while (this->num_of_ints < num_of_ints_to_increase_until)
+			this->increase_by_one_array();
 	}
-	++this->intarrays.length;
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"increase_by_one_array()\":";
-#endif
-#if DEBUG_MODE > 0
-	this->find_inconsistencies();
-#endif
 }
-void list_of_int_arrays::increase_until_num_of_ints(many_bits num_of_ints_to_increase_until)
+void list_of_int_arrays::fill_0_until_num_of_ints_and_set_variables_for_used_accordingly(size_t fill_0_until)
 {
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"increase_until_num_of_ints(many_bits num_of_ints_to_increase_until)\":";
-#endif
-#if DEBUG_MODE > 0
-	this->find_inconsistencies();
-#endif
-	if (num_of_ints_to_increase_until <= this->num_of_ints) { return; }
-	list_of_int_arrays::bank_storage.withdraw(*this, num_of_ints_to_increase_until);
-	while ((this->num_of_ints) < num_of_ints_to_increase_until)
+	if (this->_length > 0)
 	{
-		this->increase_by_one_array();
-	}
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"increase_until_num_of_ints(many_bits num_of_ints_to_increase_until)\":";
-#endif
-#if DEBUG_MODE > 0
-	this->find_inconsistencies();
-#endif
-}
-list_of_int_arrays::list_of_int_arrays(const list_of_int_arrays& num_to_assign)
-{
-	this->intarrays = num_to_assign.intarrays;
-	this->num_of_ints = num_to_assign.num_of_ints;
-}
-void list_of_int_arrays::fill_0_until_num_of_ints_and_set_variables_for_used_accordingly(many_bits fill_0_until)
-{
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"fill_0_until_num_of_ints_and_set_variables_for_used_accordingly(many_bits fill_0_until)\":";
-#endif
-#if DEBUG_MODE > 0
-	this->find_inconsistencies();
-#endif
-	if (this->intarrays.length == 0) { return; }
-	Node* it = this->intarrays.first;
-	many_bits num_of_ints_zeroed_until_now = 0;
-	int_array* current_int_array;
-	if (this->num_of_ints < fill_0_until) { fill_0_until = this->num_of_ints; }
-	while (true)
-	{
-		current_int_array = it->value;
-		many_bits sum = num_of_ints_zeroed_until_now + current_int_array->intarr_len;
-		if (sum >= fill_0_until)
+		custom_linked_list_node<int_array>* it = this->first();
+		size_t num_of_ints_zeroed_until_now = 0;
+		if (this->num_of_ints < fill_0_until)
+			fill_0_until = this->num_of_ints;
+		while (true)
 		{
-			many_bits num_to_fill_until = fill_0_until - num_of_ints_zeroed_until_now;
-			current_int_array->fillzero_until(num_to_fill_until);
-			current_int_array->num_of_used_ints = num_to_fill_until;
-			break;
+			int_array *const current_int_array = it->value;
+			const size_t sum = num_of_ints_zeroed_until_now + current_int_array->intarr_len;
+			if (sum >= fill_0_until)
+			{
+				const size_t num_to_fill_until = fill_0_until - num_of_ints_zeroed_until_now;
+				current_int_array->fillzero_until(num_to_fill_until);
+				current_int_array->num_of_used_ints = num_to_fill_until;
+				break;
+			}
+			else
+			{
+				num_of_ints_zeroed_until_now = sum;
+				current_int_array->fillzero();
+				current_int_array->set_num_of_used_ints_to_maximum();
+			}
+			it = it->next;
 		}
-		else
-		{
-			num_of_ints_zeroed_until_now = sum;
-			current_int_array->fillzero();
-			current_int_array->set_num_of_used_ints_to_maximum();
-		}
-		it = it->next;
 	}
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"fill_0_until_num_of_ints_and_set_variables_for_used_accordingly(many_bits fill_0_until)\":";
-#endif
-#if DEBUG_MODE > 0
-	this->find_inconsistencies();
-#endif
 }
 void list_of_int_arrays::increase_by_one_array_to_insignificant()
 {
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"increase_by_one_array_to_insignificant()\":";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies()) {
-		throw "\nThe inconsistency was found in start of function \"list_of_int_arrays::increase_by_one_array_to_insignificant()\"";
-	}
-#endif
-	many_bits current_len_arr_to_add;
-	if (this->num_of_ints > MIN_ALLOC) { current_len_arr_to_add = this->num_of_ints; }
-	else { current_len_arr_to_add = MIN_ALLOC; }
-	if (MAX_ALLOC < current_len_arr_to_add) { current_len_arr_to_add = MAX_ALLOC; }
-	this->num_of_ints += current_len_arr_to_add;
-	int_array* new_int_array = new int_array(current_len_arr_to_add);
-	Node* new_node = new Node(new_int_array);
-	if (this->intarrays.length == 0)
-	{
-		this->intarrays.first = new_node;
-		this->intarrays.last = new_node;
-	}
+	size_t current_len_arr_to_add;
+	if (this->num_of_ints > (size_t)MIN_ALLOC)
+		current_len_arr_to_add = this->num_of_ints;
 	else
-	{
-		this->intarrays.first->previous = new_node;
-		new_node->next = this->intarrays.first;
-		this->intarrays.first = new_node;
-	}
-	++this->intarrays.length;
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"increase_by_one_array_to_insignificant()\":";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies()) {
-		throw "\nThe inconsistency was found in end of function \"list_of_int_arrays::increase_by_one_array_to_insignificant()\"";
-	}
-#endif
-}
-void list_of_int_arrays::flush_piggy_bank()
-{
-	list_of_int_arrays::bank_storage.destroy_and_reset();
-}
-void list_of_int_arrays::increase_by_one_array_from_piggy_bank_to_insignificant()
-{
-	if (!list_of_int_arrays::bank_storage.withdraw_one_Node_to_insignificant(*this)) {
-		this->increase_by_one_array_to_insignificant();
-	}
-}
-void list_of_int_arrays::increase_by_one_array_from_piggy_bank()
-{
-	if (!list_of_int_arrays::bank_storage.withdraw_one_Node(*this)) { this->increase_by_one_array(); }
-}
-void list_of_int_arrays::flush_insignificant_to_piggy_bank(many_bits num_of_nodes_to_deposit)
-{
-	list_of_int_arrays::bank_storage.deposit_from_insignificant(*this, num_of_nodes_to_deposit);
-}
-void list_of_int_arrays::flush_significant_to_piggy_bank(many_bits num_of_nodes_to_deposit)
-{
-	list_of_int_arrays::bank_storage.deposit_from_significant(*this, num_of_nodes_to_deposit);
-}
-void list_of_int_arrays::withdraw_from_piggy_bank(many_bits length_to_make)
-{
-	this->bank_storage.withdraw(*this, length_to_make);
-}
-void list_of_int_arrays::flush_to_piggy_bank()
-{
-	list_of_int_arrays::bank_storage.deposit(*this);
+		current_len_arr_to_add = (size_t)MIN_ALLOC;
+	if ((size_t)MAX_ALLOC < current_len_arr_to_add)
+		current_len_arr_to_add = (size_t)MAX_ALLOC;
+	int_array *const new_int_array = new int_array(current_len_arr_to_add);
+	this->push_front(new_int_array);
+	this->num_of_ints += current_len_arr_to_add;
 }

@@ -3,127 +3,147 @@ using namespace unlimited;
 #if DEBUG_MODE == 2
 #include <iostream>
 #endif
-void unlimited_int::assign(uint32_t* arr, many_bits len)
+void unlimited_int::assign(uint32_t* arr, size_t len)
 {
-	if (this->auto_destroy) { this->flush(); }
-	else { this->forget_memory();  this->auto_destroy = true; }
-	if (len == 0) { return; }
+	if (this->auto_destroy)
+		this->flush();
+	else
+	{
+		this->forget_memory();
+		this->auto_destroy = true;
+	}
+	if (len == (size_t)0)
+		return;
 #if NUM_OF_BITS_few_bits == 16
-	const many_bits num_of_ints = len * 2;
+	const size_t num_of_ints = len * (size_t)2;
 #elif NUM_OF_BITS_few_bits == 32
-	const many_bits num_of_ints = len;
+	const size_t num_of_ints = len;
 #endif
-	this->intarrays.increase_until_num_of_ints(num_of_ints);
-	Node* current_int_array_Node = this->intarrays.intarrays.first;
+	this->increase_until_num_of_ints(num_of_ints);
+	custom_linked_list_node<int_array>* current_int_array_Node = this->intarrays->first();
 	int_array current_int_array = *current_int_array_Node->value;
 	current_int_array_Node->value->set_num_of_used_ints_to_maximum();
-	many_bits index_in_current_int_array = 0;
-	many_bits int_array_counter = 0;
+	size_t index_in_current_int_array = (size_t)0;
+	size_t int_array_counter = (size_t)0;
 #if NUM_OF_BITS_few_bits == 16
 	bool using_significant_part = false;
 	uint32_t previous_num = 0U;
 #endif
-	for (many_bits_signed counter_ints = len - 1; counter_ints >= 0; )
+	size_t counter_ints = len - (size_t)1;
+	bool stop_now = false;
+	while (true)
 	{
 #if NUM_OF_BITS_few_bits == 16
 		if (using_significant_part)
 		{
-			current_int_array.intarr[index_in_current_int_array] = (few_bits)(previous_num >> 16);
+			current_int_array.intarr[index_in_current_int_array++] = (few_bits)(previous_num >> NUM_OF_BITS_few_bits);
 			using_significant_part = false;
-			--counter_ints;
+			if (counter_ints-- == (size_t)0)
+				stop_now = true;
 		}
 		else
 		{
 			previous_num = arr[counter_ints];
-			current_int_array.intarr[index_in_current_int_array] = (few_bits)(previous_num & MASK_LOW_BITS);
+			current_int_array.intarr[index_in_current_int_array++] = (few_bits)(previous_num & MASK_LOW_BITS);
 			using_significant_part = true;
 		}
 #else
-		current_int_array.intarr[index_in_current_int_array] = arr[counter_ints];
-		--counter_ints;
+		current_int_array.intarr[index_in_current_int_array++] = (few_bits)arr[counter_ints];
+		if (counter_ints-- == (size_t)0)
+			stop_now = true;
 #endif
-		++index_in_current_int_array;
+		if (stop_now)
+			break;
 		if (index_in_current_int_array >= current_int_array.intarr_len)
 		{
-			if (counter_ints >= 0)
-			{
-				++int_array_counter;
-				current_int_array_Node->value->set_num_of_used_ints_to_maximum();
-				index_in_current_int_array = 0;
-				current_int_array_Node = current_int_array_Node->next;
-				current_int_array = *current_int_array_Node->value;
-			}
+			++int_array_counter;
+			current_int_array_Node->value->set_num_of_used_ints_to_maximum();
+			index_in_current_int_array = (size_t)0;
+			current_int_array_Node = current_int_array_Node->next;
+			current_int_array = *current_int_array_Node->value;
 		}
 	}
 	current_int_array_Node->value->num_of_used_ints = index_in_current_int_array;
 	this->num_of_used_ints = num_of_ints;
-	this->num_of_intarrays_used = int_array_counter + 1;
+	this->num_of_intarrays_used = int_array_counter + (size_t)1;
 	this->cutoff_leading_zeros(current_int_array_Node);
 #if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"";
+	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::assign(uint32_t* arr, size_t len)\"";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, size_t len)\"");
 #endif
 }
 void unlimited_int::assign(const few_bits value_to_assign)
 {
-	if (this->auto_destroy) { this->flush(); }
-	else { this->forget_memory();  this->auto_destroy = true; }
-	if (value_to_assign == 0) { return; }
+	if (this->auto_destroy)
+		this->flush();
 	else
 	{
-		this->intarrays.increase_until_num_of_ints(1);
-		this->num_of_intarrays_used = 1;
+		this->forget_memory();
+		this->auto_destroy = true;
+	}
+	if (value_to_assign == (few_bits)0)
+		return;
+	else
+	{
+		this->increase_until_num_of_ints((size_t)1);
+		this->num_of_intarrays_used = (size_t)1;
 		this->is_negative = false;
-		this->num_of_used_ints = 1;
-		this->intarrays.intarrays.first->value->assign(value_to_assign);
+		this->num_of_used_ints = (size_t)1;
+		this->intarrays->first()->value->assign(value_to_assign);
 	}
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"assign(few_ints value_to_assign)\":";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"void unlimited_int::assign(const few_bits value_to_assign)\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::assign(const few_bits value_to_assign)\"");
 #endif
 }
 void unlimited_int::assign(const many_bits value_to_assign)
 {
-	if (this->auto_destroy) { this->flush(); }
-	else { this->forget_memory();  this->auto_destroy = true; }
-	if (value_to_assign == 0) { return; }
+	if (this->auto_destroy)
+		this->flush();
+	else
+	{
+		this->forget_memory();
+		this->auto_destroy = true;
+	}
+	if (value_to_assign == (many_bits)0)
+		return;
 	else
 	{
 		this->is_negative = false;
-		few_bits remainder = (few_bits)value_to_assign; //value_to_assign & MASK_LOW_BITS
-		few_bits carry = value_to_assign >> NUM_OF_BITS_few_bits;
-		if (carry != 0)
+		const few_bits remainder = (few_bits)value_to_assign;
+		const few_bits carry = (few_bits)(value_to_assign >> NUM_OF_BITS_few_bits);
+		if (carry != (few_bits)0)
 		{
-			this->num_of_used_ints = 2;
-			this->intarrays.increase_until_num_of_ints(2);
-			Node* it = this->intarrays.intarrays.first;
+			this->num_of_used_ints = (size_t)2;
+			this->increase_until_num_of_ints((size_t)2);
+			custom_linked_list_node<int_array>* it = this->intarrays->first();
 			int_array* int_array_to_change = it->value;
 			int_array_to_change->assign(remainder);
-			if (int_array_to_change->intarr_len == 1)
+			if (int_array_to_change->intarr_len == (size_t)1)
 			{
-				this->num_of_intarrays_used = 2;
+				this->num_of_intarrays_used = (size_t)2;
 				it = it->next;
 				it->value->assign(carry);
 			}
 			else
 			{
-				this->num_of_intarrays_used = 1;
-				int_array_to_change->intarr[1] = carry;
-				int_array_to_change->num_of_used_ints = 2;
+				this->num_of_intarrays_used = (size_t)1;
+				int_array_to_change->intarr[(size_t)1] = carry;
+				int_array_to_change->num_of_used_ints = (size_t)2;
 			}
 		}
 		else
 		{
-			this->num_of_used_ints = 1;
-			this->num_of_intarrays_used = 1;
-			this->intarrays.increase_until_num_of_ints(1);
-			this->intarrays.intarrays.first->value->assign(remainder);
+			this->num_of_used_ints = (size_t)1;
+			this->num_of_intarrays_used = (size_t)1;
+			this->increase_until_num_of_ints((size_t)1);
+			this->intarrays->first()->value->assign(remainder);
 		}
 	}
 #if DEBUG_MODE == 2
@@ -131,25 +151,31 @@ void unlimited_int::assign(const many_bits value_to_assign)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"void unlimited_int::assign(const many_bits value_to_assign)\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::assign(const many_bits value_to_assign)\"");
 #endif
 }
-void unlimited_int::assign(uint64_t* arr, many_bits len)
+void unlimited_int::assign(uint64_t* arr, size_t len)
 {
-	if (this->auto_destroy) { this->flush(); }
-	else { this->forget_memory();  this->auto_destroy = true; }
-	if (len == 0) { return; }
+	if (this->auto_destroy)
+		this->flush();
+	else
+	{
+		this->forget_memory();
+		this->auto_destroy = true;
+	}
+	if (len == (size_t)0)
+		return;
 #if NUM_OF_BITS_few_bits == 16
-	const many_bits num_of_ints = len * 4;
+	const size_t num_of_ints = len * (size_t)4;
 #elif NUM_OF_BITS_few_bits == 32
-	const many_bits num_of_ints = len * 2;
+	const size_t num_of_ints = len * (size_t)2;
 #endif
-	this->intarrays.increase_until_num_of_ints(num_of_ints);
-	Node* current_int_array_Node = this->intarrays.intarrays.first;
+	this->increase_until_num_of_ints(num_of_ints);
+	custom_linked_list_node<int_array>* current_int_array_Node = this->intarrays->first();
 	int_array current_int_array = *current_int_array_Node->value;
 	current_int_array_Node->value->set_num_of_used_ints_to_maximum();
-	many_bits index_in_current_int_array = 0;
-	many_bits int_array_counter = 0;
+	size_t index_in_current_int_array = (size_t)0;
+	size_t int_array_counter = (size_t)0;
 #if NUM_OF_BITS_few_bits == 32
 	bool using_significant_part = false;
 	uint64_t previous_num = 0U;
@@ -157,54 +183,56 @@ void unlimited_int::assign(uint64_t* arr, many_bits len)
 	uint64_t previous_num = 0;
 	int num_of_bits_used_from_previous_num = 0;
 #endif
-	for (many_bits_signed counter_ints = len - 1; counter_ints >= 0; )
+	size_t counter_ints = len - (size_t)1;
+	bool stop_now = false;
+	while (true)
 	{
 #if NUM_OF_BITS_few_bits == 16
 		if (num_of_bits_used_from_previous_num == 0)
 			previous_num = arr[counter_ints];
-		current_int_array.intarr[index_in_current_int_array] = (few_bits)((previous_num >> num_of_bits_used_from_previous_num) & (uint64_t)MASK_LOW_BITS);
+		current_int_array.intarr[index_in_current_int_array++] = (few_bits)((previous_num >> num_of_bits_used_from_previous_num) & (uint64_t)MASK_LOW_BITS);
 		num_of_bits_used_from_previous_num += 16;
 		if (num_of_bits_used_from_previous_num == 64)
 		{
-			--counter_ints;
+			if (counter_ints-- == (size_t)0)
+				stop_now = true;
 			num_of_bits_used_from_previous_num = 0;
 		}
 #elif NUM_OF_BITS_few_bits == 32
 		if (using_significant_part)
 		{
-			current_int_array.intarr[index_in_current_int_array] = (few_bits)(previous_num >> 32);
+			current_int_array.intarr[index_in_current_int_array++] = (few_bits)(previous_num >> 32);
 			using_significant_part = false;
-			--counter_ints;
+			if (counter_ints-- == (size_t)0)
+				stop_now = true;
 		}
 		else
 		{
 			previous_num = arr[counter_ints];
-			current_int_array.intarr[index_in_current_int_array] = (few_bits)(previous_num & (uint64_t)MASK_LOW_BITS);
+			current_int_array.intarr[index_in_current_int_array++] = (few_bits)(previous_num & (uint64_t)MASK_LOW_BITS);
 			using_significant_part = true;
 		}
 #endif
-		++index_in_current_int_array;
+		if (stop_now)
+			break;
 		if (index_in_current_int_array >= current_int_array.intarr_len)
 		{
-			if (counter_ints >= 0)
-			{
-				++int_array_counter;
-				current_int_array_Node->value->set_num_of_used_ints_to_maximum();
-				index_in_current_int_array = 0;
-				current_int_array_Node = current_int_array_Node->next;
-				current_int_array = *current_int_array_Node->value;
-			}
+			++int_array_counter;
+			current_int_array_Node->value->set_num_of_used_ints_to_maximum();
+			index_in_current_int_array = 0;
+			current_int_array_Node = current_int_array_Node->next;
+			current_int_array = *current_int_array_Node->value;
 		}
 	}
 	current_int_array_Node->value->num_of_used_ints = index_in_current_int_array;
 	this->num_of_used_ints = num_of_ints;
-	this->num_of_intarrays_used = int_array_counter + 1;
+	this->num_of_intarrays_used = int_array_counter + (size_t)1;
 	this->cutoff_leading_zeros(current_int_array_Node);
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"");
 #endif
 }

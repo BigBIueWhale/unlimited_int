@@ -6,8 +6,8 @@ using namespace unlimited;
 #include <iomanip>
 #endif
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
-many_bits int_array::num_of_ints_created = 0;
-many_bits int_array::num_of_ints_destroyed = 0;
+uint64_t int_array::num_of_ints_created = (size_t)0;
+uint64_t int_array::num_of_ints_destroyed = (size_t)0;
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 std::mutex int_array::num_of_ints_created_guard;
 std::mutex int_array::num_of_ints_destroyed_guard;
@@ -15,50 +15,44 @@ std::mutex int_array::num_of_ints_destroyed_guard;
 #endif
 void int_array::assign(const few_bits num_to_assign)
 {
-	if (num_to_assign == 0) { this->num_of_used_ints = 0; }
+	if (num_to_assign == (size_t)0) { this->num_of_used_ints = (size_t)0; }
 	else
 	{
-		this->num_of_used_ints = 1;
-		if (this->intarr_len == 0) {this->resize(MIN_ALLOC); }
-		this->intarr[0] = num_to_assign;
+		this->num_of_used_ints = (size_t)1;
+		if (this->intarr_len == (size_t)0) {this->resize((size_t)MIN_ALLOC); }
+		this->intarr[(size_t)0] = num_to_assign;
 	}
 }
 void int_array::fillzero()
 {
-	if (this->intarr_len == 0) { return; }
-	few_bits* this_intarr = this->intarr;
-	few_bits* stop_ptr = &this_intarr[this->intarr_len - 1];
-	while (this_intarr != stop_ptr)
+	if (this->intarr_len > (size_t)0)
 	{
-		*this_intarr = 0;
-		++this_intarr;
+		few_bits* this_intarr = this->intarr;
+		for (const few_bits* const stop_ptr = this_intarr + (this->intarr_len - (size_t)1); this_intarr <= stop_ptr; ++this_intarr)
+			*this_intarr = 0;
 	}
-	*this_intarr = 0;
 }
-void int_array::fillzero_until(many_bits num_of_ints_to_zero)
+void int_array::fillzero_until(size_t num_of_ints_to_zero)
 {
 	if (num_of_ints_to_zero > this->intarr_len) { num_of_ints_to_zero = this->intarr_len; }
-	if (num_of_ints_to_zero == 0) { return; }
-	few_bits* this_intarr = this->intarr;
-	few_bits* stop_ptr = &this_intarr[num_of_ints_to_zero - 1];
-	while (this_intarr != stop_ptr)
+	if (num_of_ints_to_zero > (size_t)0)
 	{
-		*this_intarr = 0;
-		++this_intarr;
+		few_bits* this_intarr = this->intarr;
+		for (const few_bits *const stop_ptr = this_intarr + (num_of_ints_to_zero - (size_t)1); this_intarr <= stop_ptr; ++this_intarr)
+			*this_intarr = 0;
 	}
-	*this_intarr = 0;
 }
 #if DEBUG_MODE > 0
 bool int_array::find_inconsistencies()
 {
 	if (this->intarr == nullptr)
 	{
-		if (this->intarr_len != 0)
+		if (this->intarr_len != (size_t)0)
 		{
 			std::cerr << "\nError found by function int_array::find_inconsistencies, this->intarr_len is not 0 even though this->intarr == nullptr";
 			return true;
 		}
-		if (this->num_of_used_ints != 0)
+		if (this->num_of_used_ints != (size_t)0)
 		{
 			std::cerr << "\nError found by function int_array::find_inconsistencies, this->num_of_used_ints is not 0 even though this->intarr == nullptr";
 			return true;
@@ -66,7 +60,7 @@ bool int_array::find_inconsistencies()
 	}
 	else
 	{
-		if (this->intarr_len == 0)
+		if (this->intarr_len == (size_t)0)
 		{
 			std::cerr << "\nError found by function int_array::find_inconsistencies, this->intarr_len is 0";
 			return true;
@@ -79,95 +73,84 @@ bool int_array::find_inconsistencies()
 	}
 	return false;
 }
-void int_array::print_all() const
-{
-	std::stringstream message;
-	if (this->intarr_len == 0)
-	{
-		message << " 0xNOTHING";
-	}
-	else
-	{
-		message << "  this->intarr_len: " << this->intarr_len;
-		message << "  this->num_of_used_ints: " << this->num_of_used_ints;
-		message << "  0x";
-		bool is_first = true;
-		for (many_bits_signed index_of_intarr = this->intarr_len - 1; index_of_intarr >= 0; index_of_intarr--)
-		{
-			if (is_first) { is_first = false; }
-			else { message << " "; }
-			char fill_char = '0';
-			message << std::setfill(fill_char) << std::setw(NUM_OF_BITS_few_bits / 4) << std::hex << ((this->intarr)[index_of_intarr]) << std::dec;
-		}
-	}
-	std::cout << message.str();
-}
 #endif
-bool int_array::is_all_used_zeros() const
+size_t int_array::find_first_used_not_zero(bool* found) const
 {
-	if (this->num_of_used_ints == 0) { return true; }
-	few_bits* current_address = this->intarr;
-	few_bits* stop_at = &this->intarr[this->num_of_used_ints - 1];
-	while (current_address != stop_at) { if (*current_address != 0) { return false; }; ++current_address; }
-	if (*current_address != 0) { return false; }
-	return true;
-}
-many_bits_signed int_array::find_first_used_not_zero() const
-{
-	if (this->num_of_used_ints == 0) { return -1; }
-	few_bits* current_address = &this->intarr[this->num_of_used_ints - 1];
-	few_bits* stop_at = this->intarr;
-	many_bits_signed index = this->num_of_used_ints - 1;
-	while (current_address != stop_at)
+	if (this->num_of_used_ints == (size_t)0)
 	{
-		if (*current_address != 0) { return index; };
+		*found = false; 
+		return MAX_size_t_NUM;
+	}
+	few_bits* current_address = this->intarr + (this->num_of_used_ints - (size_t)1);
+	const few_bits *const stop_at = this->intarr;
+	size_t index = this->num_of_used_ints - (size_t)1;
+	while (current_address >= stop_at)
+	{
+		if (*current_address != (few_bits)0)
+		{
+			*found = true;
+			return index;
+		}
 		--current_address;
 		--index;
 	}
-	if (*current_address != 0) { return 0; }
-	return -1;
+	*found = false;
+	return MAX_size_t_NUM;
 }
-void int_array::shift_right(many_bits num_of_ints_to_shift_right_by)
+void int_array::shift_right(size_t num_of_ints_to_shift_right_by)
 {
-	if (num_of_ints_to_shift_right_by == 0) { return; }
-	if (num_of_ints_to_shift_right_by >= this->num_of_used_ints) { this->num_of_used_ints = 0; return; }
-	few_bits* it_read = &this->intarr[num_of_ints_to_shift_right_by];
-	few_bits* it_write = this->intarr;
-	many_bits num_of_ints_in_new_int_array = this->num_of_used_ints - num_of_ints_to_shift_right_by;
-	few_bits* stop_ptr = &this->intarr[num_of_ints_in_new_int_array];
-	while (it_write != stop_ptr)
+	if (num_of_ints_to_shift_right_by > (size_t)0)
 	{
-		*it_write = *it_read;
-		++it_read;
-		++it_write;
+		if (num_of_ints_to_shift_right_by >= this->num_of_used_ints)
+			this->num_of_used_ints = (size_t)0;
+		else
+		{
+			few_bits* it_read = this->intarr + num_of_ints_to_shift_right_by;
+			few_bits* it_write = this->intarr;
+			const size_t num_of_ints_in_new_int_array = this->num_of_used_ints - num_of_ints_to_shift_right_by;
+			const few_bits *const stop_ptr = this->intarr + (num_of_ints_in_new_int_array - (size_t)1);
+			while (it_write <= stop_ptr)
+			{
+				*it_write = *it_read;
+				++it_read;
+				++it_write;
+			}
+			this->num_of_used_ints = num_of_ints_in_new_int_array;
+		}
 	}
-	this->num_of_used_ints = num_of_ints_in_new_int_array;
 }
 void int_array::shift_left_by_one()
 {
-	if (this->num_of_used_ints == 0) { *this->intarr = 0; this->num_of_used_ints = 1; return; }
-	if (this->num_of_used_ints == 1) { this->intarr[1] = *this->intarr; *this->intarr = 0; this->num_of_used_ints = 2; return; }
-	if (this->is_full())
-		throw "Error in function \"void int_array::shift_left_by_one()\". Can\'t shift left, there's no room to shift left.";
-	few_bits* it_read = &this->intarr[this->num_of_used_ints - 1];
-	few_bits* it_write = &this->intarr[this->num_of_used_ints];
-	few_bits* it_stop_read = this->intarr;
-	while (it_read != it_stop_read)
+	if (this->num_of_used_ints == (size_t)0)
 	{
-		*it_write = *it_read;
-		--it_write;
-		--it_read;
+		*this->intarr = (few_bits)0;
+		this->num_of_used_ints = (size_t)1;
 	}
-	*it_write = *it_read;
-	*this->intarr = 0;
-	++this->num_of_used_ints;
+	else if (this->num_of_used_ints == 1)
+	{
+		this->intarr[1] = *this->intarr;
+		*this->intarr = (few_bits)0;
+		this->num_of_used_ints = (size_t)2;
+	}
+	else
+	{
+		few_bits* it_read = this->intarr + (this->num_of_used_ints - (size_t)1);
+		few_bits* it_write = this->intarr + this->num_of_used_ints;
+		const few_bits *const it_stop_read = this->intarr;
+		while (it_read >= it_stop_read)
+		{
+			*it_write = *it_read;
+			--it_write;
+			--it_read;
+		}
+		*this->intarr = (few_bits)0;
+		++this->num_of_used_ints;
+	}
 }
-void int_array::resize_and_fillzero(many_bits size_to_make)
+void int_array::resize_and_fillzero(size_t size_to_make)
 {
-	if (size_to_make == 0)
-	{
-		this->num_of_used_ints = 0;
-	}
+	if (size_to_make == (size_t)0)
+		this->num_of_used_ints = (size_t)0;
 	else
 	{
 		this->intarr_len = size_to_make;
@@ -176,7 +159,7 @@ void int_array::resize_and_fillzero(many_bits size_to_make)
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		int_array::num_of_ints_created_guard.lock();
 #endif
-		int_array::num_of_ints_created += size_to_make;
+		int_array::num_of_ints_created += (uint64_t)size_to_make;
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		int_array::num_of_ints_created_guard.unlock();
 #endif
@@ -184,9 +167,10 @@ void int_array::resize_and_fillzero(many_bits size_to_make)
 		this->fillzero();
 	}
 }
-void int_array::resize(many_bits size_to_make)
+void int_array::resize(size_t size_to_make)
 {
-	if (size_to_make == 0) { this->num_of_used_ints = 0; }
+	if (size_to_make == (size_t)0)
+		this->num_of_used_ints = (size_t)0;
 	else
 	{
 		this->intarr_len = size_to_make;
@@ -195,7 +179,7 @@ void int_array::resize(many_bits size_to_make)
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		int_array::num_of_ints_created_guard.lock();
 #endif
-		int_array::num_of_ints_created += size_to_make;
+		int_array::num_of_ints_created += (uint64_t)size_to_make;
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		int_array::num_of_ints_created_guard.unlock();
 #endif
@@ -208,11 +192,13 @@ void int_array::destroy()
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 	int_array::num_of_ints_destroyed_guard.lock();
 #endif
-	int_array::num_of_ints_destroyed += this->intarr_len;
+	int_array::num_of_ints_destroyed += (uint64_t)this->intarr_len;
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 	int_array::num_of_ints_destroyed_guard.unlock();
 #endif
 #endif
 	delete[] intarr;
 	intarr = nullptr;
+	this->num_of_used_ints = (size_t)0;
+	this->intarr_len = (size_t)0;
 }

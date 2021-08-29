@@ -11,28 +11,34 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num
 #endif
 #if DEBUG_MODE > 0
 	if ((this->find_inconsistencies()) || (num_to_divide_by.find_inconsistencies()))
-		throw "\nThe inconsistency was found in start of function \"divide_by(unlimited_int& num_to_divide_by)\"";
+		throw std::logic_error("\nThe inconsistency was found in start of function \"divide_by(unlimited_int& num_to_divide_by)\"");
 #endif
-	if (num_to_divide_by.num_of_used_ints == 0) { throw "\nError trying to divide by zero."; }
-	const many_bits num_of_used_ints_divide = num_to_divide_by.num_of_used_ints;
-	const many_bits num_of_used_ints_this = this->num_of_used_ints;
-	char result_compare = this->compare_to_ignore_sign(num_to_divide_by);
-	if (result_compare == 'E') { return std::shared_ptr<unlimited_int>(new unlimited_int(1)); }
-	if (result_compare == 'S') { return std::shared_ptr<unlimited_int>(new unlimited_int(0)); }
-	if ((num_of_used_ints_this == 0) || (num_of_used_ints_divide == 0)) { return std::shared_ptr<unlimited_int>(new unlimited_int(0)); }
-	many_bits_signed exact_power_of_2 = num_to_divide_by.find_exact_log_2();
-	if (exact_power_of_2 >= 0) //more efficient method of division when dividing by power of 2
+	if (num_to_divide_by.num_of_used_ints == (size_t)0)
+		throw std::invalid_argument("\nError trying to divide by zero.");
+	const size_t num_of_used_ints_divide = num_to_divide_by.num_of_used_ints;
+	const size_t num_of_used_ints_this = this->num_of_used_ints;
+	const char result_compare = this->compare_to_ignore_sign(num_to_divide_by);
+	if (result_compare == 'E')
+		return std::shared_ptr<unlimited_int>(new unlimited_int(1));
+	if (result_compare == 'S')
+		return std::shared_ptr<unlimited_int>(new unlimited_int);
+	if (num_of_used_ints_this == (size_t)0 || num_of_used_ints_divide == (size_t)0)
+		return std::shared_ptr<unlimited_int>(new unlimited_int);
+	bool was_exact_power_of_2;
+	const size_t exact_power_of_2 = num_to_divide_by.find_exact_log_2(&was_exact_power_of_2);
+	if (was_exact_power_of_2) //more efficient method of division when dividing by power of 2
 	{
-		std::shared_ptr<unlimited_int> answer = (*this) >> (many_bits)exact_power_of_2;
+		std::shared_ptr<unlimited_int> answer = (*this) >> exact_power_of_2;
 #if DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
 #endif
 #if DEBUG_MODE > 0
 		if (answer->find_inconsistencies())
-			throw "\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
+			throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"");
 #endif
 		return answer;
 	}
+	//If the lengths are the same, the result is guaranteed to fit into a few_bits
 	if (num_of_used_ints_this == num_of_used_ints_divide)
 	{
 		std::shared_ptr<unlimited_int> answer(new unlimited_int(this->binary_search_divide(num_to_divide_by)));
@@ -41,49 +47,51 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num
 #endif
 #if DEBUG_MODE > 0
 		if (answer->find_inconsistencies())
-			throw "\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
+			throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"");
 #endif
 		return answer;
 	}
 	unlimited_int* answer = new unlimited_int;
 	unlimited_int partial_this;
-	many_bits num_of_ints_currently_using_from_this = num_of_used_ints_divide;
+	size_t num_of_ints_currently_using_from_this = num_of_used_ints_divide;
 	this->copy_most_significant_to(partial_this, num_of_ints_currently_using_from_this);
-	__list_location__ ll_start = this->find_num_used_int_from_significant(num_of_ints_currently_using_from_this + 1);
-	Node* it_this = ll_start.node;
+	int_array_list::list_location ll_start = this->find_num_used_int_from_significant(num_of_ints_currently_using_from_this + (size_t)1);
+	custom_linked_list_node<int_array>* it_this = ll_start.node;
 	int_array* current_int_array_this = it_this->value;
-	many_bits_signed index_this = ll_start.index;
-	result_compare = partial_this.compare_to_ignore_sign(num_to_divide_by);
-	if (result_compare == 'S')
+	const custom_linked_list_node<int_array> *const this_intarrays_begin =  this->intarrays->begin();
+	size_t index_this = ll_start.index;
+	const char result_compare2 = partial_this.compare_to_ignore_sign(num_to_divide_by);
+	if (result_compare2 == 'S')
 	{
 		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
 		++num_of_ints_currently_using_from_this;
-		--index_this;
-		if (index_this < 0)
+		if (index_this-- == 0)
 		{
 			it_this = it_this->previous;
-			if (it_this != nullptr)
+			if (it_this != this_intarrays_begin)
 			{
 				current_int_array_this = it_this->value;
-				index_this = current_int_array_this->num_of_used_ints - 1;
+				index_this = current_int_array_this->num_of_used_ints - (size_t)1;
 			}
 		}
 	}
 	unlimited_int result_of_multiplication;
+	bool reached_beginning_this = false;
 	while (true)
 	{
-		if (index_this < 0)
+		if (reached_beginning_this)
 		{
-			if (it_this != nullptr)
+			reached_beginning_this = false;
+			if (it_this != this_intarrays_begin)
 			{
 				it_this = it_this->previous;
-				if (it_this != nullptr)
+				if (it_this != this_intarrays_begin)
 				{
 					current_int_array_this = it_this->value;
-					index_this = (many_bits_signed)current_int_array_this->num_of_used_ints - (many_bits_signed)1;
+					index_this = current_int_array_this->num_of_used_ints - (size_t)1;
 				}
 				else
-					index_this = (many_bits_signed)0; //just to stop the loop
+					index_this = (size_t)0; //just to stop the loop
 				continue;
 			}
 		}
@@ -97,14 +105,18 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num
 			break;
 		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
 		++num_of_ints_currently_using_from_this;
-		--index_this;
+		if (index_this-- == (size_t)0)
+			reached_beginning_this = true;
 	}
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"");
+	const unlimited_int multiplication_check(*answer * num_to_divide_by);
+	if (!(multiplication_check.compare_to_ignore_sign(*this) != 'L' && (multiplication_check + num_to_divide_by)->compare_to_ignore_sign(*this) != 'S'))
+		throw std::logic_error("\nWrong answer in function unlimited_int::divide_by");
 #endif
 	return std::shared_ptr<unlimited_int>(answer);
 }
@@ -115,16 +127,21 @@ void unlimited_int::push_to_insignificant(const few_bits num_to_push)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in start of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"";
+		throw std::logic_error("\nThe inconsistency was found in start of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"");
 #endif
-	if (this->num_of_used_ints == 0) { this->assign(num_to_push); this->self_abs(); return; }
-	int_array* int_array_first = this->intarrays.intarrays.first->value;
+	if (this->num_of_used_ints == (size_t)0)
+	{
+		this->assign(num_to_push);
+		this->self_abs();
+		return;
+	}
+	int_array* int_array_first = this->intarrays->first()->value;
 	if (int_array_first->is_full())
 	{
-		this->intarrays.increase_by_one_array_from_piggy_bank_to_insignificant();
+		this->intarrays->increase_by_one_array_from_piggy_bank_to_insignificant();
 		++this->num_of_intarrays_used;
-		int_array_first = this->intarrays.intarrays.first->value;
-		int_array_first->num_of_used_ints = 0;
+		int_array_first = this->intarrays->first()->value;
+		int_array_first->num_of_used_ints = (size_t)0;
 	}
 	int_array_first->push_to_insignificant(num_to_push);
 	++this->num_of_used_ints;
@@ -133,7 +150,7 @@ void unlimited_int::push_to_insignificant(const few_bits num_to_push)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"");
 #endif
 }
 //This function only produces the correct result when the difference length between the two unlimited_ints is 1 or 0. Length being the the number of few_bits used.
@@ -144,22 +161,29 @@ few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_
 #endif
 #if DEBUG_MODE > 0
 	if ((this->find_inconsistencies()) || (num_to_divide_by.find_inconsistencies()))
-		throw "\nThe inconsistency was found in function \"few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_by) const\"";
+		throw std::logic_error("\nThe inconsistency was found in function \"few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_by) const\"");
 #endif
-	few_bits min = 0, max = (few_bits)MAX_few_bits_NUM;
-	char result_compare = unlimited_int::compare_multiplication_to_num(num_to_divide_by, min, *this);
-	if (result_compare == 'E') { return min; }
-	result_compare = unlimited_int::compare_multiplication_to_num(num_to_divide_by, max, *this);
-	if ((result_compare == 'E') || (result_compare == 'S'))
+	few_bits min = (few_bits)0, max = (few_bits)MAX_few_bits_NUM;
+	const char result_compare = unlimited_int::compare_multiplication_to_num(num_to_divide_by, min, *this);
+	if (result_compare == 'E')
+		return min;
+	//Variable shadowing isn't permitted in the same level scope.
+	const char result_compare2 = unlimited_int::compare_multiplication_to_num(num_to_divide_by, max, *this);
+	if (result_compare2 == 'E' || result_compare2 == 'S')
 		return max;
 	while (true)
 	{
-		few_bits average = (((many_bits)min) + ((many_bits)max)) / 2;
-		result_compare = unlimited_int::compare_multiplication_to_num(num_to_divide_by, average, *this);
-		if (result_compare == 'E') { return average; }
-		if (result_compare == 'L') { max = average; }
-		else { min = average; }
-		if (max - min <= 1) { return min; }
+		const few_bits average = (few_bits)(((many_bits)min + (many_bits)max) / (many_bits)2);
+		//Variable shadowing. This is permitted because it's in a more inner scope.
+		const char result_compare = unlimited_int::compare_multiplication_to_num(num_to_divide_by, average, *this);
+		if (result_compare == 'E')
+			return average;
+		if (result_compare == 'L')
+			max = average;
+		else
+			min = average;
+		if (max - min <= (few_bits)1)
+			return min;
 	}
 	return (few_bits)0;
 }
@@ -170,60 +194,60 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 		return (unlimited_int(0).compare_to_ignore_sign(result_target));
 	else if (result_target.num_of_used_ints < multiplicand.num_of_used_ints)
 		return 'L';
-	else if (result_target.num_of_used_ints >= multiplicand.num_of_used_ints + (many_bits)2)
+	//Difference of more than two. The multiplication result can only be 1 few_bits longer than the length of mulitplicand
+	else if (result_target.num_of_used_ints >= multiplicand.num_of_used_ints + (size_t)2)
 		return 'S';
 	//create copy of multiplicand to store the result of the multiplication. Normally we'll reach a verdict of the comparison much before we're finished calculating the entire result of the multiplication.
 	unlimited_int result; //using result just as a temporary holder. Won't be in a usable state when the function exits. Will still flush successfully.
-	result.intarrays.increase_until_num_of_ints(multiplicand.num_of_used_ints + (many_bits)1);
-	Node* current_int_array_Node_multiplicand = multiplicand.get_most_significant_used_int_array();
-	Node* current_int_array_Node_result_target = result_target.get_most_significant_used_int_array();
-	Node* current_int_array_Node_result = result.intarrays.intarrays.last;
+	result.increase_until_num_of_ints(multiplicand.num_of_used_ints + (size_t)1);
+	custom_linked_list_node<int_array>* current_int_array_Node_multiplicand = multiplicand.get_most_significant_used_int_array();
+	custom_linked_list_node<int_array>* current_int_array_Node_result_target = result_target.get_most_significant_used_int_array();
+	custom_linked_list_node<int_array>* current_int_array_Node_result = result.intarrays->last();
 	int_array current_int_array_multiplicand = *current_int_array_Node_multiplicand->value;
 	int_array current_int_array_result_target = *current_int_array_Node_result_target->value;
 	int_array current_int_array_result = *current_int_array_Node_result->value;
-	many_bits_signed index_multiplicand = (many_bits_signed)current_int_array_multiplicand.num_of_used_ints - (many_bits_signed)1;
-	many_bits_signed index_result_target = (many_bits_signed)current_int_array_result_target.num_of_used_ints - (many_bits_signed)1;
-	many_bits_signed index_result = (many_bits_signed)current_int_array_result.intarr_len - (many_bits_signed)1;
-	many_bits int_counter = 0;
-	many_bits num_of_ints_in_result_that_have_been_compared = 0; //can't retroactively change even with the most extreme carry
+	size_t index_multiplicand = current_int_array_multiplicand.num_of_used_ints - (size_t)1;
+	size_t index_result_target = current_int_array_result_target.num_of_used_ints - (size_t)1;
+	size_t index_result = current_int_array_result.intarr_len - (size_t)1;
+	size_t int_counter = (size_t)0;
+	size_t num_of_ints_in_result_that_have_been_compared = (size_t)0; //can't retroactively change even with the most extreme carry
 	bool firsts_were_compared = false;
 	few_bits first_in_result_target = (few_bits)0;
-	if (result_target.num_of_used_ints == multiplicand.num_of_used_ints + (many_bits)1)
+	if (result_target.num_of_used_ints == multiplicand.num_of_used_ints + (size_t)1)
 	{
 		first_in_result_target = current_int_array_result_target.intarr[index_result_target];
-		--index_result_target;
-		if (index_result_target < (many_bits_signed)0)
+		if (index_result_target-- == (size_t)0)
 		{
 			current_int_array_Node_result_target = current_int_array_Node_result_target->previous;
 			current_int_array_result_target = *current_int_array_Node_result_target->value;
-			index_result_target = current_int_array_result_target.num_of_used_ints - (many_bits)1;
+			index_result_target = current_int_array_result_target.num_of_used_ints - (size_t)1;
 		}
 	}
-	few_bits* first_in_result = &current_int_array_result.intarr[index_result];
+	few_bits* first_in_result = current_int_array_result.intarr + index_result;
 	*first_in_result = (few_bits)0;
-	--index_result;
-	if (index_result < (many_bits_signed)0)
+	if (index_result-- == (size_t)0)
 	{
 		current_int_array_Node_result = current_int_array_Node_result->previous;
 		current_int_array_result = *current_int_array_Node_result->value;
-		index_result = current_int_array_result.intarr_len - (many_bits)1;
+		index_result = current_int_array_result.intarr_len - (size_t)1;
 	}
-	many_bits stop_at_for_multiplicand = current_int_array_multiplicand.num_of_used_ints;
-	many_bits stop_at_for_result_target = (many_bits)index_result_target + (many_bits)1;
-	many_bits stop_at_for_result = (many_bits)index_result + (many_bits)1;
-	many_bits stop_at = stop_at_for_multiplicand;
+	size_t stop_at_for_multiplicand = current_int_array_multiplicand.num_of_used_ints;
+	size_t stop_at_for_result_target = index_result_target + (size_t)1;
+	size_t stop_at_for_result = index_result + (size_t)1;
+	size_t stop_at = stop_at_for_multiplicand;
 	if (stop_at_for_result_target < stop_at)
 		stop_at = stop_at_for_result_target;
 	if (stop_at_for_result < stop_at)
 		stop_at = stop_at_for_result;
-	const many_bits stop_all = multiplicand.num_of_used_ints;
+	const size_t stop_all = multiplicand.num_of_used_ints;
 	const many_bits multiplier_many_bits = (many_bits)multiplier;
-	Node* compare_from_int_array_Node_result_target = current_int_array_Node_result_target;
-	Node* compare_from_int_array_Node_result = current_int_array_Node_result;
+	custom_linked_list_node<int_array>* compare_from_int_array_Node_result_target = current_int_array_Node_result_target;
+	custom_linked_list_node<int_array>* compare_from_int_array_Node_result = current_int_array_Node_result;
 	int_array compare_from_int_array_result_target = current_int_array_result_target;
 	int_array compare_from_int_array_result = current_int_array_result;
-	many_bits compare_from_index_result_target = index_result_target;
-	many_bits compare_from_index_result = index_result;
+	size_t compare_from_index_result_target = index_result_target;
+	size_t compare_from_index_result = index_result;
+	const custom_linked_list_node<int_array> *const result_target_intarrays_end = result_target.intarrays->end();
 	while (true)
 	{
 		if (int_counter >= stop_at)
@@ -235,21 +259,21 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 				current_int_array_Node_multiplicand = current_int_array_Node_multiplicand->previous;
 				current_int_array_multiplicand = *current_int_array_Node_multiplicand->value;
 				stop_at_for_multiplicand = int_counter + current_int_array_multiplicand.num_of_used_ints;
-				index_multiplicand = (many_bits_signed)current_int_array_multiplicand.num_of_used_ints - (many_bits_signed)1;
+				index_multiplicand = (size_t)current_int_array_multiplicand.num_of_used_ints - (size_t)1;
 			}
 			if (int_counter >= stop_at_for_result_target)
 			{
 				current_int_array_Node_result_target = current_int_array_Node_result_target->previous;
 				current_int_array_result_target = *current_int_array_Node_result_target->value;
 				stop_at_for_result_target = int_counter + current_int_array_result_target.num_of_used_ints;
-				index_result_target = (many_bits_signed)current_int_array_result_target.num_of_used_ints - (many_bits_signed)1;
+				index_result_target = (size_t)current_int_array_result_target.num_of_used_ints - (size_t)1;
 			}
 			if (int_counter >= stop_at_for_result)
 			{
 				current_int_array_Node_result = current_int_array_Node_result->previous;
 				current_int_array_result = *current_int_array_Node_result->value;
 				stop_at_for_result = int_counter + current_int_array_result.intarr_len;
-				index_result = (many_bits_signed)current_int_array_result.intarr_len - (many_bits_signed)1;
+				index_result = (size_t)current_int_array_result.intarr_len - (size_t)1;
 			}
 			stop_at = stop_at_for_multiplicand;
 			if (stop_at_for_result_target < stop_at)
@@ -263,13 +287,13 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 		few_bits carry = (few_bits)(result_multiplication >> NUM_OF_BITS_few_bits);
 		current_int_array_result.intarr[index_result] = multiplication_remainder;
 		//Now iterating through in reverse (from insignificant to significant) for the purpose of "scattering" the carry throughout the result.
-		const many_bits num_of_ints_filled_in_result = int_counter + (many_bits)2;
-		const many_bits stop_all_reverse = num_of_ints_filled_in_result - (many_bits)1;
-		many_bits int_counter_reverse = 0;
-		many_bits index_result_reverse = (many_bits)index_result + (many_bits)1;
-		Node* current_int_array_Node_result_reverse = current_int_array_Node_result;
+		const size_t num_of_ints_filled_in_result = int_counter + (size_t)2;
+		const size_t stop_all_reverse = num_of_ints_filled_in_result - (size_t)1;
+		size_t int_counter_reverse = (size_t)0;
+		size_t index_result_reverse = index_result + (size_t)1;
+		custom_linked_list_node<int_array>* current_int_array_Node_result_reverse = current_int_array_Node_result;
 		int_array current_int_array_result_reverse = *current_int_array_Node_result_reverse->value;
-		many_bits stop_at_for_result_reverse = current_int_array_result_reverse.intarr_len - index_result_reverse;
+		size_t stop_at_for_result_reverse = current_int_array_result_reverse.intarr_len - index_result_reverse;
 		while (carry > (few_bits)0)
 		{
 			if (int_counter_reverse >= stop_at_for_result_reverse)
@@ -278,24 +302,24 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 					break;
 				if (index_result_reverse >= current_int_array_result_reverse.intarr_len)
 				{
-					index_result_reverse = (many_bits)0;
+					index_result_reverse = (size_t)0;
 					current_int_array_Node_result_reverse = current_int_array_Node_result_reverse->next;
 					current_int_array_result_reverse = *current_int_array_Node_result_reverse->value;
 					stop_at_for_result_reverse = int_counter_reverse + current_int_array_result_reverse.intarr_len;
 				}
 				continue;
 			}
-			const many_bits result_addition = (many_bits)current_int_array_result_reverse.intarr[index_result_reverse] + carry;
+			const many_bits result_addition = (many_bits)current_int_array_result_reverse.intarr[index_result_reverse] + (many_bits)carry;
 			const few_bits addition_remainder_reverse = (few_bits)result_addition;
 			carry = (few_bits)(result_addition >> NUM_OF_BITS_few_bits);
 			current_int_array_result_reverse.intarr[index_result_reverse] = addition_remainder_reverse;
 			++int_counter_reverse;
 			++index_result_reverse;
 		}
-		const many_bits difference_between_current_and_already_certain = num_of_ints_filled_in_result - num_of_ints_in_result_that_have_been_compared;
+		const size_t difference_between_current_and_already_certain = num_of_ints_filled_in_result - num_of_ints_in_result_that_have_been_compared;
 		few_bits max_hypothetical_carry;
 		bool at_last = false;
-		if (int_counter >= stop_all - (many_bits)1)
+		if (int_counter >= stop_all - (size_t)1)
 		{
 			max_hypothetical_carry = (few_bits)0; //there can't be any carry if it's the end
 			at_last = true;
@@ -303,16 +327,16 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 		else
 			max_hypothetical_carry = (few_bits)MAX_few_bits_NUM;
 		//Now iterating in reverse for the purpose of finding certainties
-		int_counter_reverse = 0;
-		index_result_reverse = (many_bits)index_result;
+		int_counter_reverse = (size_t)0;
+		index_result_reverse = (size_t)index_result;
 		current_int_array_Node_result_reverse = current_int_array_Node_result;
 		current_int_array_result_reverse = *current_int_array_Node_result_reverse->value;
 		stop_at_for_result_reverse = current_int_array_result_reverse.intarr_len - index_result_reverse;
-		many_bits index_result_target_reverse = (many_bits)index_result_target;
-		Node* current_int_array_Node_result_target_reverse = current_int_array_Node_result_target;
+		size_t index_result_target_reverse = index_result_target;
+		custom_linked_list_node<int_array>* current_int_array_Node_result_target_reverse = current_int_array_Node_result_target;
 		int_array current_int_array_result_target_reverse = *current_int_array_Node_result_target_reverse->value;
-		many_bits stop_at_for_result_target_reverse = current_int_array_result_target_reverse.num_of_used_ints - index_result_target_reverse;
-		many_bits stop_at_reverse = stop_at_for_result_reverse;
+		size_t stop_at_for_result_target_reverse = current_int_array_result_target_reverse.num_of_used_ints - index_result_target_reverse;
+		size_t stop_at_reverse = stop_at_for_result_reverse;
 		if (stop_at_for_result_target_reverse < stop_at_reverse)
 			stop_at_reverse = stop_at_for_result_target_reverse;
 		if (difference_between_current_and_already_certain < stop_at_reverse)
@@ -325,23 +349,23 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 					break;
 				if (int_counter_reverse >= stop_at_for_result_reverse)
 				{
-					index_result_reverse = (many_bits)0;
+					index_result_reverse = (size_t)0;
 					current_int_array_Node_result_reverse = current_int_array_Node_result_reverse->next;
 					current_int_array_result_reverse = *current_int_array_Node_result_reverse->value;
 					stop_at_for_result_reverse = int_counter_reverse + current_int_array_result_reverse.intarr_len;
 				}
 				if (int_counter_reverse >= stop_at_for_result_target_reverse)
 				{
-					index_result_target_reverse = (many_bits)0;
+					index_result_target_reverse = (size_t)0;
 					current_int_array_Node_result_target_reverse = current_int_array_Node_result_target_reverse->next; //ignore the "dereferencing null pointer" warning
-					if (current_int_array_Node_result_target_reverse != nullptr)
+					if (current_int_array_Node_result_target_reverse != result_target_intarrays_end)
 					{
 						current_int_array_result_target_reverse = *current_int_array_Node_result_target_reverse->value;
 						stop_at_for_result_target_reverse = int_counter_reverse + current_int_array_result_target_reverse.num_of_used_ints;
 					}
 				}
 				stop_at_reverse = stop_at_for_result_reverse;
-				if (current_int_array_Node_result_target_reverse != nullptr)
+				if (current_int_array_Node_result_target_reverse != result_target_intarrays_end)
 					if (stop_at_for_result_target_reverse < stop_at_reverse)
 						stop_at_reverse = stop_at_for_result_target_reverse;
 				if (difference_between_current_and_already_certain < stop_at_reverse)
@@ -358,13 +382,13 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 		}
 		if (max_hypothetical_carry == (few_bits)0)
 		{
-			many_bits num_of_new_comparisons_to_make;
+			size_t num_of_new_comparisons_to_make;
 			if (at_last)
 				num_of_new_comparisons_to_make = difference_between_current_and_already_certain;
 			else
-				num_of_new_comparisons_to_make = difference_between_current_and_already_certain - (int_counter_reverse + (many_bits)1);
+				num_of_new_comparisons_to_make = difference_between_current_and_already_certain - (int_counter_reverse + (size_t)1);
 			num_of_ints_in_result_that_have_been_compared += num_of_new_comparisons_to_make;
-			if (num_of_new_comparisons_to_make > (many_bits)0)
+			if (num_of_new_comparisons_to_make > (size_t)0)
 			{
 				if (!firsts_were_compared)
 				{
@@ -376,15 +400,15 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 					else if (value_of_first_of_result < first_in_result_target)
 						return 'S';
 				}
-				if (num_of_new_comparisons_to_make > (many_bits)0)
+				if (num_of_new_comparisons_to_make > (size_t)0)
 				{
 					//go through from compare_from_int_array_Node_result_target and from compare_from_int_array_Node_result all the way down num_of_new_comparisons_to_make times.
-					Node* comparing_int_array_Node_result_target = compare_from_int_array_Node_result_target;
+					custom_linked_list_node<int_array>* comparing_int_array_Node_result_target = compare_from_int_array_Node_result_target;
 					int_array comparing_int_array_result_target = compare_from_int_array_result_target;
-					many_bits_signed comparing_index_result_target = compare_from_index_result_target;
-					Node* comparing_int_array_Node_result = compare_from_int_array_Node_result;
+					size_t comparing_index_result_target = compare_from_index_result_target;
+					custom_linked_list_node<int_array>* comparing_int_array_Node_result = compare_from_int_array_Node_result;
 					int_array comparing_int_array_result = compare_from_int_array_result;
-					many_bits_signed comparing_index_result = compare_from_index_result;
+					size_t comparing_index_result = compare_from_index_result;
 					//adjusting starting points of next comparison iteration
 					compare_from_int_array_Node_result_target = current_int_array_Node_result_target_reverse;
 					compare_from_int_array_result_target = current_int_array_result_target_reverse;
@@ -392,11 +416,11 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 					compare_from_int_array_Node_result = current_int_array_Node_result_reverse;
 					compare_from_int_array_result = current_int_array_result_reverse;
 					compare_from_index_result = index_result_reverse;
-					const many_bits stop_all_compare = num_of_new_comparisons_to_make;
-					many_bits stop_compare_for_result_target = (many_bits)comparing_index_result_target + (many_bits)1;
-					many_bits stop_compare_for_result = (many_bits)comparing_index_result + (many_bits)1;
-					many_bits int_counter_compare = (many_bits)0;
-					many_bits stop_at_compare = stop_compare_for_result_target;
+					const size_t stop_all_compare = num_of_new_comparisons_to_make;
+					size_t stop_compare_for_result_target = (size_t)comparing_index_result_target + (size_t)1;
+					size_t stop_compare_for_result = (size_t)comparing_index_result + (size_t)1;
+					size_t int_counter_compare = (size_t)0;
+					size_t stop_at_compare = stop_compare_for_result_target;
 					if (stop_compare_for_result < stop_at_compare)
 						stop_at_compare = stop_compare_for_result;
 					if (stop_all_compare < stop_at_compare)
@@ -411,14 +435,14 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 							{
 								comparing_int_array_Node_result_target = comparing_int_array_Node_result_target->previous;
 								comparing_int_array_result_target = *comparing_int_array_Node_result_target->value;
-								comparing_index_result_target = (many_bits_signed)comparing_int_array_result_target.num_of_used_ints - (many_bits_signed)1;
+								comparing_index_result_target = (size_t)comparing_int_array_result_target.num_of_used_ints - (size_t)1;
 								stop_compare_for_result_target = int_counter_compare + comparing_int_array_result_target.num_of_used_ints;
 							}
 							if (int_counter_compare >= stop_compare_for_result)
 							{
 								comparing_int_array_Node_result = comparing_int_array_Node_result->previous;
 								comparing_int_array_result = *comparing_int_array_Node_result->value;
-								comparing_index_result = (many_bits_signed)comparing_int_array_result.intarr_len - (many_bits_signed)1;
+								comparing_index_result = (size_t)comparing_int_array_result.intarr_len - (size_t)1;
 								stop_compare_for_result = int_counter_compare + comparing_int_array_result.intarr_len;
 							}
 							stop_at_compare = stop_compare_for_result_target;

@@ -10,7 +10,7 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_add->find_inconsistencies())
-		throw "\nThe inconsistency was found in start of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"";
+		throw std::logic_error("\nThe inconsistency was found in start of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"");
 #endif
 	if (num_to_add == this)
 	{
@@ -75,32 +75,32 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		smaller_num = &this_copy;
 		larger_num = &num_to_add_copy;
 	}
-	many_bits bigger_num_used_ints = larger_num->num_of_used_ints;
-	many_bits max_num_of_ints_needed_for_answer = bigger_num_used_ints + 1;
-	answer->intarrays.increase_until_num_of_ints(max_num_of_ints_needed_for_answer);
-	Node* it_bigger = larger_num->intarrays.intarrays.first;
-	Node* it_smaller = smaller_num->intarrays.intarrays.first;
-	Node* it_answer = answer->intarrays.intarrays.first;
+	const size_t bigger_num_used_ints = larger_num->num_of_used_ints;
+	const size_t max_num_of_ints_needed_for_answer = bigger_num_used_ints + (size_t)1;
+	answer->increase_until_num_of_ints(max_num_of_ints_needed_for_answer);
+	custom_linked_list_node<int_array>* it_bigger = larger_num->intarrays->first();
+	custom_linked_list_node<int_array>* it_smaller = smaller_num->intarrays->first();
+	custom_linked_list_node<int_array>* it_answer = answer->intarrays->first();
 	int_array* current_intarray_for_bigger = it_bigger->value;
 	int_array* current_intarray_for_smaller = it_smaller->value;
 	int_array* current_intarray_for_answer = it_answer->value;
-	many_bits num_int = 0;
-	many_bits index_bigger = 0, index_smaller = 0, index_answer = 0;
-	many_bits num_of_intarrays_used_for_answer = 1;
+	size_t num_int = (size_t)0;
+	size_t index_bigger = (size_t)0, index_smaller = (size_t)0, index_answer = (size_t)0;
+	size_t num_of_intarrays_used_for_answer = (size_t)1;
 	many_bits carry = 0;
 	few_bits* current_intarr_for_bigger = current_intarray_for_bigger->intarr;
 	few_bits* current_intarr_for_smaller = current_intarray_for_smaller->intarr;
 	few_bits* current_intarr_for_answer = current_intarray_for_answer->intarr;
-	many_bits intarr_len_answer = current_intarray_for_answer->intarr_len;
-	many_bits intarr_len_bigger = current_intarray_for_bigger->num_of_used_ints;
-	many_bits intarr_len_smaller = current_intarray_for_smaller->num_of_used_ints;
-	many_bits smaller_num_used_ints = smaller_num->num_of_used_ints;
-	many_bits next_stop = intarr_len_smaller;
+	size_t intarr_len_answer = current_intarray_for_answer->intarr_len;
+	size_t intarr_len_bigger = current_intarray_for_bigger->num_of_used_ints;
+	size_t intarr_len_smaller = current_intarray_for_smaller->num_of_used_ints;
+	const size_t smaller_num_used_ints = smaller_num->num_of_used_ints;
+	size_t next_stop = intarr_len_smaller;
 	if (intarr_len_bigger < next_stop) { next_stop = intarr_len_bigger; }
 	if (intarr_len_answer < next_stop) { next_stop = intarr_len_answer; }
-	many_bits remaining_intarr_len_bigger;
-	many_bits remaining_intarr_len_answer;
-	many_bits previous_num_int = 0;
+	size_t remaining_intarr_len_bigger;
+	size_t remaining_intarr_len_answer;
+	size_t previous_num_int = (size_t)0;
 	current_intarray_for_answer->set_num_of_used_ints_to_maximum();
 	while (true)
 	{
@@ -137,24 +137,21 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 				current_intarray_for_answer->set_num_of_used_ints_to_maximum();
 				index_answer = 0;
 			}
-			many_bits remaining_intarr_len_smaller = intarr_len_smaller - index_smaller;
+			size_t remaining_intarr_len_smaller = intarr_len_smaller - index_smaller;
 			remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
 			remaining_intarr_len_answer = intarr_len_answer - index_answer;
-			bool smaller_smaller_than_bigger = remaining_intarr_len_smaller < remaining_intarr_len_bigger;
-			bool answer_smaller_than_bigger = remaining_intarr_len_answer < remaining_intarr_len_bigger;
-			bool answer_smaller_than_smaller = remaining_intarr_len_answer < remaining_intarr_len_smaller;
+			const bool smaller_smaller_than_bigger = remaining_intarr_len_smaller < remaining_intarr_len_bigger;
+			const bool answer_smaller_than_bigger = remaining_intarr_len_answer < remaining_intarr_len_bigger;
+			const bool answer_smaller_than_smaller = remaining_intarr_len_answer < remaining_intarr_len_smaller;
 			if (smaller_smaller_than_bigger && !answer_smaller_than_smaller)
-			{
 				next_stop += remaining_intarr_len_smaller;
-			}
 			else if (answer_smaller_than_bigger && answer_smaller_than_smaller)
-			{
 				next_stop += remaining_intarr_len_answer;
-			}
-			else { next_stop += remaining_intarr_len_bigger; }
+			else
+				next_stop += remaining_intarr_len_bigger;
 			continue;
 		}
-		carry += ((many_bits)(*current_intarr_for_bigger)) + ((many_bits)(*current_intarr_for_smaller));
+		carry += (many_bits)(*current_intarr_for_bigger) + (many_bits)(*current_intarr_for_smaller);
 		*current_intarr_for_answer = (few_bits)carry;
 		carry >>= NUM_OF_BITS_few_bits;
 		++current_intarr_for_bigger;
@@ -193,7 +190,8 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		while (carry != 0)
 		{
 			if (num_int == next_stop) {
-				if (num_int == bigger_num_used_ints) { break; }
+				if (num_int == bigger_num_used_ints)
+					break;
 				previous_num_int = num_int - previous_num_int;
 				index_bigger += previous_num_int;
 				index_answer += previous_num_int;
@@ -219,13 +217,12 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 				remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
 				remaining_intarr_len_answer = intarr_len_answer - index_answer;
 				if (remaining_intarr_len_bigger < remaining_intarr_len_answer)
-				{
 					next_stop += remaining_intarr_len_bigger;
-				}
-				else { next_stop += remaining_intarr_len_answer; }
+				else
+					next_stop += remaining_intarr_len_answer;
 				continue;
 			}
-			carry += ((many_bits)(*current_intarr_for_bigger));
+			carry += (many_bits)(*current_intarr_for_bigger);
 			*current_intarr_for_answer = (few_bits)carry;
 			carry >>= NUM_OF_BITS_few_bits;
 			++current_intarr_for_bigger;
@@ -270,7 +267,8 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 					index_bigger += previous_num_int;
 					index_answer += previous_num_int;
 					previous_num_int = num_int;
-					if (num_int == bigger_num_used_ints) { break; }
+					if (num_int == bigger_num_used_ints)
+						break;
 					if (index_bigger == intarr_len_bigger)
 					{
 						it_bigger = it_bigger->next;
@@ -292,10 +290,9 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 					remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
 					remaining_intarr_len_answer = intarr_len_answer - index_answer;
 					if (remaining_intarr_len_bigger < remaining_intarr_len_answer)
-					{
 						next_stop += remaining_intarr_len_bigger;
-					}
-					else { next_stop += remaining_intarr_len_answer; }
+					else
+						next_stop += remaining_intarr_len_answer;
 					continue;
 				}
 				*current_intarr_for_answer = *current_intarr_for_bigger;
@@ -331,6 +328,6 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
-		throw "\nThe inconsistency was found in end of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"";
+		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"");
 #endif
 }

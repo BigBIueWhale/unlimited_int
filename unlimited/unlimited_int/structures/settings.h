@@ -20,40 +20,38 @@
 #endif
 
 //0 for no debugging at all, 1 for all debugging except verbose print, 2 for all debugging with (super-)verbose print, -2 for only memory counting (check for memory leaks)
-#define DEBUG_MODE 0
+#define DEBUG_MODE -2
 #if (DEBUG_MODE <= -3) || (DEBUG_MODE == -1) || (DEBUG_MODE >= 3) //Invalid options
 #error "FATAL COMPILATION ERROR of \"unlimited\" library. The DEBUG_MODE macro is set to an invalid option. Try manually editing the valud of DEBUG_MODE in file: \"unlimited/unlimited_int/structures/settings.h\""
 #endif
 #include <stdint.h> //for the typenames uint32_t, uint64_t, uint16_t
-namespace unlimited //macros aren't inside the namespace, but it does affect the "typedef" declarations
+#include <exception> //For the declaration of std::exception
+#include <stdexcept> //For the declarations of std::logic_error, std::out_of_range etc.
+namespace unlimited //macros that are inside of the namespace, aren't affected by it, they're global anyways. But the typedef declarations will belong to the namespace "unlimited".
 {
 #if IS_64_BIT_SYSTEM
 	typedef uint32_t few_bits;
 	typedef uint64_t many_bits;
-#define NUM_OF_BITS_few_bits 32
-#define NUM_OF_BITS_many_bits 64
 	typedef int32_t few_bits_signed;
 	typedef int64_t many_bits_signed;
-#define MASK_LOW_BITS 0xffffffff
-#define MAX_few_bits_NUM 0xffffffff
-#define MAX_few_bits_NUM_PLUS_ONE 0x100000000
-#define MAX_many_bits_NUM 0xffffffffffffffff
+#define NUM_OF_BITS_few_bits 32
 #else
 	typedef uint16_t few_bits;
 	typedef uint32_t many_bits;
-#define NUM_OF_BITS_few_bits 16
-#define NUM_OF_BITS_many_bits 32
 	typedef int16_t few_bits_signed;
 	typedef int32_t many_bits_signed;
-#define MASK_LOW_BITS 0xffff
-#define MAX_few_bits_NUM 0xffff
-#define MAX_few_bits_NUM_PLUS_ONE 0x10000
-#define MAX_many_bits_NUM 0xffffffff
+#define NUM_OF_BITS_few_bits 16
 #endif
+#define NUM_OF_BITS_many_bits (sizeof(many_bits) * 8)
+#define MAX_few_bits_NUM ((few_bits)(~((few_bits)0)))
+#define MASK_LOW_BITS MAX_few_bits_NUM
+#define MAX_few_bits_NUM_PLUS_ONE ((many_bits)MAX_few_bits_NUM + (many_bits)1)
+#define MAX_many_bits_NUM ((many_bits)(~((many_bits)0)))
+#define MAX_size_t_NUM ((size_t)(~((size_t)0)))
 }
 //The maximum size of list_of_int_arrays::bank_storage per thread. Each thread can have the amount of RAM specified in this C++ macro
-//in num of ints, or about 100 megabytes in 64bit mode or 50 megabytes in 32bit mode (each int is 32 bits in 64bit mode)
-#define PIGGY_BANK_MAXIMUM ((many_bits)(26843545))
+//in num of ints, so about 100 megabytes in 64bit mode or 50 megabytes in 32bit mode (each int is 32 bits in 64bit mode)
+#define PIGGY_BANK_MAXIMUM 26843545
 //#define PIGGY_BANK_MAXIMUM ((many_bits)(0)) //setting to 0 de facto disables piggy bank retention
 	//#define PIGGY_BANK_MAXIMUM ((many_bits)(100000000000000000)) //in num of ints, or too much to matter
 	//#define MAX_ALLOC 1048576 //2^20
@@ -63,5 +61,7 @@ namespace unlimited //macros aren't inside the namespace, but it does affect the
 #define UNLIMITED_INT_SUPPORT_MULTITHREADING true
 //#define MIN_ALLOC 1
 //#define MAX_ALLOC 20
-
+#if MIN_ALLOC > MAX_ALLOC || MIN_ALLOC < 1
+#error "FATAL COMPILATION ERROR of \"unlimited\" library. MIN_ALLOC macro or/and MAX_ALLOC macro are set to invalid values. Try manually editing \"unlimited/unlimited_int/structures/settings.h\""
+#endif
 #endif

@@ -18,25 +18,26 @@ bool unlimited_int::is_prime(const int num_of_iterations) const
 		if (*terminator)
 			return false; //abort
 #endif
-	const char comparison_to_2 = this->compare_to_ignore_sign(unlimited_int(2));
-	if ((comparison_to_2 == 'E') || (this->compare_to_ignore_sign(unlimited_int(3)) == 'E'))
+	const char comparison_to_2 = this->compare_to_ignore_sign(unlimited_int((few_bits)2));
+	if (comparison_to_2 == 'E' || this->compare_to_ignore_sign(unlimited_int((few_bits)3)) == 'E')
 		return true;
-	if ((comparison_to_2 == 'S') || (this->modulo_2() == 0))
+	if (comparison_to_2 == 'S' || this->modulo_2() == 0)
 		return false;
 	std::unique_ptr<unlimited_int> pMinusOne(this->copy());
 	pMinusOne->is_negative = false;
 	--(*pMinusOne);
-	many_bits_signed _k = 0;
+	size_t _k = (size_t)0;
 	std::unique_ptr<unlimited_int> _m(pMinusOne->copy());
 	while (_m->modulo_2() == 0)
 	{
 		(*_m) >>= 1;
 		++_k;
 	}
-	--_k;
+	if (_k-- == (size_t)0)
+		_k = (size_t)0;
 	for (int iteration_counter = 0; iteration_counter < num_of_iterations; ++iteration_counter)
 	{
-		std::shared_ptr<unlimited_int> _a = unlimited_int::generate_random(unlimited_int(2), *pMinusOne);
+		std::shared_ptr<unlimited_int> _a = unlimited_int::generate_random(unlimited_int((few_bits)2), *pMinusOne);
 		std::shared_ptr<unlimited_int> _x = unlimited_int::pow(*_a, *_m, *this
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 								,terminator
@@ -47,14 +48,14 @@ bool unlimited_int::is_prime(const int num_of_iterations) const
 			if (*terminator)
 				return false; //abort
 #endif
-		if ((*_x == unlimited_int(1)) || (*_x == *pMinusOne))
+		if (*_x == unlimited_int(1) || *_x == *pMinusOne)
 			continue;
 		bool to_return_false = true;
-		for (int counter2 = 0; counter2 < _k; ++counter2)
+		for (size_t counter2 = (size_t)0; counter2 < _k; ++counter2)
 		{
 			_x = _x->power2();
 			*_x %= *this;
-			if (*_x == unlimited_int(1))
+			if (*_x == unlimited_int((few_bits)1))
 				return false;
 			if (*_x == *pMinusOne)
 			{
@@ -72,7 +73,7 @@ void generate_random_prime_single_thread(const unlimited_int& min, const unlimit
 {
 	std::shared_ptr<unlimited_int> current_try;
 	do current_try = unlimited_int::generate_random(min, max);
-	while ((!current_try->is_prime(64, is_ending)) && (!(*is_ending)));
+	while (!current_try->is_prime(64, is_ending) && !(*is_ending));
 	result_lock->lock();
 	if (!(*is_ending)) //if it ended because it actually found a prime number, rather than because of is_ending
 	{
@@ -87,11 +88,11 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimi
 {
 	unlimited_int range_size(max - min);
 	if (range_size.is_negative)
-		throw "Error in function \"std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)\". Invalid arguments: max is smaller than min.";
+		throw std::invalid_argument("Error in function \"std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)\". Invalid arguments: max is smaller than min.");
 	++range_size;
 	const unsigned max_cores = std::thread::hardware_concurrency();
 	unsigned num_threads_to_use;
-	if (num_threads <= 0)
+	if (num_threads <= (size_t)0)
 		num_threads_to_use = max_cores; //use all cores
 	else
 	{
@@ -99,7 +100,7 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimi
 		if (num_threads_to_use > max_cores) //Not efficient to have more threads than CPU Logical processors
 			num_threads_to_use = max_cores;
 	}
-	if ((range_size.get_length_in_bits() <= (many_bits)NUM_OF_BITS_IN_PRIME_NUMBER_TO_STOP_MULTITHREADING) || (num_threads_to_use == 1U)) //number too small for threads to be worth it.
+	if (range_size.get_length_in_bits() <= (size_t)NUM_OF_BITS_IN_PRIME_NUMBER_TO_STOP_MULTITHREADING || num_threads_to_use == 1U) //number too small for threads to be worth it.
 	{
 		unlimited_int* result = new unlimited_int;
 		std::mutex placeholder_mutex;
@@ -117,7 +118,7 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimi
 		bool found_prime = false;
 		unlimited_int* result = new unlimited_int;
 		std::mutex result_was_set;
-		for (unsigned thread_counter = 0; thread_counter < num_threads_to_use; ++thread_counter)
+		for (unsigned thread_counter = 0U; thread_counter < num_threads_to_use; ++thread_counter)
 		{
 			std::thread* current_thread = new std::thread(generate_random_prime_single_thread, min, max, &found_prime, result, &result_was_set);
 			parallel_threads.push_back(current_thread);
@@ -133,7 +134,7 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimi
 			//sleep for 1 seventh of a second. We don't want this loop to take all the processing power away from the threads that are trying to find prime numbers.
 			std::this_thread::sleep_for(std::chrono::milliseconds(143LL));
 		}
-		for (unsigned thread_counter = 0; thread_counter < num_threads_to_use; ++thread_counter)
+		for (unsigned thread_counter = 0U; thread_counter < num_threads_to_use; ++thread_counter)
 		{
 			//Now that "found_prime == true" it'll only take a few milliseconds for all the threads to abort what they were doing the join
 			parallel_threads[thread_counter]->join();
@@ -147,7 +148,7 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimi
 {
 	unlimited_int range_size(max - min);
 	if (range_size.is_negative)
-		throw "Error in function \"std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)\". Invalid arguments: max is smaller than min.";
+		throw std::invalid_argument("Error in function \"std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)\". Invalid arguments: max is smaller than min.");
 	std::shared_ptr<unlimited_int> current_try;
 	do current_try = unlimited_int::generate_random(min, max);
 	while (!current_try->is_prime(64));
