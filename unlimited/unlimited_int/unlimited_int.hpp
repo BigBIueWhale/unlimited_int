@@ -15,14 +15,15 @@ namespace unlimited
 		size_t amount_shifted; //the amount shifted left during the reciprocal calculation
 		reciprocal_information(std::shared_ptr<unlimited_int> reciprocal, size_t amount_shifted);
 		reciprocal_information(const reciprocal_information&); //copy constructor
-		reciprocal_information() { amount_shifted = (size_t)0; }
+		reciprocal_information() : amount_shifted((size_t)0) {}
 	};
 	struct reciprocal_information_for_database : public reciprocal_information
 	{
+	public:
 		std::shared_ptr<unlimited_int> hash_of_dividend;
 		//Only my custom doubly-linked list is guaranteed to support keeping a valid pointer to a node in the list without that pointer becoming invalidated after changing the list
 		custom_linked_list_node<size_t>* link_to_list;
-		reciprocal_information_for_database(reciprocal_information, std::shared_ptr<unlimited_int>, custom_linked_list_node<size_t>*);
+		reciprocal_information_for_database(const reciprocal_information&, std::shared_ptr<unlimited_int>, custom_linked_list_node<size_t>*);
 		reciprocal_information_for_database(const reciprocal_information_for_database&);
 		reciprocal_information_for_database()
 		{
@@ -390,7 +391,7 @@ namespace unlimited
 		//efficient method for power (math function) with remainder as well. Receives boolean pointer used for early termination of calculation.
 		static std::shared_ptr<unlimited_int> pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
-								, bool* terminator = nullptr
+								, volatile bool *const terminator = nullptr
 #endif
 								);
 		//efficient method for power (math function)
@@ -425,7 +426,7 @@ namespace unlimited
 		//Ignores that sign of a number: -2 is prime. Optional argument: num_of_iterations. 20 iterations will give you a 1 in a trillion chance of mistake.
 		//Receives a pointer to a boolean that tells it to stop early and return false (in case of multithreading).
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
-		bool is_prime(const int num_of_iterations = 64, bool* terminator = nullptr) const;
+		bool is_prime(const int num_of_iterations = 64, volatile bool *const terminator = nullptr) const;
 #else
 		bool is_prime(const int num_of_iterations = 64) const;
 #endif

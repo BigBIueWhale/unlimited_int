@@ -92,13 +92,20 @@ using namespace unlimited;
 //}
 void helper()
 {
-	for (size_t i = 0; i < 100; ++i)
+	try
 	{
-		size_t num_of_bits;
-		do num_of_bits = rand() % 2500;
-		while (num_of_bits < 5);
-		const unlimited_int max(*(unlimited_int(1) << num_of_bits + (size_t)1) - unlimited_int(1));
-		const unlimited_int min(unlimited_int(1) << num_of_bits);
-		std::cout << "\nPrime number number " << i + 1 << ": " << *unlimited_int::generate_random_prime(min, max);
+		for (size_t i = 0; i < 100; ++i)
+		{
+			size_t num_of_bits;
+			do num_of_bits = rand() % 2500;
+			while (num_of_bits < 5);
+			const unlimited_int max(*(unlimited_int(1) << num_of_bits + (size_t)1) - unlimited_int(1));
+			const unlimited_int min(unlimited_int(1) << num_of_bits);
+			std::cout << "\nPrime number number " << i + 1 << ": " << *unlimited_int::generate_random_prime(min, max);
+		}
+	}
+	catch(std::exception& e)
+	{
+		std::cout << "\nEpic failure: " << e.what();
 	}
 }

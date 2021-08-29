@@ -70,7 +70,7 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_using_reciprocal(const unli
 	divisor_positive.is_negative = false;
 	unlimited_int result_multiplication(*answer * divisor_positive);
 	if (result_multiplication.compare_to_ignore_sign(dividend) == 'L')
-		throw std::exception("\nNewton Raphson division error in function \"divide_using_reciprocal\". The result is certainly wrong (too big).");
+		throw std::logic_error("\nNewton Raphson division error in function \"divide_using_reciprocal\". The result is certainly wrong (too big).");
 	unlimited_int result_multiplication_error_by_1(result_multiplication + divisor_positive);
 	char comparison_result = result_multiplication_error_by_1.compare_to_ignore_sign(dividend);
 	while (comparison_result != 'L')
@@ -176,7 +176,7 @@ std::shared_ptr<unlimited_int> unlimited_int::recurring_division(const unlimited
 			unlimited_int::Newton_Raphson_lookup.most_recent.push_back(new size_t(fingerprint_divisor));
 			item_in_list = unlimited_int::Newton_Raphson_lookup.most_recent.end()->previous;
 		}
-		unlimited_int::Newton_Raphson_lookup.reciprocals_map[fingerprint_divisor] = reciprocal_information_for_database(divisor.calculate_reciprocal_floor((dividend.num_of_used_ints * (size_t)2) + (size_t)4), divisor.calculate_efficient_cryptographic_hash(), item_in_list);
+		unlimited_int::Newton_Raphson_lookup.reciprocals_map.emplace(fingerprint_divisor, reciprocal_information_for_database(divisor.calculate_reciprocal_floor((dividend.num_of_used_ints * (size_t)2) + (size_t)4), divisor.calculate_efficient_cryptographic_hash(), item_in_list));
 		reciprocal_iterator_in_map = unlimited_int::Newton_Raphson_lookup.reciprocals_map.find(fingerprint_divisor);
 	}
 	return unlimited_int::divide_using_reciprocal(dividend, (reciprocal_information)reciprocal_iterator_in_map->second, divisor, remainder);

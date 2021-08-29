@@ -6,7 +6,7 @@ using namespace unlimited;
 //makes use if the identity (a ⋅ b) mod m = [(a mod m) ⋅ (b mod m)] mod m
 std::shared_ptr<unlimited_int> unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
-						, bool* terminator
+						, volatile bool *const terminator
 #endif
 							)
 {

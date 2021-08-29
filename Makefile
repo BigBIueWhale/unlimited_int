@@ -1,2 +1,2 @@
 example: unlimited/*.cpp unlimited/*.hpp unlimited/unlimited_int/*.hpp unlimited/unlimited_int/*.cpp unlimited/unlimited_int/structures/*.hpp unlimited/unlimited_int/structures/*.cpp main.cpp
-	g++ unlimited/*.cpp unlimited/*.hpp unlimited/unlimited_int/*.hpp unlimited/unlimited_int/*.cpp unlimited/unlimited_int/structures/*.hpp unlimited/unlimited_int/structures/*.cpp main.cpp -o output.exe -O3 -pthread
+	g++ unlimited/*.cpp unlimited/*.hpp unlimited/unlimited_int/*.hpp unlimited/unlimited_int/*.cpp unlimited/unlimited_int/structures/*.hpp unlimited/unlimited_int/structures/*.cpp main.cpp -o output.exe --std=c++17 -Wall -Wpedantic -Wextra -O3 -l pthread

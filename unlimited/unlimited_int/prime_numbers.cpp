@@ -8,7 +8,7 @@ using namespace unlimited;
 //Miller-Rabin primality test algorithm.
 //If a number fails one of the iterations, the number is certainly composite. A composite number has a chance of 25% to pass every iteration. That's why 64 iterations ensures 1/(2^128) probability of mistake.
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
-bool unlimited_int::is_prime(const int num_of_iterations, bool* terminator) const
+bool unlimited_int::is_prime(const int num_of_iterations, volatile bool *const terminator) const
 #else
 bool unlimited_int::is_prime(const int num_of_iterations) const
 #endif
@@ -69,10 +69,10 @@ bool unlimited_int::is_prime(const int num_of_iterations) const
 	return true;
 }
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
-void generate_random_prime_single_thread(const unlimited_int& min, const unlimited_int& max, bool* is_ending, unlimited_int* result, std::mutex* result_lock)
+void generate_random_prime_single_thread(const unlimited_int *const min, const unlimited_int *const max, volatile bool *const is_ending, unlimited_int *const result, std::mutex *const result_lock)
 {
 	std::shared_ptr<unlimited_int> current_try;
-	do current_try = unlimited_int::generate_random(min, max);
+	do current_try = unlimited_int::generate_random(*min, *max);
 	while (!current_try->is_prime(64, is_ending) && !(*is_ending));
 	result_lock->lock();
 	if (!(*is_ending)) //if it ended because it actually found a prime number, rather than because of is_ending
@@ -90,9 +90,11 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimi
 	if (range_size.is_negative)
 		throw std::invalid_argument("Error in function \"std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)\". Invalid arguments: max is smaller than min.");
 	++range_size;
-	const unsigned max_cores = std::thread::hardware_concurrency();
+	unsigned max_cores = std::thread::hardware_concurrency() / 2;
+	if (max_cores == 0U)
+		max_cores = 1U;
 	unsigned num_threads_to_use;
-	if (num_threads <= (size_t)0)
+	if (num_threads <= 0)
 		num_threads_to_use = max_cores; //use all cores
 	else
 	{
@@ -106,9 +108,9 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimi
 		std::mutex placeholder_mutex;
 		bool is_ending = false;
 		if (terminator == nullptr)
-			generate_random_prime_single_thread(min, max, &is_ending, result, &placeholder_mutex);
+			generate_random_prime_single_thread(&min, &max, &is_ending, result, &placeholder_mutex);
 		else
-			generate_random_prime_single_thread(min, max, terminator, result, &placeholder_mutex);
+			generate_random_prime_single_thread(&min, &max, terminator, result, &placeholder_mutex);
 		return std::shared_ptr<unlimited_int>(result);
 	}
 	else
@@ -120,7 +122,7 @@ std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimi
 		std::mutex result_was_set;
 		for (unsigned thread_counter = 0U; thread_counter < num_threads_to_use; ++thread_counter)
 		{
-			std::thread* current_thread = new std::thread(generate_random_prime_single_thread, min, max, &found_prime, result, &result_was_set);
+			std::thread* current_thread = new std::thread(generate_random_prime_single_thread, &min, &max, &found_prime, result, &result_was_set);
 			parallel_threads.push_back(current_thread);
 		}
 		while (!found_prime)
