@@ -102,6 +102,7 @@ void helper()
 			const unlimited_int max(*(unlimited_int(1) << num_of_bits + (size_t)1) - unlimited_int(1));
 			const unlimited_int min(unlimited_int(1) << num_of_bits);
 			std::cout << "\nPrime number number " << i + 1 << ": " << *unlimited_int::generate_random_prime(min, max);
+			std::cout.flush();
 		}
 	}
 	catch(std::exception& e)
