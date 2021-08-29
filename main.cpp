@@ -5,11 +5,6 @@
 #include <sstream>
 #include <chrono>
 void helper();
-union un
-{
-	uint64_t a;
-	long double b;
-};
 int main(int argc, char* argv[])
 {
 	helper();
