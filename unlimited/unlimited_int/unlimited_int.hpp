@@ -46,18 +46,27 @@ namespace unlimited
 	private:
 		//Defined in unlimited/unlimited.cpp
 		//Holds the current random number in the chain of random numbers. The chain is generated using the SHA256 or SHA512 hash function (depending on whether compiler is 64bits or 32bits).
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		//thread_local insures that each thread generates its own version of current_random (otherwise corruption will occur, an std::mutex will slow down the program).
 		static thread_local unlimited_int current_random;
-#else
-		static unlimited_int current_random;
-#endif
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		static thread_local reciprocals_database Newton_Raphson_lookup;
-#else
-		static reciprocals_database Newton_Raphson_lookup;
-#endif
+	public:
+		template <typename ARR_T>
+		struct array_container
+		{
+			ARR_T* arr = nullptr;
+			size_t size = (size_t)0;
+			void reset()
+			{
+				if (this->arr != nullptr)
+				{
+					delete[] this->arr;
+					this->arr = nullptr;
+				}
+			}
+			~array_container() { this->reset(); }
+		};
 	protected:
+		static array_container<few_bits> small_prime_numbers;
 //Member Variables
 		size_t num_of_used_ints; //number of used ints int the entire list_of_int_arrays
 		//A linked list of few_bits arrays. The unlimited_int is represented as follows:
@@ -124,6 +133,8 @@ namespace unlimited
 		char compare_to(const unlimited_int& num_to_compare_to) const;
 		//returns 'L' for larger, 'S' for smaller, 'E' for equal. This function is precise, and yet tries to increase efficiency by first using estimate_compare_to. Ignores minus/plus sign of this.
 		char compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const;
+		char compare_to_ignore_sign(const few_bits other_num) const;
+		char compare_to_ignore_sign(const many_bits other_num) const;
 //Fill 0
 		//in case a number was big, and now only a tiny portion of it is used, the function flush_unused() can shrink the number to an appropriate size and put the unused "int_array"s into the piggy bank.
 		//primes a number to be ready for filling-in its few_bits. If too many ints are requested to be zeroed, it stops at the end of intarrays.
@@ -181,9 +192,17 @@ namespace unlimited
 		//Splits the numerator so that its length is roughly equal to the denominator and then uses binary_search_divide.
 		//It's the grade-school algorithm.
 		std::shared_ptr<unlimited_int> divide_by(const unlimited_int& num_to_divide_by) const;
+		//Divides two numbers, ignores sign.
+		//Fastest division method for small numbers
+		//It's the grade-school algorithm.
+		std::shared_ptr<unlimited_int> divide_by(const few_bits num_to_divide_by) const;
+		//Faster than divide_by for values up to (and including) 16 few_bits
+		std::shared_ptr<unlimited_int> divide_by_repeated_addition(const unlimited_int& num_to_divide_by) const;
+	protected:
 		//Accepts two unlimited_ints that the result of their division fits in "few_bits".
 		//It uses binary search while continuously using compare_multiplication_to_num to get the comparisons for the binary search.
 		few_bits binary_search_divide(const unlimited_int& num_to_divide_by) const;
+		few_bits unlimited_int::binary_search_divide(const few_bits num_to_divide_by) const;
 		//function used by the long division binary search. Compares the result of multiplication of the multiplicand by the multiplier to the result target.
 		//Returns 'L' if the multiplication result is greater than the result_target. Returns 'E' if it's equal or 'S' if it's smaller. Ignores sign of the parameters.
 		static char compare_multiplication_to_num(const unlimited_int& multiplicand, const few_bits multiplier, const unlimited_int& result_target);
@@ -202,10 +221,12 @@ namespace unlimited
 		static char number_to_char(const int num, const int base);
 		//get the number of consecutive bits that are zero in the most significant part of few_bits
 		static int num_of_zero_bits_preceding_number(const few_bits);
+		static int num_of_zero_bits_succeeding_number(const few_bits);
+		static int find_exact_log_2(few_bits num, bool* const is_power_2);
 		//Checks whether a number is an exact power of 2 and if it is, the result is returned.
 		//Receives bool* of is_power_2 and if the number isn't an exact power of 2, that bool is set to false.
 		//Expected efficiency: O(1) where n is the number of bits.
-		size_t find_exact_log_2(bool* is_power_2) const;
+		size_t find_exact_log_2(bool *const is_power_2) const;
 //Random
 		//generates random number from the time in milliseconds and from the speed of the machine (the measured using time in milliseconds)
 		//Cryptographically secure, needs improvement for speed, and for getting more truely random data at runtime.
@@ -296,9 +317,12 @@ namespace unlimited
 		//I need to integrate a basecase power2 algorithm for even more efficiency.
 		std::shared_ptr<unlimited_int> power2_destroy_this();
 //Long Division
-		//Interface through which to use "unlimited_int* divide_by(const unlimited_int& num_to_divide_by) const" (which is quite inefficient, uses binary search). Also this function deals with the sign of the numbers.
+		//Interface through which to use "unlimited_int* divide_by(const unlimited_int& num_to_divide_by) const" when the number is big, and
+		//"unlimited_int* divide_by(const unlimited_int& num_to_divide_by) const"
 		std::shared_ptr<unlimited_int> operator/(const unlimited_int& denominator) const;
+		std::shared_ptr<unlimited_int> operator/(const few_bits divisor) const;
 		void operator/=(const unlimited_int& denominator) { (*this) = (*this) / denominator; }
+		void operator/=(const few_bits divisor) { (*this) = (*this) / divisor; }
 //Newton Raphson
 		//Newton-Raphson method (kind of like binary search but faster) to find the reciprocal of an integer.
 		//Received an integer telling it how precise the reciprocal needs to be calculated.
@@ -317,8 +341,10 @@ namespace unlimited
 //Remainder Of Division
 		//Remainder (of division) operator. Not modulo. The sign of the result will always be the same as the left side of the operator.
 		std::shared_ptr<unlimited_int> operator%(const unlimited_int& ui) const;
+		std::shared_ptr<unlimited_int> operator%(const few_bits divisor) const;
 		//Remainder functions- remainder of division. NOT MUDULO (difference in treatment of negative values). Sign this won't change.
 		void operator%=(const unlimited_int& ui);
+		void operator%=(const few_bits divisor);
 		//Use this only when doing repeated division. Equivalend to operator%
 		static std::shared_ptr<unlimited_int> remainder_recurring_divison(const unlimited_int& dividend, const unlimited_int& divisor);
 //Arithmetic (addition and subtraction)
@@ -389,13 +415,9 @@ namespace unlimited
 		std::string to_string(const unsigned int base = 10) const;
 //Power (^)
 		//efficient method for power (math function) with remainder as well. Receives boolean pointer used for early termination of calculation.
-		static std::shared_ptr<unlimited_int> pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
-								, volatile bool *const terminator = nullptr
-#endif
-								);
+		static std::shared_ptr<unlimited_int> pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod, volatile bool *const terminator = nullptr);
 		//efficient method for power (math function)
-		static std::shared_ptr<unlimited_int> pow(const unlimited_int& base, const unlimited_int& power);
+		static std::shared_ptr<unlimited_int> pow(const unlimited_int& base, const unlimited_int& power, volatile bool *const terminator = nullptr);
 //Random
 		//Uses generate_random_that_is_at_least and then the modulo operator to generate a random number with perfectly random distribution in the given range.
 		//Cryptographically secure.
@@ -425,19 +447,14 @@ namespace unlimited
 		//Miller-Rabin primality test: 1/(0.75^num_of_iterations) chance of mistake, exposes Carmichael numbers like 561 that satisfy the Fermat test.
 		//Ignores that sign of a number: -2 is prime. Optional argument: num_of_iterations. 20 iterations will give you a 1 in a trillion chance of mistake.
 		//Receives a pointer to a boolean that tells it to stop early and return false (in case of multithreading).
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		bool is_prime(const int num_of_iterations = 64, volatile bool *const terminator = nullptr) const;
-#else
-		bool is_prime(const int num_of_iterations = 64) const;
-#endif
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		//Receives optional argument: bool* terminator that when true, the function will terminate itself a.s.a.p and return unlimited_int that's equal to 0
 		//Receives optional argument: int num_threads that specified how many threads are to be run concurrently to try to find the prime number.
 		//If int num_threads is not specified then the number of threads used will be equal to the number of cores (logical processors) on the system.
-		static std::shared_ptr<unlimited_int> generate_random_prime(const unlimited_int& min, const unlimited_int& max, bool* terminator = nullptr, int num_threads = -1);
-#else
-		static std::shared_ptr<unlimited_int> generate_random_prime(const unlimited_int& min, const unlimited_int& max);
+		static std::shared_ptr<unlimited_int> generate_random_prime_multithreaded(const unlimited_int& min, const unlimited_int& max, volatile bool *const terminator = nullptr, int num_threads = -1);
 #endif
+		static std::shared_ptr<unlimited_int> generate_random_prime(const unlimited_int& min, const unlimited_int& max, volatile bool *const terminator = nullptr);
 //Abstract Math
 		//greatest common divisor- treats negative numbers as positive
 		static std::shared_ptr<unlimited_int> gcd(const unlimited_int& a, const unlimited_int& b);
@@ -464,6 +481,15 @@ namespace unlimited
 		//No need to call this function, because the destructor of the static variable will do its job automatically
 		static void flush_current_random();
 		static void clear_Newton_Raphson_lookup() { unlimited_int::Newton_Raphson_lookup.clear(); }
+		//In MSVC++ there's a bug/feature that when using std::async, the thread_local variables aren't destroyed. That's why this function offers to manually destroy them.
+		static void delete_all_thread_local_memory()
+		{
+			unlimited_int::flush_current_random();
+			unlimited_int::clear_Newton_Raphson_lookup();
+			list_of_int_arrays::destroy_piggy_bank();
+		}
+		//Don't erase small_prime_numbers array while it's being used. In a multithreaded environment it might be used by another thread, so be careful.
+		static void erase_small_prime_numbers_array() { unlimited_int::small_prime_numbers.reset(); }
 //Automatic Destructor
 		//respects this->auto_destroy tag.
 		~unlimited_int()

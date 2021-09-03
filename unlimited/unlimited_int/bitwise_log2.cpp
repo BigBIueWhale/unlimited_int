@@ -4,7 +4,7 @@ using namespace unlimited;
 #include <iostream>
 #endif
 //finds the log2 only if the result is a whole number. That's why it's technically a bitwise operation (sort of)
-size_t unlimited_int::find_exact_log_2(bool* is_power_2) const
+size_t unlimited_int::find_exact_log_2(bool *const is_power_2) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"size_t unlimited_int::find_exact_log_2(bool* is_power_2) const\"";

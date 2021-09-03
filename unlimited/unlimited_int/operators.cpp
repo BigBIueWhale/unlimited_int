@@ -3,15 +3,30 @@ using namespace unlimited;
 #if DEBUG_MODE == 2
 #include <iostream>
 #endif
+#define MAXIMUM_NUMERATOR_SIZE_FOR_WHICH_TO_USE_REPEATED_ADDITION 16
 std::shared_ptr<unlimited_int> unlimited_int::operator/(const unlimited_int& denominator) const
 {
 	if (denominator.num_of_used_ints == (size_t)0)
 		throw std::invalid_argument("\nError in function: \"unlimited_int* unlimited_int::operator/(const unlimited_int& denominator) const\" Can't divide by zero");
-	std::shared_ptr<unlimited_int> answer = this->divide_by(denominator);
+	std::shared_ptr<unlimited_int> answer;
+	if (this->num_of_used_ints <= (size_t)MAXIMUM_NUMERATOR_SIZE_FOR_WHICH_TO_USE_REPEATED_ADDITION)
+		answer = this->divide_by_repeated_addition(denominator);
+	else
+		answer = this->divide_by(denominator);
 	if (answer->num_of_used_ints == (size_t)0)
 		answer->is_negative = false;
 	else if (this->is_negative != denominator.is_negative)
 		answer->is_negative = true;
+	return answer;
+}
+std::shared_ptr<unlimited_int> unlimited_int::operator/(const few_bits divisor) const
+{
+	if (divisor == (few_bits)0)
+		throw std::invalid_argument("\nError in function: \"unlimited_int* unlimited_int::operator/(const few_bits denominator) const\" Can't divide by zero");
+	std::shared_ptr<unlimited_int> answer = this->divide_by(divisor);
+	answer->is_negative = this->is_negative;
+	if (answer->is_zero())
+		answer->is_negative = false;
 	return answer;
 }
 std::shared_ptr<unlimited_int> unlimited_int::operator*(const few_bits num) const
@@ -91,6 +106,16 @@ std::shared_ptr<unlimited_int> unlimited_int::operator%(const unlimited_int& ui)
 	answer_multiply.reset();
 	return std::shared_ptr<unlimited_int>(answer);
 }
+std::shared_ptr<unlimited_int> unlimited_int::operator%(const few_bits divisor) const
+{
+	std::shared_ptr<unlimited_int> answer_divide = this->divide_by(divisor);
+	std::shared_ptr<unlimited_int> answer_multiply = *answer_divide * divisor;
+	answer_divide.reset();
+	unlimited_int* answer = new unlimited_int;
+	this->subtract(answer_multiply.get(), answer);
+	answer_multiply.reset();
+	return std::shared_ptr<unlimited_int>(answer);
+}
 void unlimited_int::operator%=(const unlimited_int& ui)
 {
 	std::shared_ptr<unlimited_int> answer_divide = this->divide_by(ui);
@@ -98,10 +123,17 @@ void unlimited_int::operator%=(const unlimited_int& ui)
 	answer_divide.reset();
 	this->subtract(answer_multiply.get(), this);
 }
+void unlimited_int::operator%=(const few_bits divisor)
+{
+	std::shared_ptr<unlimited_int> answer_divide = this->divide_by(divisor);
+	std::shared_ptr<unlimited_int> answer_multiply = *answer_divide * divisor;
+	answer_divide.reset();
+	this->subtract(answer_multiply.get(), this);
+}
 std::ostream& unlimited::operator<<(std::ostream& os, const unlimited_int& ui)
 {
 	const char* str_of_this;
-	auto current_flags = os.flags();
+	const auto current_flags = os.flags();
 	if (current_flags & std::ios::hex)
 		str_of_this = ui.to_c_string(16);
 	else if (current_flags & std::ios::dec)

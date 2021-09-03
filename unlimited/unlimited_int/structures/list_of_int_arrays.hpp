@@ -7,11 +7,7 @@ namespace unlimited
 	class list_of_int_arrays : public int_array_list
 	{
 	private:
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		static thread_local int_array_piggy_bank bank_storage; //definition is in unlimited/unlimited.cpp
-#else
-		static int_array_piggy_bank bank_storage; //definition is in unlimited/unlimited.cpp
-#endif
 	public:
 		list_of_int_arrays() {}
 		void fill_0_until_num_of_ints_and_set_variables_for_used_accordingly(size_t fill_0_until);
@@ -45,7 +41,7 @@ namespace unlimited
 		void increase_by_one_array();
 		void increase_by_one_array_to_insignificant();
 		void increase_until_num_of_ints(const size_t num_of_ints_to_increase_until);
-		static void flush_piggy_bank()
+		static void destroy_piggy_bank()
 		{
 			list_of_int_arrays::bank_storage.clear();
 		}

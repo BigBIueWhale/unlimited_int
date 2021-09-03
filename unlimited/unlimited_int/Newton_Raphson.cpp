@@ -1,6 +1,9 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#define AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL 0
+//Settings AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL to at least 1 is necessary to generate the correct result in calculate_reciprocal_floor when dealing with small numbers.
+//The Newton Raphson iterations require that the initial conditions are precise enough, otherwise it will produce the wrong result (and in my implementation, throw an exception).
+//That's why in the case of small numbers, we need AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL to be at least 1, to get that initial precision needed for the Newton Raphson iterations.
+#define AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL 1
 //Like binary search but faster. Also the reciprocal can be saved for later to greatly improve the speed of recurrent division.
 //tau[i + 1] = tau[i] * (2 - N * tau[i])
 reciprocal_information unlimited_int::calculate_reciprocal_floor(size_t length_dividend_to_support) const
@@ -176,7 +179,7 @@ std::shared_ptr<unlimited_int> unlimited_int::recurring_division(const unlimited
 			unlimited_int::Newton_Raphson_lookup.most_recent.push_back(new size_t(fingerprint_divisor));
 			item_in_list = unlimited_int::Newton_Raphson_lookup.most_recent.end()->previous;
 		}
-		unlimited_int::Newton_Raphson_lookup.reciprocals_map.emplace(fingerprint_divisor, reciprocal_information_for_database(divisor.calculate_reciprocal_floor((dividend.num_of_used_ints * (size_t)2) + (size_t)4), divisor.calculate_efficient_cryptographic_hash(), item_in_list));
+		unlimited_int::Newton_Raphson_lookup.reciprocals_map.emplace(fingerprint_divisor, reciprocal_information_for_database(divisor.calculate_reciprocal_floor(dividend.num_of_used_ints + (size_t)2), divisor.calculate_efficient_cryptographic_hash(), item_in_list));
 		reciprocal_iterator_in_map = unlimited_int::Newton_Raphson_lookup.reciprocals_map.find(fingerprint_divisor);
 	}
 	return unlimited_int::divide_using_reciprocal(dividend, (reciprocal_information)reciprocal_iterator_in_map->second, divisor, remainder);

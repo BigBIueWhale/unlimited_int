@@ -8,5 +8,6 @@ namespace unlimited
 	//This function prepares the program to shut down, allows for the debugging process to figure out whether there was a memory leak in the program.
 	//Everything will continue working after calling this function. It will however restart the random number generator (if it's called again) by recreating a seed.
 	void delete_all_static_memory();
+	void delete_all_thread_local_memory();
 }
 #endif

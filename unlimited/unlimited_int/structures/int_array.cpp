@@ -8,10 +8,8 @@ using namespace unlimited;
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
 uint64_t int_array::num_of_ints_created = (size_t)0;
 uint64_t int_array::num_of_ints_destroyed = (size_t)0;
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 std::mutex int_array::num_of_ints_created_guard;
 std::mutex int_array::num_of_ints_destroyed_guard;
-#endif
 #endif
 void int_array::assign(const few_bits num_to_assign)
 {
@@ -156,13 +154,9 @@ void int_array::resize_and_fillzero(size_t size_to_make)
 		this->intarr_len = size_to_make;
 		this->intarr = new few_bits[size_to_make];
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		int_array::num_of_ints_created_guard.lock();
-#endif
 		int_array::num_of_ints_created += (uint64_t)size_to_make;
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		int_array::num_of_ints_created_guard.unlock();
-#endif
 #endif
 		this->fillzero();
 	}
@@ -176,26 +170,18 @@ void int_array::resize(size_t size_to_make)
 		this->intarr_len = size_to_make;
 		this->intarr = new few_bits[size_to_make];
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		int_array::num_of_ints_created_guard.lock();
-#endif
 		int_array::num_of_ints_created += (uint64_t)size_to_make;
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		int_array::num_of_ints_created_guard.unlock();
-#endif
 #endif
 	}
 }
 void int_array::destroy()
 {
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 	int_array::num_of_ints_destroyed_guard.lock();
-#endif
 	int_array::num_of_ints_destroyed += (uint64_t)this->intarr_len;
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 	int_array::num_of_ints_destroyed_guard.unlock();
-#endif
 #endif
 	delete[] intarr;
 	intarr = nullptr;

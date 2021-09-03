@@ -18,6 +18,30 @@ int unlimited_int::num_of_zero_bits_preceding_number(const few_bits original_num
 	}
 	return (amount_to_shift - 1);
 }
+int unlimited_int::num_of_zero_bits_succeeding_number(const few_bits original_num)
+{
+	if (original_num == (few_bits)0U)
+		return NUM_OF_BITS_few_bits;
+	few_bits original_num_cpy = original_num;
+	int amount_to_shift;
+	for (amount_to_shift = 1; amount_to_shift < NUM_OF_BITS_few_bits; ++amount_to_shift)
+	{
+		original_num_cpy >>= amount_to_shift;
+		original_num_cpy <<= amount_to_shift;
+		if (original_num_cpy != original_num)
+			break;
+	}
+	return (amount_to_shift - 1);
+}
+int unlimited_int::find_exact_log_2(const few_bits num, bool* const is_power_2)
+{
+	const int preceding = unlimited_int::num_of_zero_bits_preceding_number(num);
+	const int succeeding = unlimited_int::num_of_zero_bits_succeeding_number(num);
+	*is_power_2 = preceding + succeeding + 1 == NUM_OF_BITS_few_bits;
+	if (*is_power_2)
+		return succeeding;
+	return 0;
+}
 size_t unlimited_int::get_length_in_bits() const
 {
 #if DEBUG_MODE == 2

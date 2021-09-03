@@ -7,12 +7,7 @@ int_array_list::list_location unlimited_int::find_num_used_int_from_significant(
 {
 	int_array_list::list_location ll;
 	if (num_int_to_find > this->num_of_used_ints)
-	{
-		ll.index = (size_t)0;
-		ll.num_array = (size_t)0;
-		ll.node = nullptr;
-		return ll;
-	}
+		throw std::logic_error("Error in function find_num_used_int_from_significant: the number int in the argument is passed the end of the number.");
 	custom_linked_list_node<int_array>* it = this->get_most_significant_used_int_array();
 	size_t sum_used = (size_t)0;
 	size_t num_array = this->num_of_intarrays_used + (size_t)1;

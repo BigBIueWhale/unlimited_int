@@ -1,7 +1,7 @@
 #ifndef UNLIMITED_INT_ARRAY_H
 #define UNLIMITED_INT_ARRAY_H true
 #include "settings.h" //int_array.hpp is the basic structure of the entire unlimited library. Therefore, settings.h must be included here, and doesn't need to be included anywhere else.
-#if ((DEBUG_MODE > 0) || (DEBUG_MODE == -2)) && UNLIMITED_INT_SUPPORT_MULTITHREADING //The mutex is only needed for num_of_ints_created and num_of_ints_destroyed which are debugging variables.
+#if (DEBUG_MODE > 0) || (DEBUG_MODE == -2) //The mutex is only needed for num_of_ints_created and num_of_ints_destroyed which are debugging variables.
 #include <mutex>
 #endif
 namespace unlimited
@@ -11,11 +11,9 @@ namespace unlimited
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
 		static uint64_t num_of_ints_created;
 		static uint64_t num_of_ints_destroyed;
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		//since num_of_ints_created and num_of_ints_destroyed are static variables, they both need an std::mutex to make them thread-safe.
 		static std::mutex num_of_ints_created_guard;
 		static std::mutex num_of_ints_destroyed_guard;
-#endif
 #endif
 		few_bits* intarr;
 		size_t intarr_len;

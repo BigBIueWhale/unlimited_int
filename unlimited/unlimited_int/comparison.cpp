@@ -248,3 +248,58 @@ char unlimited_int::compare_to_ignore_sign(const unlimited_int& num_to_compare_t
 //Compare using the normal compare_to function (that does care about sign)
 	return this_cpy.compare_to(num_to_compare_to_cpy);
 }
+char unlimited_int::compare_to_ignore_sign(const few_bits other_num) const
+{
+	if (this->num_of_used_ints > (size_t)1)
+		return 'L';
+	const few_bits this_only_num = this->get_least_significant();
+	if (this_only_num < other_num)
+		return 'S';
+	else if (this_only_num > other_num)
+		return 'L';
+	return 'E';
+}
+char unlimited_int::compare_to_ignore_sign(const many_bits other_num) const
+{
+	const few_bits low_part = (few_bits)other_num;
+	const few_bits high_part = (few_bits)(other_num >> NUM_OF_BITS_few_bits);
+	size_t num_of_few_bits = (high_part == 0) ? (size_t)0 : (size_t)2;
+	if (num_of_few_bits == (size_t)0 && low_part != (few_bits)0)
+		num_of_few_bits = (size_t)1;
+	if (this->num_of_used_ints > num_of_few_bits)
+		return 'L';
+	if (this->num_of_used_ints < num_of_few_bits)
+		return 'S';
+	if (num_of_few_bits == (size_t)0)
+		return 'E';
+	const few_bits this_least_significant_num = this->get_least_significant();
+	if (num_of_few_bits == (size_t)1)
+	{
+		if (this_least_significant_num < other_num)
+			return 'S';
+		else if (this_least_significant_num > other_num)
+			return 'L';
+	}
+	else //num_of_few_bits == 2
+	{
+		const custom_linked_list_node<int_array>* it = this->intarrays->first();
+		const int_array first_int_array = *it->value;
+		few_bits second_least_significant_num;
+		if (first_int_array.num_of_used_ints > (size_t)1)
+			second_least_significant_num = first_int_array.intarr[(size_t)1];
+		else
+		{
+			it = it->next;
+			second_least_significant_num = it->value->intarr[0];
+		}
+		if (second_least_significant_num > high_part)
+			return 'L';
+		if (second_least_significant_num < high_part)
+			return 'S';
+		if (this_least_significant_num > low_part)
+			return 'L';
+		if (this_least_significant_num < low_part)
+			return 'S';
+	}
+	return 'E';
+}

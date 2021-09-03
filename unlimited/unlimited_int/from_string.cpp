@@ -21,6 +21,8 @@ int unlimited_int::char_to_number(const char ch, const int base)
 }
 std::shared_ptr<unlimited_int> unlimited_int::from_string(const char* str, const unsigned int base)
 {
+	if (*str == '\0')
+		throw std::invalid_argument("Can\'t convert empty string to unlimited_int");
 	bool set_is_negative_to_true = false;
 	if (str[0] == '-')
 	{
