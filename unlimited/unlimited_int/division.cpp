@@ -108,10 +108,7 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by_repeated_addition(const 
 	unlimited_int num_to_divide_by_cpy(num_to_divide_by, false);
 	num_to_divide_by_cpy.is_negative = false;
 	if (!(multiplication_check.compare_to_ignore_sign(*this) != 'L' && (multiplication_check + num_to_divide_by_cpy)->compare_to_ignore_sign(*this) != 'S'))
-	{
-		std::cout << "\nmultiplication_check: " << multiplication_check << "\nsum_magnitudes: " << *sum_magnitudes;
 		throw std::logic_error("\nWrong answer in function unlimited_int::divide_by_repeated_addition");
-	}
 #endif
 	return sum_magnitudes;
 }
