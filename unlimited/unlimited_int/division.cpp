@@ -3,7 +3,6 @@ using namespace unlimited;
 #if DEBUG_MODE == 2
 #include <iostream>
 #endif
-#include <iostream>
 //Division without binary search, similar approach to the pow(base, power) algorithm. Returns positive number (or zero) whether or not the answer was supposed to be negative.
 std::shared_ptr<unlimited_int> unlimited_int::divide_by_repeated_addition(const unlimited_int& num_to_divide_by) const
 {
