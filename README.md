@@ -8,6 +8,7 @@ Supports GCC's g++ (The GNU Linux compiler)\
 Supports clang++\
 Supports both 32-bit architectures and 64-bit architectures on GNU and on Windows.\
 Can be compiled to a library using the source files inside "unlimited" folder.\
+\
 Note: There exists an issue in Windows with MinGW GCC / MSYS2 with clang / MSYS2 GCC\
 The issue is that thread_local variables cause a crash when multithreading.\
 That's why if you're compiling on Windows on MSYS2 and/or on MinGW you just need to not use the function: unlimited::unlimited_int::generate_random_prime_multithreaded() \
