@@ -43,6 +43,7 @@ int main()\
   else\
     result = std::move(a);\
   std::cout << "\nThe result is: " << result;\
+  return 0;\
 }\
 The output of that program will be:\
 68787405743989542317
