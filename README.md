@@ -1,6 +1,12 @@
 # unlimited_int
 # Written by Ronen Zyroff in 2019-2021
 Arbitrary-precision arithmetic library written in pure C++ for C++. Has similar syntax to int in C++ with operator overloading.
+# Compilers
+Supports C++14, C++17, C++20\
+Supports MSVC++ (the microsoft compiler)\
+Supports GCC's g++ (The Gnu Linux compiler)\
+Supports clang++\
+Can be compiled to a library using the source files inside "unlimited" folder.
 # Basic use
 #include "unlimited.hpp"\
 using namespace unlimited;\
