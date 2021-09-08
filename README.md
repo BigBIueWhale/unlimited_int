@@ -4,9 +4,11 @@ Arbitrary-precision arithmetic library written in pure C++ for C++. Has similar 
 # Compilers
 Supports C++14, C++17, C++20\
 Supports MSVC++ (the microsoft compiler)\
-Supports GCC's g++ (The Gnu Linux compiler)\
+Supports GCC's g++ (The GNU Linux compiler)\
 Supports clang++\
 Can be compiled to a library using the source files inside "unlimited" folder.
+# Reliability
+Untested, in prototype stage.
 # Basic use
 #include "unlimited.hpp"\
 using namespace unlimited;\
