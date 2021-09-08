@@ -1,4 +1,5 @@
 #include "unlimited_int.hpp"
+#include <algorithm>
 using namespace unlimited;
 #if DEBUG_MODE == 2
 #include <iostream>
@@ -185,25 +186,6 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, c
 		throw std::logic_error("Inconsistency was found in the end of function \"void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const size_t num_of_ints_to_copy) const\"");
 #endif
 }
-unlimited_int* unlimited_int::to_dynamic()
-{
-	unlimited_int* cpy = new unlimited_int;
-	cpy->absorb(*this);
-	return cpy;
-}
-void unlimited_int::absorb(unlimited_int& other)
-{
-	if (this->auto_destroy)
-		this->flush();
-	else
-		this->forget_memory();
-	this->num_of_used_ints = other.num_of_used_ints;
-	this->num_of_intarrays_used = other.num_of_intarrays_used;
-	this->is_negative = other.is_negative;
-	this->intarrays = other.intarrays;
-	other.forget_memory();
-	other.auto_destroy = true;
-}
 void unlimited_int::swap(unlimited_int& num_to_swap_with)
 {
 #if DEBUG_MODE == 2
@@ -213,27 +195,11 @@ void unlimited_int::swap(unlimited_int& num_to_swap_with)
 	if (this->find_inconsistencies() || num_to_swap_with.find_inconsistencies())
 		throw std::logic_error("Inconsistency was found in start of function \"void unlimited_int::swap(unlimited_int& num_to_swap_with)\"");
 #endif
-
-	const bool temp_is_negative = this->is_negative;
-	this->is_negative = num_to_swap_with.is_negative;
-	num_to_swap_with.is_negative = temp_is_negative;
-
-	const bool temp_auto_destroy = this->auto_destroy;
-	this->auto_destroy = num_to_swap_with.auto_destroy;
-	num_to_swap_with.auto_destroy = temp_auto_destroy;
-
-	const size_t temp_num_of_intarrays_used = num_to_swap_with.num_of_intarrays_used;
-	num_to_swap_with.num_of_intarrays_used = this->num_of_intarrays_used;
-	this->num_of_intarrays_used = temp_num_of_intarrays_used;
-
-	const size_t temp_num_to_swap_with = num_to_swap_with.num_of_used_ints;
-	num_to_swap_with.num_of_used_ints = this->num_of_used_ints;
-	this->num_of_used_ints = temp_num_to_swap_with;
-
-	list_of_int_arrays *const temp_intarrays = num_to_swap_with.intarrays;
-	num_to_swap_with.intarrays = this->intarrays;
-	this->intarrays = temp_intarrays;
-
+	std::swap(this->is_negative, num_to_swap_with.is_negative);
+	std::swap(this->auto_destroy, num_to_swap_with.auto_destroy);
+	std::swap(this->num_of_intarrays_used, num_to_swap_with.num_of_intarrays_used);
+	std::swap(this->num_of_used_ints, num_to_swap_with.num_of_used_ints);
+	std::swap(this->intarrays, num_to_swap_with.intarrays);
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"swap\":";
 #endif

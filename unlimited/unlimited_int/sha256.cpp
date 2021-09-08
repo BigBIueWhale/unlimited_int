@@ -9,7 +9,7 @@
 void SHA256_compress_message_block(const uint32_t message_block[16], uint32_t parameter_hash_values[8]); //accepts a message block with 512 bits, meaning an array of 16 32bit integers
 using namespace unlimited;
 
-std::shared_ptr<unlimited_int> unlimited_int::calculate_sha256_hash() const
+unlimited_int unlimited_int::calculate_sha256_hash() const
 {
 	uint32_t current_hash_values[8] = {
 		0x6a09e667U, 0xbb67ae85U, 0x3c6ef372U, 0xa54ff53aU,
@@ -121,7 +121,7 @@ std::shared_ptr<unlimited_int> unlimited_int::calculate_sha256_hash() const
 		current_block[14] = (uint32_t)(length_of_preimage_in_bits >> NUM_OF_BITS_few_bits);
 		SHA256_compress_message_block(current_block, current_hash_values);
 	}
-	return std::shared_ptr<unlimited_int>(new unlimited_int(current_hash_values, (size_t)8));
+	return unlimited_int(current_hash_values, (size_t)8);
 }
 void SHA256_compress_message_block(const uint32_t message_block[16], uint32_t parameter_hash_values[8])
 {
@@ -131,7 +131,7 @@ void SHA256_compress_message_block(const uint32_t message_block[16], uint32_t pa
 	for (size_t word_index = (size_t)16; word_index < (size_t)64; ++word_index)
 		message_schedule[word_index] = LOWERCASE_SIGMA1(message_schedule[word_index - (size_t)2]) + message_schedule[word_index - (size_t)7] + LOWERCASE_SIGMA0(message_schedule[word_index - (size_t)15]) + message_schedule[word_index - (size_t)16];
 
-	const uint32_t constants[64] = {
+	constexpr uint32_t constants[64] = {
 		0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
 		0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
 		0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,

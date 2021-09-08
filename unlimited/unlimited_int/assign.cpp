@@ -219,7 +219,7 @@ void unlimited_int::assign(uint64_t* arr, size_t len)
 		{
 			++int_array_counter;
 			current_int_array_Node->value->set_num_of_used_ints_to_maximum();
-			index_in_current_int_array = 0;
+			index_in_current_int_array = (size_t)0;
 			current_int_array_Node = current_int_array_Node->next;
 			current_int_array = *current_int_array_Node->value;
 		}

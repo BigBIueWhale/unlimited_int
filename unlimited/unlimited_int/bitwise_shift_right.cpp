@@ -23,7 +23,7 @@ void unlimited_int::shift_right(const size_t shift_by)
 	size_t num_of_ints_went_through = (size_t)0, num_of_intarrays_went_through = (size_t)0;
 	while (true)
 	{
-		size_t sum = num_of_ints_went_through + it_this->value->num_of_used_ints;
+		const size_t sum = num_of_ints_went_through + it_this->value->num_of_used_ints;
 		if (sum > shift_by) break;
 		num_of_ints_went_through = sum;
 		++num_of_intarrays_went_through;
@@ -39,9 +39,7 @@ void unlimited_int::shift_right(const size_t shift_by)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-	{
 		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::shift_right(const size_t shift_by)\"");
-	}
 #endif
 }
 //first uses shift_right [by number of few_bits] and then uses "microshift" which is a shift by bits of less than NUM_OF_BITS_few_bits

@@ -6,14 +6,13 @@ using namespace unlimited;
 #include <iomanip>
 #endif
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
-uint64_t int_array::num_of_ints_created = (size_t)0;
-uint64_t int_array::num_of_ints_destroyed = (size_t)0;
-std::mutex int_array::num_of_ints_created_guard;
-std::mutex int_array::num_of_ints_destroyed_guard;
+std::atomic<uint64_t> int_array::num_of_ints_created((uint64_t)0);
+std::atomic<uint64_t> int_array::num_of_ints_destroyed((uint64_t)0);
 #endif
 void int_array::assign(const few_bits num_to_assign)
 {
-	if (num_to_assign == (size_t)0) { this->num_of_used_ints = (size_t)0; }
+	if (num_to_assign == (size_t)0)
+		this->num_of_used_ints = (size_t)0;
 	else
 	{
 		this->num_of_used_ints = (size_t)1;
@@ -72,7 +71,7 @@ bool int_array::find_inconsistencies()
 	return false;
 }
 #endif
-size_t int_array::find_first_used_not_zero(bool* found) const
+size_t int_array::find_first_used_not_zero(bool *const found) const
 {
 	if (this->num_of_used_ints == (size_t)0)
 	{
@@ -95,11 +94,13 @@ size_t int_array::find_first_used_not_zero(bool* found) const
 	*found = false;
 	return MAX_size_t_NUM;
 }
-void int_array::shift_right(size_t num_of_ints_to_shift_right_by)
+void int_array::shift_right(const size_t num_of_ints_to_shift_right_by)
 {
 	if (num_of_ints_to_shift_right_by > (size_t)0)
 	{
-		if (num_of_ints_to_shift_right_by >= this->num_of_used_ints)
+		if (num_of_ints_to_shift_right_by > this->num_of_used_ints)
+			throw std::logic_error("Error in function int_array::shift_right, can\'t shift right by more than the entire length of the array.");
+		else if (num_of_ints_to_shift_right_by == this->num_of_used_ints)
 			this->num_of_used_ints = (size_t)0;
 		else
 		{
@@ -124,7 +125,7 @@ void int_array::shift_left_by_one()
 		*this->intarr = (few_bits)0;
 		this->num_of_used_ints = (size_t)1;
 	}
-	else if (this->num_of_used_ints == 1)
+	else if (this->num_of_used_ints == (size_t)1)
 	{
 		this->intarr[1] = *this->intarr;
 		*this->intarr = (few_bits)0;
@@ -145,46 +146,38 @@ void int_array::shift_left_by_one()
 		++this->num_of_used_ints;
 	}
 }
-void int_array::resize_and_fillzero(size_t size_to_make)
+void int_array::resize_and_fillzero(const size_t size_to_make)
 {
 	if (size_to_make == (size_t)0)
 		this->num_of_used_ints = (size_t)0;
 	else
 	{
-		this->intarr_len = size_to_make;
 		this->intarr = new few_bits[size_to_make];
+		this->intarr_len = size_to_make;
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
-		int_array::num_of_ints_created_guard.lock();
 		int_array::num_of_ints_created += (uint64_t)size_to_make;
-		int_array::num_of_ints_created_guard.unlock();
 #endif
 		this->fillzero();
 	}
 }
-void int_array::resize(size_t size_to_make)
+void int_array::resize(const size_t size_to_make)
 {
 	if (size_to_make == (size_t)0)
 		this->num_of_used_ints = (size_t)0;
 	else
 	{
-		this->intarr_len = size_to_make;
 		this->intarr = new few_bits[size_to_make];
+		this->intarr_len = size_to_make;
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
-		int_array::num_of_ints_created_guard.lock();
 		int_array::num_of_ints_created += (uint64_t)size_to_make;
-		int_array::num_of_ints_created_guard.unlock();
 #endif
 	}
 }
 void int_array::destroy()
 {
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
-	int_array::num_of_ints_destroyed_guard.lock();
 	int_array::num_of_ints_destroyed += (uint64_t)this->intarr_len;
-	int_array::num_of_ints_destroyed_guard.unlock();
 #endif
 	delete[] intarr;
-	intarr = nullptr;
-	this->num_of_used_ints = (size_t)0;
-	this->intarr_len = (size_t)0;
+	this->set_null();
 }

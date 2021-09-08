@@ -57,9 +57,9 @@ void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) 
 	{
 		if (num_int >= stop_at)
 		{
-			previous_num_int = num_int - previous_num_int;
-			index_this += previous_num_int;
-			index_answer += previous_num_int;
+			const size_t difference = num_int - previous_num_int;
+			index_this += difference;
+			index_answer += difference;
 			previous_num_int = num_int;
 			if (num_int >= this_used_ints)
 				break;
@@ -159,7 +159,7 @@ void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unl
 	++this_intarr;
 	++answer_intarr;
 	size_t num_of_used_ints_answer;
-	if (carry == 0)
+	if (carry == (many_bits)0)
 		num_of_used_ints_answer = this->num_of_used_ints;
 	else
 	{
@@ -212,7 +212,7 @@ void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unl
 				break;
 			if (index_answer >= current_intarray_for_answer_intarr_len)
 			{
-				num_of_intarrays_used_for_answer++;
+				++num_of_intarrays_used_for_answer;
 				it_answer = it_answer->next;
 				current_intarray_for_answer = it_answer->value;
 				current_intarray_for_answer_intarr_len = current_intarray_for_answer->intarr_len;

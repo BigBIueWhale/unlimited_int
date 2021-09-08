@@ -3,10 +3,10 @@
 thread_local unlimited::int_array_piggy_bank unlimited::list_of_int_arrays::bank_storage;
 thread_local unlimited::unlimited_int unlimited::unlimited_int::current_random;
 thread_local unlimited::reciprocals_database unlimited::unlimited_int::Newton_Raphson_lookup;
-unlimited::unlimited_int::array_container<unlimited::few_bits> unlimited::unlimited_int::small_prime_numbers;
+std::vector<unlimited::few_bits> unlimited::unlimited_int::small_prime_numbers;
 void unlimited::delete_all_static_memory()
 {
-	unlimited::unlimited_int::erase_small_prime_numbers_array();
+	unlimited::unlimited_int::clear_small_prime_numbers_array();
 	unlimited::unlimited_int::delete_all_thread_local_memory();
 }
 void unlimited::delete_all_thread_local_memory()

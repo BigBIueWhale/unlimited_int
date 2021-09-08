@@ -8,9 +8,9 @@ void SHA512_compress_message_block(const uint64_t message_block[16], uint64_t pa
 #define UPPERCASE_SIGMA1(x) ((ROTATER(x, 14)) ^ (ROTATER(x, 18)) ^ (ROTATER(x, 41)))
 #define CHOICE(x, y, z) ((x & y) ^ ((~x) & z))
 #define MAJORITY(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
-
 using namespace unlimited;
-std::shared_ptr<unlimited_int> unlimited_int::calculate_sha512_hash() const
+
+unlimited_int unlimited_int::calculate_sha512_hash() const
 {
 	uint64_t current_hash_values[8] = {
 		0x6a09e667f3bcc908ULL, 0xbb67ae8584caa73bULL, 0x3c6ef372fe94f82bULL, 0xa54ff53a5f1d36f1ULL,
@@ -143,7 +143,7 @@ std::shared_ptr<unlimited_int> unlimited_int::calculate_sha512_hash() const
 		current_block[15] = (uint64_t)length_of_preimage_in_bits;
 		SHA512_compress_message_block(current_block, current_hash_values);
 	}
-	return std::shared_ptr<unlimited_int>(new unlimited_int(current_hash_values, (size_t)8));
+	return unlimited_int(current_hash_values, (size_t)8);
 }
 void SHA512_compress_message_block(const uint64_t message_block[16], uint64_t parameter_hash_values[8])
 {
@@ -153,7 +153,7 @@ void SHA512_compress_message_block(const uint64_t message_block[16], uint64_t pa
     for (size_t word_index = (size_t)16; word_index < (size_t)80; ++word_index)
         message_schedule[word_index] = LOWERCASE_SIGMA1(message_schedule[word_index - (size_t)2]) + message_schedule[word_index - (size_t)7] + LOWERCASE_SIGMA0(message_schedule[word_index - (size_t)15]) + message_schedule[word_index - (size_t)16];
 
-    const uint64_t constants[80] = {
+    constexpr uint64_t constants[80] = {
         0x428a2f98d728ae22ULL, 0x7137449123ef65cdULL, 0xb5c0fbcfec4d3b2fULL, 0xe9b5dba58189dbbcULL, 0x3956c25bf348b538ULL,
         0x59f111f1b605d019ULL, 0x923f82a4af194f9bULL, 0xab1c5ed5da6d8118ULL, 0xd807aa98a3030242ULL, 0x12835b0145706fbeULL,
         0x243185be4ee4b28cULL, 0x550c7dc3d5ffb4e2ULL, 0x72be5d74f27b896fULL, 0x80deb1fe3b1696b1ULL, 0x9bdc06a725c71235ULL,

@@ -17,21 +17,20 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 		answer->set_to_zero();
 		return;
 	}
+	std::unique_ptr<unlimited_int> destructor_unlimited_int;
 	const unlimited_int* this_cpy = this;
 	const unlimited_int* num_to_mult_cpy = num_to_mult;
-	bool this_is_answer = false;
-	bool num_to_mult_is_answer = false;
 	//If the pointers are equal
 	if (this == answer)
 	{
-		this_cpy = this->copy();
-		this_is_answer = true;
+		destructor_unlimited_int = std::make_unique<unlimited_int>(*this);
+		this_cpy = destructor_unlimited_int.get();
 	}
 	//If the pointers are equal
 	if (answer == num_to_mult)
 	{
-		num_to_mult_cpy = num_to_mult->copy();
-		num_to_mult_is_answer = true;
+		destructor_unlimited_int = std::make_unique<unlimited_int>(*num_to_mult);
+		num_to_mult_cpy = destructor_unlimited_int.get();
 	}
 	if (this_cpy->is_negative != num_to_mult_cpy->is_negative)
 		answer->is_negative = true;
@@ -77,8 +76,8 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 	{
 		if (num_int_outer_loop >= next_stop_outer_loop)
 		{
-			previous_num_int_outer_loop = num_int_outer_loop - previous_num_int_outer_loop;
-			index_smaller += previous_num_int_outer_loop;
+			const size_t difference = num_int_outer_loop - previous_num_int_outer_loop;
+			index_smaller += difference;
 			previous_num_int_outer_loop = num_int_outer_loop;
 			if (num_int_outer_loop >= smaller_num_of_used_ints)
 				break;
@@ -109,7 +108,7 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 				next_stop_outer_loop = smaller_num_of_used_ints;
 			continue;
 		}
-		many_bits num_to_mult_many = *current_actual_int_array_in_smaller;
+		const many_bits num_to_mult_many = *current_actual_int_array_in_smaller;
 		if (num_to_mult_many != (many_bits)0)
 		{
 			custom_linked_list_node<int_array>* it_bigger = bigger_num->intarrays->first();
@@ -210,10 +209,6 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 	else
 		answer->num_of_used_ints = num_of_ints_needed_for_answer;
 	current_intarray_for_answer->num_of_used_ints = num_of_used_ints_in_most_significant_int_array;
-	if (this_is_answer)
-		delete this_cpy;
-	if (num_to_mult_is_answer)
-		delete num_to_mult_cpy;
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"multiply_basecase(unlimited_int* num_to_mult, unlimited_int* answer)\":";
 #endif

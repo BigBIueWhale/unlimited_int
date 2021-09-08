@@ -3,7 +3,7 @@ using namespace unlimited;
 #if DEBUG_MODE == 2
 #include <iostream>
 #endif
-std::shared_ptr<unlimited_int> unlimited_int::operator|(const unlimited_int& right) const
+unlimited_int unlimited_int::operator|(const unlimited_int& right) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in beginning of function \"unlimited_int* unlimited_int::operator|(const unlimited_int& right) const\"";
@@ -14,15 +14,15 @@ std::shared_ptr<unlimited_int> unlimited_int::operator|(const unlimited_int& rig
 #endif
 	if (this->is_zero())
 	{
-		unlimited_int* right_copy = right.copy();
-		right_copy->is_negative = false;
-		return std::shared_ptr<unlimited_int>(right_copy);
+		unlimited_int right_copy = right;
+		right_copy.self_abs();
+		return right_copy;
 	}
 	if (right.is_zero())
 	{
-		unlimited_int* this_copy = this->copy();
-		this_copy->is_negative = false;
-		return std::shared_ptr<unlimited_int>(this_copy);
+		unlimited_int this_copy = *this;
+		this_copy.self_abs();
+		return this_copy;
 	}
 	const unlimited_int* shorter_num = this;
 	const unlimited_int* longer_num = &right;
@@ -32,13 +32,13 @@ std::shared_ptr<unlimited_int> unlimited_int::operator|(const unlimited_int& rig
 		shorter_num = longer_num;
 		longer_num = temp_ui_ptr;
 	}
-	unlimited_int* result = new unlimited_int;
+	unlimited_int result;
 	const size_t len_of_result = longer_num->num_of_used_ints;
-	result->increase_until_num_of_ints(len_of_result);
+	result.increase_until_num_of_ints(len_of_result);
 	const size_t len_of_shorter_num = shorter_num->num_of_used_ints;
 	custom_linked_list_node<int_array>* current_int_array_Node_shorter_num = shorter_num->intarrays->first();
 	custom_linked_list_node<int_array>* current_int_array_Node_longer_num = longer_num->intarrays->first();
-	custom_linked_list_node<int_array>* current_int_array_Node_result = result->intarrays->first();
+	custom_linked_list_node<int_array>* current_int_array_Node_result = result.intarrays->first();
 	size_t num_of_intarrays_in_result = (size_t)1;
 	int_array current_int_array_shorter_num = *current_int_array_Node_shorter_num->value;
 	int_array current_int_array_longer_num = *current_int_array_Node_longer_num->value;
@@ -138,15 +138,15 @@ std::shared_ptr<unlimited_int> unlimited_int::operator|(const unlimited_int& rig
 		++int_num_counter;
 	}
 	current_int_array_Node_result->value->num_of_used_ints = index_result;
-	result->num_of_used_ints = len_of_result;
-	result->num_of_intarrays_used = num_of_intarrays_in_result;
-	result->cutoff_leading_zeros(current_int_array_Node_result);
+	result.num_of_used_ints = len_of_result;
+	result.num_of_intarrays_used = num_of_intarrays_in_result;
+	result.cutoff_leading_zeros(current_int_array_Node_result);
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator|(const unlimited_int& right) const\"";
 #endif
 #if DEBUG_MODE > 0
-	if (result->find_inconsistencies())
+	if (result.find_inconsistencies())
 		throw std::logic_error("\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator|(const unlimited_int& right) const\"");
 #endif
-	return std::shared_ptr<unlimited_int>(result);
+	return result;
 }

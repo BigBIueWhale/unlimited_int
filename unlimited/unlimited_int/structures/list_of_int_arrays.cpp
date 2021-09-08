@@ -1,4 +1,5 @@
 #include "list_of_int_arrays.hpp"
+#include <memory>
 using namespace unlimited;
 void list_of_int_arrays::increase_by_one_array_and_zero()
 {
@@ -9,23 +10,22 @@ void list_of_int_arrays::increase_by_one_array_and_zero()
 		current_len_arr_to_add = (size_t)MIN_ALLOC;
 	if ((size_t)MAX_ALLOC < current_len_arr_to_add)
 		current_len_arr_to_add = (size_t)MAX_ALLOC;
-	int_array *const new_int_array = new int_array();
-	new_int_array->resize_and_fillzero(current_len_arr_to_add);
+	int_array* new_int_array = new int_array;
 	this->push_back(new_int_array);
+	new_int_array->resize_and_fillzero(current_len_arr_to_add);
 	this->num_of_ints += current_len_arr_to_add;
 }
 void list_of_int_arrays::increase_by_one_array()
 {
-	size_t current_len_arr_to_add;
-	if (this->num_of_ints > (size_t)MIN_ALLOC)
-		current_len_arr_to_add = this->num_of_ints;
-	else
+//Increase the number of ints by 50%, with bounds of MIN_ALLOC to MAX_ALLOC of how much to allocate.
+	size_t current_len_arr_to_add = static_cast<size_t>(static_cast<long double>(this->num_of_ints) * static_cast<long double>(0.5));
+	if (current_len_arr_to_add < (size_t)MIN_ALLOC)
 		current_len_arr_to_add = (size_t)MIN_ALLOC;
-	if ((size_t)MAX_ALLOC < current_len_arr_to_add)
+	else if ((size_t)MAX_ALLOC < current_len_arr_to_add)
 		current_len_arr_to_add = (size_t)MAX_ALLOC;
-	int_array *const new_int_array = new int_array();
-	new_int_array->resize(current_len_arr_to_add);
+	int_array* new_int_array = new int_array;
 	this->push_back(new_int_array);
+	new_int_array->resize(current_len_arr_to_add);
 	this->num_of_ints += current_len_arr_to_add;
 }
 void list_of_int_arrays::increase_until_num_of_ints(const size_t num_of_ints_to_increase_until)
@@ -75,7 +75,8 @@ void list_of_int_arrays::increase_by_one_array_to_insignificant()
 		current_len_arr_to_add = (size_t)MIN_ALLOC;
 	if ((size_t)MAX_ALLOC < current_len_arr_to_add)
 		current_len_arr_to_add = (size_t)MAX_ALLOC;
-	int_array *const new_int_array = new int_array(current_len_arr_to_add);
+	int_array* new_int_array = new int_array;
 	this->push_front(new_int_array);
+	new_int_array->resize(current_len_arr_to_add);
 	this->num_of_ints += current_len_arr_to_add;
 }

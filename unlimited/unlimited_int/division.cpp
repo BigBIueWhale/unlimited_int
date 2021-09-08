@@ -4,7 +4,7 @@ using namespace unlimited;
 #include <iostream>
 #endif
 //Division without binary search, similar approach to the pow(base, power) algorithm. Returns positive number (or zero) whether or not the answer was supposed to be negative.
-std::shared_ptr<unlimited_int> unlimited_int::divide_by_repeated_addition(const unlimited_int& num_to_divide_by) const
+unlimited_int unlimited_int::divide_by_repeated_addition(const unlimited_int& num_to_divide_by) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"divide_by_repeated_addition(unlimited_int& num_to_divide_by)\"";
@@ -17,36 +17,20 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by_repeated_addition(const 
 		throw std::invalid_argument("Error trying to divide by zero.");
 	const char dividend_comparison_to_divisor = this->compare_to_ignore_sign(num_to_divide_by);
 	if (this->is_zero() || dividend_comparison_to_divisor == 'S')
-	{
-		std::shared_ptr<unlimited_int> zero(new unlimited_int);
-		return zero;
-	}
+		return unlimited_int();
 	if (dividend_comparison_to_divisor == 'E')
-	{
-		std::shared_ptr<unlimited_int> one(new unlimited_int((few_bits)1));
-		return one;
-	}
+		return unlimited_int((few_bits)1);
 	bool was_exact_power_of_2;
 	const size_t exact_power_of_2 = num_to_divide_by.find_exact_log_2(&was_exact_power_of_2);
 	if (was_exact_power_of_2) //more efficient method of division when dividing by power of 2
-	{
-		std::shared_ptr<unlimited_int>answer((*this) >> exact_power_of_2);
-#if DEBUG_MODE == 2
-		std::cout << "\nFinding inconsistencies in end of function \"divide_by_repeated_addition(unlimited_int& num_to_divide_by)\"";
-#endif
-#if DEBUG_MODE > 0
-		if (answer->find_inconsistencies())
-			throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by_repeated_addition(unlimited_int& num_to_divide_by)\"");
-#endif
-		return answer;
-	}
+		return (*this) >> exact_power_of_2;
 	//Should eventually get close to the size of dividend
 	unlimited_int sum_amounts;
 	//The amount to add to sum_amounts every time
 	unlimited_int current_addition_amount(num_to_divide_by);
-	current_addition_amount.is_negative = false;
+	current_addition_amount.self_abs();
 	//Will eventaully contain the result
-	std::shared_ptr<unlimited_int> sum_magnitudes(new unlimited_int);
+	unlimited_int sum_magnitudes;
 	//The amount to add the sum_magnitudes every time
 	unlimited_int current_shift_magnitude((few_bits)1);
 	bool reached_exact_result_while_going_up = false;
@@ -57,21 +41,21 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by_repeated_addition(const 
 		const char sum_comparison_to_dividend = sum_amounts.compare_to_ignore_sign(*this);
 		if (sum_comparison_to_dividend == 'E')
 		{
-			*sum_magnitudes += current_shift_magnitude;
+			sum_magnitudes += current_shift_magnitude;
 			reached_exact_result_while_going_up = true;
 			break;
 		}
 		else if (sum_comparison_to_dividend == 'S')
 		{
-			current_addition_amount <<= 1;
-			*sum_magnitudes += current_shift_magnitude;
-			current_shift_magnitude <<= 1;
+			current_addition_amount <<= (size_t)1;
+			sum_magnitudes += current_shift_magnitude;
+			current_shift_magnitude <<= (size_t)1;
 		}
 		else //Reached max
 		{
 			sum_amounts -= current_addition_amount;
-			current_addition_amount <<= 1;
-			current_shift_magnitude <<= 1;
+			current_addition_amount <<= (size_t)1;
+			current_shift_magnitude <<= (size_t)1;
 			break;
 		}
 	}
@@ -84,36 +68,36 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by_repeated_addition(const 
 			const char sum_comparison_to_dividend = sum_amounts.compare_to_ignore_sign(*this);
 			if (sum_comparison_to_dividend == 'E')
 			{
-				*sum_magnitudes += current_shift_magnitude;
+				sum_magnitudes += current_shift_magnitude;
 				break;
 			}
 			else if (sum_comparison_to_dividend == 'S')
-				*sum_magnitudes += current_shift_magnitude;
+				sum_magnitudes += current_shift_magnitude;
 			else
 				sum_amounts -= current_addition_amount;
-			current_shift_magnitude >>= 1;
+			current_shift_magnitude >>= (size_t)1;
 			if (current_shift_magnitude.is_zero())
 				break;
-			current_addition_amount >>= 1;
+			current_addition_amount >>= (size_t)1;
 		}
 	}
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"divide_by_repeated_addition(unlimited_int& num_to_divide_by)\"";
 #endif
 #if DEBUG_MODE > 0
-	if (sum_magnitudes->find_inconsistencies())
+	if (sum_magnitudes.find_inconsistencies())
 		throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by_repeated_addition(unlimited_int& num_to_divide_by)\"");
-	unlimited_int multiplication_check(*sum_magnitudes * num_to_divide_by);
-	multiplication_check.is_negative = false;
+	unlimited_int multiplication_check(sum_magnitudes * num_to_divide_by);
+	multiplication_check.self_abs();
 	unlimited_int num_to_divide_by_cpy(num_to_divide_by, false);
-	num_to_divide_by_cpy.is_negative = false;
-	if (!(multiplication_check.compare_to_ignore_sign(*this) != 'L' && (multiplication_check + num_to_divide_by_cpy)->compare_to_ignore_sign(*this) != 'S'))
+	num_to_divide_by_cpy.self_abs();
+	if (!(multiplication_check.compare_to_ignore_sign(*this) != 'L' && (multiplication_check + num_to_divide_by_cpy).compare_to_ignore_sign(*this) != 'S'))
 		throw std::logic_error("\nWrong answer in function unlimited_int::divide_by_repeated_addition");
 #endif
 	return sum_magnitudes;
 }
 //Long division, some binary search. Returns positive number (or zero) whether or not the answer was supposed to be negative.
-std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num_to_divide_by) const
+unlimited_int unlimited_int::divide_by(const unlimited_int& num_to_divide_by) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"divide_by(unlimited_int& num_to_divide_by)\"";
@@ -123,44 +107,24 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num
 		throw std::logic_error("\nThe inconsistency was found in start of function \"divide_by(unlimited_int& num_to_divide_by)\"");
 #endif
 	if (num_to_divide_by.num_of_used_ints == (size_t)0)
-		throw std::invalid_argument("\nError trying to divide by zero.");
+		throw std::invalid_argument("\nError trying to divide by zero in function \"unlimited_int::divide_by(const unlimited_int&)\"");
 	const size_t num_of_used_ints_divide = num_to_divide_by.num_of_used_ints;
 	const size_t num_of_used_ints_this = this->num_of_used_ints;
 	const char result_compare = this->compare_to_ignore_sign(num_to_divide_by);
 	if (result_compare == 'E')
-		return std::shared_ptr<unlimited_int>(new unlimited_int(1));
+		return unlimited_int((few_bits)1);
 	if (result_compare == 'S')
-		return std::shared_ptr<unlimited_int>(new unlimited_int);
-	if (num_of_used_ints_this == (size_t)0 || num_of_used_ints_divide == (size_t)0)
-		return std::shared_ptr<unlimited_int>(new unlimited_int);
+		return unlimited_int();
+	if (num_of_used_ints_this == (size_t)0)
+		return unlimited_int();
 	bool was_exact_power_of_2;
 	const size_t exact_power_of_2 = num_to_divide_by.find_exact_log_2(&was_exact_power_of_2);
 	if (was_exact_power_of_2) //more efficient method of division when dividing by power of 2
-	{
-		std::shared_ptr<unlimited_int> answer = (*this) >> exact_power_of_2;
-#if DEBUG_MODE == 2
-		std::cout << "\nFinding inconsistencies in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
-#endif
-#if DEBUG_MODE > 0
-		if (answer->find_inconsistencies())
-			throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"");
-#endif
-		return answer;
-	}
+		return (*this) >> exact_power_of_2;
 	//If the lengths are the same, the result is guaranteed to fit into a few_bits
 	if (num_of_used_ints_this == num_of_used_ints_divide)
-	{
-		std::shared_ptr<unlimited_int> answer(new unlimited_int(this->binary_search_divide(num_to_divide_by)));
-#if DEBUG_MODE == 2
-		std::cout << "\nFinding inconsistencies in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
-#endif
-#if DEBUG_MODE > 0
-		if (answer->find_inconsistencies())
-			throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"");
-#endif
-		return answer;
-	}
-	unlimited_int* answer = new unlimited_int;
+		return unlimited_int(this->binary_search_divide(num_to_divide_by));
+	unlimited_int answer;
 	unlimited_int partial_this;
 	size_t num_of_ints_currently_using_from_this = num_of_used_ints_divide;
 	this->copy_most_significant_to(partial_this, num_of_ints_currently_using_from_this);
@@ -174,7 +138,7 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num
 	{
 		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
 		++num_of_ints_currently_using_from_this;
-		if (index_this-- == 0)
+		if (index_this-- == (size_t)0)
 		{
 			it_this = it_this->previous;
 			if (it_this != this_intarrays_begin)
@@ -205,7 +169,7 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num
 			}
 		}
 		const few_bits binary_search_division_result = partial_this.binary_search_divide(num_to_divide_by);
-		answer->push_to_insignificant(binary_search_division_result);
+		answer.push_to_insignificant(binary_search_division_result);
 		num_to_divide_by.multiply(binary_search_division_result, &result_of_multiplication);
 		result_of_multiplication.is_negative = false;
 		partial_this.subtract(&result_of_multiplication, &partial_this);
@@ -221,19 +185,19 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const unlimited_int& num
 	std::cout << "\nFinding inconsistencies in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
 #endif
 #if DEBUG_MODE > 0
-	if (answer->find_inconsistencies())
+	if (answer.find_inconsistencies())
 		throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"");
-	unlimited_int multiplication_check(*answer * num_to_divide_by);
+	unlimited_int multiplication_check(answer * num_to_divide_by);
 	multiplication_check.is_negative = false;
 	unlimited_int num_to_divide_by_cpy(num_to_divide_by, false);
 	num_to_divide_by_cpy.is_negative = false;
-	if (!(multiplication_check.compare_to_ignore_sign(*this) != 'L' && (multiplication_check + num_to_divide_by_cpy)->compare_to_ignore_sign(*this) != 'S'))
+	if (!(multiplication_check.compare_to_ignore_sign(*this) != 'L' && (multiplication_check + num_to_divide_by_cpy).compare_to_ignore_sign(*this) != 'S'))
 		throw std::logic_error("\nWrong answer in function unlimited_int::divide_by");
 #endif
-	return std::shared_ptr<unlimited_int>(answer);
+	return answer;
 }
 //Long division, some binary search. Returns positive number (or zero) whether or not the answer was supposed to be negative.
-std::shared_ptr<unlimited_int> unlimited_int::divide_by(const few_bits num_to_divide_by) const
+unlimited_int unlimited_int::divide_by(const few_bits num_to_divide_by) const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"divide_by(const few_bits num_to_divide_by)\"";
@@ -247,32 +211,22 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const few_bits num_to_di
 	const size_t num_of_used_ints_this = this->num_of_used_ints;
 	const char result_compare = this->compare_to_ignore_sign(num_to_divide_by);
 	if (result_compare == 'E')
-		return std::shared_ptr<unlimited_int>(new unlimited_int(1));
+		return unlimited_int((few_bits)1);
 	if (result_compare == 'S')
-		return std::shared_ptr<unlimited_int>(new unlimited_int);
+		return unlimited_int();
 	if (num_of_used_ints_this == (size_t)0 || num_to_divide_by == (few_bits)0)
-		return std::shared_ptr<unlimited_int>(new unlimited_int);
+		return unlimited_int();
 	bool was_exact_power_of_2;
 	const size_t exact_power_of_2 = (size_t)unlimited_int::find_exact_log_2(num_to_divide_by, &was_exact_power_of_2);
 	if (was_exact_power_of_2) //more efficient method of division when dividing by power of 2
-	{
-		std::shared_ptr<unlimited_int> answer = (*this) >> exact_power_of_2;
-#if DEBUG_MODE == 2
-		std::cout << "\nFinding inconsistencies in end of function \"divide_by(const few_bits num_to_divide_by)\"";
-#endif
-#if DEBUG_MODE > 0
-		if (answer->find_inconsistencies())
-			throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by(const few_bits num_to_divide_by)\"");
-#endif
-		return answer;
-	}
-	unlimited_int* answer = new unlimited_int;
+		return (*this) >> exact_power_of_2;
+	unlimited_int answer;
 	unlimited_int partial_this;
 	size_t num_of_ints_currently_using_from_this = (size_t)1;
 	this->copy_most_significant_to(partial_this, num_of_ints_currently_using_from_this);
 	custom_linked_list_node<int_array>* it_this = nullptr;
-	int_array* current_int_array_this = nullptr;
-	size_t index_this = MAX_size_t_NUM;
+	int_array* current_int_array_this = nullptr; //Initializing to rediculous values
+	size_t index_this = MAX_size_t_NUM;          //just to make sure that there's an error if the variables don't end up getting a valid value.
 	if (num_of_ints_currently_using_from_this < this->num_of_used_ints)
 	{
 		int_array_list::list_location ll_start = this->find_num_used_int_from_significant(num_of_ints_currently_using_from_this + (size_t)1);
@@ -317,9 +271,10 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const few_bits num_to_di
 			}
 		}
 		const few_bits mini_division_result = partial_this.binary_search_divide(num_to_divide_by);
-		answer->push_to_insignificant(mini_division_result);
+		answer.push_to_insignificant(mini_division_result);
 		const many_bits result_of_multiplication = (many_bits)mini_division_result * divisor;
-		partial_this.subtract(&unlimited_int(result_of_multiplication), &partial_this);
+		const unlimited_int result_of_multiplication_ui(result_of_multiplication);
+		partial_this.subtract(&result_of_multiplication_ui, &partial_this);
 		if (num_of_ints_currently_using_from_this >= num_of_used_ints_this)
 			break;
 		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
@@ -331,14 +286,14 @@ std::shared_ptr<unlimited_int> unlimited_int::divide_by(const few_bits num_to_di
 	std::cout << "\nFinding inconsistencies in end of function \"divide_by(const few_bits num_to_divide_by)\"";
 #endif
 #if DEBUG_MODE > 0
-	if (answer->find_inconsistencies())
+	if (answer.find_inconsistencies())
 		throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by(const few_bits num_to_divide_by)\"");
-	unlimited_int multiplication_check(*answer * num_to_divide_by);
+	unlimited_int multiplication_check(answer * num_to_divide_by);
 	multiplication_check.is_negative = false;
-	if (!(multiplication_check.compare_to_ignore_sign(*this) != 'L' && (multiplication_check + unlimited_int(num_to_divide_by))->compare_to_ignore_sign(*this) != 'S'))
+	if (!(multiplication_check.compare_to_ignore_sign(*this) != 'L' && (multiplication_check + unlimited_int(num_to_divide_by)).compare_to_ignore_sign(*this) != 'S'))
 		throw std::logic_error("\nWrong answer in function unlimited_int::divide_by");
 #endif
-	return std::shared_ptr<unlimited_int>(answer);
+	return answer;
 }
 void unlimited_int::push_to_insignificant(const few_bits num_to_push)
 {
@@ -446,7 +401,7 @@ few_bits unlimited_int::binary_search_divide(const few_bits num_to_divide_by) co
 char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplicand, const few_bits multiplier, const unlimited_int& result_target)
 {
 	if (multiplicand.is_zero() || (multiplier == (few_bits)0))
-		return (unlimited_int(0).compare_to_ignore_sign(result_target));
+		return (unlimited_int().compare_to_ignore_sign(result_target));
 	else if (result_target.num_of_used_ints < multiplicand.num_of_used_ints)
 		return 'L';
 	//Difference of more than two. The multiplication result can only be 1 few_bits longer than the length of mulitplicand

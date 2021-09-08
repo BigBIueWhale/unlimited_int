@@ -14,10 +14,10 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 #endif
 	if (num_to_add == this)
 	{
-		this->multiply((few_bits)2, answer);
+		this->multiply(static_cast<few_bits>(2), answer);
 		return;
 	}
-	if (this->num_of_intarrays_used == 0)
+	if (this->num_of_intarrays_used == (size_t)0)
 	{
 		if (num_to_add != answer)
 		{
@@ -25,7 +25,7 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		}
 		return;
 	}
-	if (num_to_add->num_of_intarrays_used == 0)
+	if (num_to_add->num_of_intarrays_used == (size_t)0)
 	{
 		if (this != answer)
 		{
@@ -33,10 +33,12 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		}
 		return;
 	}
-	few_bits num_of_negatives = 0;
+	int num_of_negatives = 0;
 	bool this_is_negative = this->is_negative, add_is_negative = num_to_add->is_negative, set_answer_to_negative;
-	if (this_is_negative) { num_of_negatives++; }
-	if (add_is_negative) { num_of_negatives++; }
+	if (this_is_negative)
+		++num_of_negatives;
+	if (add_is_negative)
+		++num_of_negatives;
 	unlimited_int this_copy(*this, false);
 	unlimited_int num_to_add_copy(*num_to_add, false);
 	this_copy.is_negative = false;
@@ -44,9 +46,7 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 	num_to_add_copy.is_negative = false;
 	num_to_add_copy.auto_destroy = false;
 	if (num_of_negatives == 2)
-	{
 		set_answer_to_negative = true;
-	}
 	else if (num_of_negatives == 1)
 	{
 		if (this_is_negative)
@@ -60,9 +60,7 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		return;
 	}
 	else
-	{
 		set_answer_to_negative = false;
-	}
 	unlimited_int* smaller_num, * larger_num;
 	char compare_result = this_copy.estimate_compare_to_ignore_sign(num_to_add_copy);
 	if (compare_result == 'L')
@@ -87,7 +85,7 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 	size_t num_int = (size_t)0;
 	size_t index_bigger = (size_t)0, index_smaller = (size_t)0, index_answer = (size_t)0;
 	size_t num_of_intarrays_used_for_answer = (size_t)1;
-	many_bits carry = 0;
+	many_bits carry = (many_bits)0;
 	few_bits* current_intarr_for_bigger = current_intarray_for_bigger->intarr;
 	few_bits* current_intarr_for_smaller = current_intarray_for_smaller->intarr;
 	few_bits* current_intarr_for_answer = current_intarray_for_answer->intarr;
@@ -96,38 +94,39 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 	size_t intarr_len_smaller = current_intarray_for_smaller->num_of_used_ints;
 	const size_t smaller_num_used_ints = smaller_num->num_of_used_ints;
 	size_t next_stop = intarr_len_smaller;
-	if (intarr_len_bigger < next_stop) { next_stop = intarr_len_bigger; }
-	if (intarr_len_answer < next_stop) { next_stop = intarr_len_answer; }
-	size_t remaining_intarr_len_bigger;
-	size_t remaining_intarr_len_answer;
+	if (intarr_len_bigger < next_stop)
+		next_stop = intarr_len_bigger;
+	if (intarr_len_answer < next_stop)
+		next_stop = intarr_len_answer;
 	size_t previous_num_int = (size_t)0;
 	current_intarray_for_answer->set_num_of_used_ints_to_maximum();
 	while (true)
 	{
-		if (num_int == next_stop) {
-			previous_num_int = num_int - previous_num_int;
-			index_bigger += previous_num_int;
-			index_smaller += previous_num_int;
-			index_answer += previous_num_int;
+		if (num_int >= next_stop) {
+			const size_t difference = num_int - previous_num_int;
+			index_bigger += difference;
+			index_smaller += difference;
+			index_answer += difference;
 			previous_num_int = num_int;
-			if (num_int == smaller_num_used_ints) { break; }
-			if (index_smaller == intarr_len_smaller)
+			if (num_int >= smaller_num_used_ints)
+				break;
+			if (index_smaller >= intarr_len_smaller)
 			{
 				it_smaller = it_smaller->next;
 				current_intarray_for_smaller = it_smaller->value;
 				current_intarr_for_smaller = current_intarray_for_smaller->intarr;
 				intarr_len_smaller = current_intarray_for_smaller->num_of_used_ints;
-				index_smaller = 0;
+				index_smaller = (size_t)0;
 			}
-			if (index_bigger == intarr_len_bigger)
+			if (index_bigger >= intarr_len_bigger)
 			{
 				it_bigger = it_bigger->next;
 				current_intarray_for_bigger = it_bigger->value;
 				current_intarr_for_bigger = current_intarray_for_bigger->intarr;
 				intarr_len_bigger = current_intarray_for_bigger->num_of_used_ints;
-				index_bigger = 0;
+				index_bigger = (size_t)0;
 			}
-			if (index_answer == intarr_len_answer)
+			if (index_answer >= intarr_len_answer)
 			{
 				num_of_intarrays_used_for_answer++;
 				it_answer = it_answer->next;
@@ -135,11 +134,11 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 				current_intarr_for_answer = current_intarray_for_answer->intarr;
 				intarr_len_answer = current_intarray_for_answer->intarr_len;
 				current_intarray_for_answer->set_num_of_used_ints_to_maximum();
-				index_answer = 0;
+				index_answer = (size_t)0;
 			}
-			size_t remaining_intarr_len_smaller = intarr_len_smaller - index_smaller;
-			remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
-			remaining_intarr_len_answer = intarr_len_answer - index_answer;
+			const size_t remaining_intarr_len_smaller = intarr_len_smaller - index_smaller;
+			const size_t remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
+			const size_t remaining_intarr_len_answer = intarr_len_answer - index_answer;
 			const bool smaller_smaller_than_bigger = remaining_intarr_len_smaller < remaining_intarr_len_bigger;
 			const bool answer_smaller_than_bigger = remaining_intarr_len_answer < remaining_intarr_len_bigger;
 			const bool answer_smaller_than_smaller = remaining_intarr_len_answer < remaining_intarr_len_smaller;
@@ -151,25 +150,25 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 				next_stop += remaining_intarr_len_bigger;
 			continue;
 		}
-		carry += (many_bits)(*current_intarr_for_bigger) + (many_bits)(*current_intarr_for_smaller);
-		*current_intarr_for_answer = (few_bits)carry;
+		carry += static_cast<many_bits>(*current_intarr_for_bigger) + static_cast<many_bits>(*current_intarr_for_smaller);
+		*current_intarr_for_answer = static_cast<few_bits>(carry);
 		carry >>= NUM_OF_BITS_few_bits;
 		++current_intarr_for_bigger;
 		++current_intarr_for_smaller;
 		++current_intarr_for_answer;
 		++num_int;
 	}
-	if (num_int != bigger_num_used_ints)
+	if (num_int < bigger_num_used_ints)
 	{
-		if (index_bigger == intarr_len_bigger)
+		if (index_bigger >= intarr_len_bigger)
 		{
 			it_bigger = it_bigger->next;
 			current_intarray_for_bigger = it_bigger->value;
 			current_intarr_for_bigger = current_intarray_for_bigger->intarr;
 			intarr_len_bigger = current_intarray_for_bigger->num_of_used_ints;
-			index_bigger = 0;
+			index_bigger = (size_t)0;
 		}
-		if (index_answer == intarr_len_answer)
+		if (index_answer >= intarr_len_answer)
 		{
 			num_of_intarrays_used_for_answer++;
 			it_answer = it_answer->next;
@@ -177,34 +176,34 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 			current_intarr_for_answer = current_intarray_for_answer->intarr;
 			intarr_len_answer = current_intarray_for_answer->intarr_len;
 			current_intarray_for_answer->set_num_of_used_ints_to_maximum();
-			index_answer = 0;
+			index_answer = (size_t)0;
 		}
-		remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
-		remaining_intarr_len_answer = intarr_len_answer - index_answer;
+		const size_t remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
+		const size_t remaining_intarr_len_answer = intarr_len_answer - index_answer;
 		if (remaining_intarr_len_bigger < remaining_intarr_len_answer)
-		{
 			next_stop = remaining_intarr_len_bigger + num_int;
-		}
-		else { next_stop = remaining_intarr_len_answer + num_int; }
-		if (bigger_num_used_ints < next_stop) { next_stop = bigger_num_used_ints; }
+		else
+			next_stop = remaining_intarr_len_answer + num_int;
+		if (bigger_num_used_ints < next_stop)
+			next_stop = bigger_num_used_ints;
 		while (carry != 0)
 		{
-			if (num_int == next_stop) {
-				if (num_int == bigger_num_used_ints)
+			if (num_int >= next_stop) {
+				if (num_int >= bigger_num_used_ints)
 					break;
-				previous_num_int = num_int - previous_num_int;
-				index_bigger += previous_num_int;
-				index_answer += previous_num_int;
+				const size_t difference = num_int - previous_num_int;
+				index_bigger += difference;
+				index_answer += difference;
 				previous_num_int = num_int;
-				if (index_bigger == intarr_len_bigger)
+				if (index_bigger >= intarr_len_bigger)
 				{
 					it_bigger = it_bigger->next;
 					current_intarray_for_bigger = it_bigger->value;
 					current_intarr_for_bigger = current_intarray_for_bigger->intarr;
 					intarr_len_bigger = current_intarray_for_bigger->num_of_used_ints;
-					index_bigger = 0;
+					index_bigger = (size_t)0;
 				}
-				if (index_answer == intarr_len_answer)
+				if (index_answer >= intarr_len_answer)
 				{
 					num_of_intarrays_used_for_answer++;
 					it_answer = it_answer->next;
@@ -212,38 +211,38 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 					current_intarr_for_answer = current_intarray_for_answer->intarr;
 					intarr_len_answer = current_intarray_for_answer->intarr_len;
 					current_intarray_for_answer->set_num_of_used_ints_to_maximum();
-					index_answer = 0;
+					index_answer = (size_t)0;
 				}
-				remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
-				remaining_intarr_len_answer = intarr_len_answer - index_answer;
+				const size_t remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
+				const size_t remaining_intarr_len_answer = intarr_len_answer - index_answer;
 				if (remaining_intarr_len_bigger < remaining_intarr_len_answer)
 					next_stop += remaining_intarr_len_bigger;
 				else
 					next_stop += remaining_intarr_len_answer;
 				continue;
 			}
-			carry += (many_bits)(*current_intarr_for_bigger);
-			*current_intarr_for_answer = (few_bits)carry;
+			carry += static_cast<many_bits>(*current_intarr_for_bigger);
+			*current_intarr_for_answer = static_cast<few_bits>(carry);
 			carry >>= NUM_OF_BITS_few_bits;
 			++current_intarr_for_bigger;
 			++current_intarr_for_answer;
 			++num_int;
 		}
-		previous_num_int = num_int - previous_num_int;
-		index_bigger += previous_num_int;
-		index_answer += previous_num_int;
+		const size_t difference = num_int - previous_num_int;
+		index_bigger += difference;
+		index_answer += difference;
 		previous_num_int = num_int;
-		if (num_int != bigger_num_used_ints)
+		if (num_int < bigger_num_used_ints)
 		{
-			if (index_bigger == intarr_len_bigger)
+			if (index_bigger >= intarr_len_bigger)
 			{
 				it_bigger = it_bigger->next;
 				current_intarray_for_bigger = it_bigger->value;
 				current_intarr_for_bigger = current_intarray_for_bigger->intarr;
 				intarr_len_bigger = current_intarray_for_bigger->num_of_used_ints;
-				index_bigger = 0;
+				index_bigger = (size_t)0;
 			}
-			if (index_answer == intarr_len_answer)
+			if (index_answer >= intarr_len_answer)
 			{
 				num_of_intarrays_used_for_answer++;
 				it_answer = it_answer->next;
@@ -251,33 +250,32 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 				current_intarr_for_answer = current_intarray_for_answer->intarr;
 				intarr_len_answer = current_intarray_for_answer->intarr_len;
 				current_intarray_for_answer->set_num_of_used_ints_to_maximum();
-				index_answer = 0;
+				index_answer = (size_t)0;
 			}
-			remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
-			remaining_intarr_len_answer = intarr_len_answer - index_answer;
+			const size_t remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
+			const size_t remaining_intarr_len_answer = intarr_len_answer - index_answer;
 			if (remaining_intarr_len_bigger < remaining_intarr_len_answer)
-			{
 				next_stop = remaining_intarr_len_bigger + num_int;
-			}
-			else { next_stop = remaining_intarr_len_answer + num_int; }
+			else
+				next_stop = remaining_intarr_len_answer + num_int;
 			while (true)
 			{
-				if (num_int == next_stop) {
-					previous_num_int = num_int - previous_num_int;
-					index_bigger += previous_num_int;
-					index_answer += previous_num_int;
+				if (num_int >= next_stop) {
+					const size_t difference = num_int - previous_num_int;
+					index_bigger += difference;
+					index_answer += difference;
 					previous_num_int = num_int;
-					if (num_int == bigger_num_used_ints)
+					if (num_int >= bigger_num_used_ints)
 						break;
-					if (index_bigger == intarr_len_bigger)
+					if (index_bigger >= intarr_len_bigger)
 					{
 						it_bigger = it_bigger->next;
 						current_intarray_for_bigger = it_bigger->value;
 						current_intarr_for_bigger = current_intarray_for_bigger->intarr;
 						intarr_len_bigger = current_intarray_for_bigger->num_of_used_ints;
-						index_bigger = 0;
+						index_bigger = (size_t)0;
 					}
-					if (index_answer == intarr_len_answer)
+					if (index_answer >= intarr_len_answer)
 					{
 						num_of_intarrays_used_for_answer++;
 						it_answer = it_answer->next;
@@ -285,10 +283,10 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 						current_intarr_for_answer = current_intarray_for_answer->intarr;
 						intarr_len_answer = current_intarray_for_answer->intarr_len;
 						current_intarray_for_answer->set_num_of_used_ints_to_maximum();
-						index_answer = 0;
+						index_answer = (size_t)0;
 					}
-					remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
-					remaining_intarr_len_answer = intarr_len_answer - index_answer;
+					const size_t remaining_intarr_len_bigger = intarr_len_bigger - index_bigger;
+					const size_t remaining_intarr_len_answer = intarr_len_answer - index_answer;
 					if (remaining_intarr_len_bigger < remaining_intarr_len_answer)
 						next_stop += remaining_intarr_len_bigger;
 					else
@@ -298,11 +296,11 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 				*current_intarr_for_answer = *current_intarr_for_bigger;
 				++current_intarr_for_answer;
 				++current_intarr_for_bigger;
-				num_int++;
+				++num_int;
 			}
 		}
 	}
-	if (carry == 0)
+	if (carry == (many_bits)0)
 	{
 		answer->num_of_used_ints = bigger_num_used_ints;
 		current_intarray_for_answer->num_of_used_ints = index_answer;
@@ -310,16 +308,16 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 	}
 	else
 	{
-		if (index_answer == intarr_len_answer)
+		if (index_answer >= intarr_len_answer)
 		{
 			++num_of_intarrays_used_for_answer;
 			it_answer = it_answer->next;
 			current_intarray_for_answer = it_answer->value;
-			index_answer = 0;
+			index_answer = (size_t)0;
 		}
-		answer->num_of_used_ints = bigger_num_used_ints + 1;
-		current_intarray_for_answer->intarr[index_answer] = (few_bits)carry;
-		current_intarray_for_answer->num_of_used_ints = index_answer + 1;
+		answer->num_of_used_ints = bigger_num_used_ints + (size_t)1;
+		current_intarray_for_answer->intarr[index_answer] = static_cast<few_bits>(carry);
+		current_intarray_for_answer->num_of_used_ints = index_answer + (size_t)1;
 		answer->num_of_intarrays_used = num_of_intarrays_used_for_answer;
 	}
 	answer->is_negative = set_answer_to_negative;

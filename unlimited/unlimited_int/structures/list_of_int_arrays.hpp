@@ -11,7 +11,7 @@ namespace unlimited
 	public:
 		list_of_int_arrays() {}
 		void fill_0_until_num_of_ints_and_set_variables_for_used_accordingly(size_t fill_0_until);
-		inline void flush_to_piggy_bank()
+		void flush_to_piggy_bank()
 		{
 			list_of_int_arrays::bank_storage.deposit(*this);
 		}

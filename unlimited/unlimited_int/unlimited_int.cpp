@@ -11,24 +11,6 @@ void unlimited_int::forget_memory()
 	this->set_to_zero();
 	this->auto_destroy = true;
 }
-void unlimited_int::operator=(std::shared_ptr<unlimited_int> shared_ptr_ui)
-{
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"void unlimited_int::operator=(std::shared_ptr<unlimited_int> shared_ptr_ui)\":";
-#endif
-#if DEBUG_MODE > 0
-	if (shared_ptr_ui->find_inconsistencies())
-		throw std::logic_error("Inconsistency found in start of function \"void unlimited_int::operator=(std::shared_ptr<unlimited_int> shared_ptr_ui)\"");
-#endif
-	this->absorb(*shared_ptr_ui);
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::operator=(std::shared_ptr<unlimited_int> shared_ptr_ui)\":";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-		throw std::logic_error("Inconsistency found in end of function \"void unlimited_int::operator=(std::shared_ptr<unlimited_int> shared_ptr_ui)\"");
-#endif
-}
 void unlimited_int::flush()
 {
 	this->auto_destroy = true;

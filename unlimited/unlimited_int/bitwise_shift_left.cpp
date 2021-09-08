@@ -48,9 +48,7 @@ void unlimited_int::shift_left_by_bits(const size_t num_of_bits_to_shift_by)
 		const int amount_to_shift_remainder = NUM_OF_BITS_few_bits - micro_shift;
 		few_bits mask_of_shift_builder = 0;
 		for (int bit_counter = NUM_OF_BITS_few_bits - 1; bit_counter >= amount_to_shift_remainder; --bit_counter)
-		{
 			mask_of_shift_builder += 1 << bit_counter;
-		}
 		const few_bits mask_of_shift = mask_of_shift_builder;
 		few_bits remainder = (size_t)0;
 		this->flush_unused();

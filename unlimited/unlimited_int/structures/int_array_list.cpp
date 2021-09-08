@@ -1,39 +1,31 @@
 #include "int_array_list.hpp"
+#include <memory>
+#include <algorithm>
 using namespace unlimited;
 void int_array_list::swap(int_array_list& int_array_list_to_swap_with)
 {
-	const size_t temp_int = this->num_of_ints;
-	this->num_of_ints = int_array_list_to_swap_with.num_of_ints;
-	int_array_list_to_swap_with.num_of_ints = temp_int;
-
+	std::swap(this->num_of_ints, int_array_list_to_swap_with.num_of_ints);
 	this->custom_linked_list::swap(int_array_list_to_swap_with);
 }
 void int_array_list::append(int_array_list& list_to_append)
 {
-	this->custom_linked_list::append(list_to_append);
 	this->num_of_ints += list_to_append.num_of_ints;
+	this->custom_linked_list::append(list_to_append);
 	list_to_append.num_of_ints = (size_t)0;
 }
 void int_array_list::prepend(int_array_list& list_to_prepend)
 {
-	this->custom_linked_list::prepend(list_to_prepend);
 	this->num_of_ints += list_to_prepend.num_of_ints;
+	this->custom_linked_list::prepend(list_to_prepend);
 	list_to_prepend.num_of_ints = (size_t)0;
 }
-custom_linked_list_node<int_array>* int_array_list::erase(custom_linked_list_node<int_array>* node_to_remove)
+std::unique_ptr<int_array_list> int_array_list::sublist_int_array_list(custom_linked_list_node<int_array> *const start_sublist, custom_linked_list_node<int_array> *const end_sublist, const size_t sublist_len, const size_t sum_ints)
 {
-	if (node_to_remove->value != nullptr)
-		this->num_of_ints -= node_to_remove->value->intarr_len;
-	return this->custom_linked_list::erase(node_to_remove);
-}
-int_array_list* int_array_list::sublist(custom_linked_list_node<int_array>* start_sublist, custom_linked_list_node<int_array>* end_sublist, size_t sublist_len, size_t sum_ints)
-{
-	custom_linked_list<int_array>* substr_base = this->custom_linked_list::sublist(start_sublist, end_sublist, sublist_len);
+	std::unique_ptr<custom_linked_list<int_array>> substr_base = this->custom_linked_list::sublist(start_sublist, end_sublist, sublist_len);
 	this->num_of_ints -= sum_ints;
-	int_array_list* substr_derived = new int_array_list(*substr_base);
+	std::unique_ptr<int_array_list> substr_derived = std::make_unique<int_array_list>(*substr_base);
 	substr_derived->num_of_ints = sum_ints;
 	substr_base->reset_without_deleting_nodes();
-	delete substr_base;
 	return substr_derived;
 }
 int_array_list::list_location int_array_list::find_num_of_int_from_insignificant(size_t num_int_to_find)

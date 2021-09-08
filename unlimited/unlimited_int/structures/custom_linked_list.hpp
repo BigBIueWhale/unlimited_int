@@ -1,6 +1,7 @@
 #ifndef CUSTOM_LINKED_LIST_H
 #define CUSTOM_LINKED_LIST_H
-#include "settings.h"
+#include <memory>
+#include <algorithm>
 namespace unlimited
 {
 	//template for node for doubly-linked list
@@ -27,23 +28,11 @@ namespace unlimited
 		}
 		void swap(custom_linked_list_node<T>& other)
 		{
-			custom_linked_list_node<T>* temp_Node = other.previous;
-			other.previous = this->previous;
-			this->previous = temp_Node;
-
-			temp_Node = other.next;
-			other.next = this->next;
-			this->next = temp_Node;
-
-			T* const temp_int_array = other.value;
-			other.value = this->value;
-			this->value = temp_int_array;
+			std::swap(this->previous, other.previous);
+			std::swap(this->next, other.next);
+			std::swap(this->value, other.value);
 		}
-		~custom_linked_list_node()
-		{
-			if (this->value != nullptr)
-				delete this->value;
-		}
+		~custom_linked_list_node() { delete this->value; }
 	};
 	//template for doubly-linked list that has "iterators" (pointers to nodes) that are guaranteed to be safe even after manipulating the list,
 	//and even after transfering nodes from one array to another using the deatch function.
@@ -84,18 +73,20 @@ namespace unlimited
 		{
 			other._first.swap(this->_first);
 			other._last.swap(this->_last);
-			const size_t temp_int = other._length;
-			other._length = this->_length;
-			this->_length = temp_int;
+			std::swap(this->_length, other._length);
 		}
 		//Add a value in the list just after "first". The argument must be a pointer to a dynamically allocated value
 		//and it will automatically be deleted by the list
 		//Returns a pointer to the newly added node.
 		custom_linked_list_node<T>* push_front(T* value)
 		{
-			custom_linked_list_node<T>* node_to_prepend = new custom_linked_list_node<T>(value);
-			this->push_front(node_to_prepend);
-			return node_to_prepend;
+			std::unique_ptr<T> value_container(value);
+			std::unique_ptr<custom_linked_list_node<T>> node_to_prepend = std::make_unique<custom_linked_list_node<T>>(value);
+			custom_linked_list_node<T>* node_to_prepend_bare_ptr = node_to_prepend.get();
+			this->push_front(node_to_prepend.get());
+			value_container.release();
+			node_to_prepend.release();
+			return node_to_prepend_bare_ptr;
 		}
 		//Add a node in the list just after "first". The argument must be a pointer to a dynamically allocated node
 		//and it will automatically be deleted by the list
@@ -112,9 +103,13 @@ namespace unlimited
 		//Returns a pointer to the newly added node.
 		custom_linked_list_node<T>* push_back(T* value)
 		{
-			custom_linked_list_node<T> *const node_to_append = new custom_linked_list_node<T>(value);
-			this->push_back(node_to_append);
-			return node_to_append;
+			std::unique_ptr<T> value_container(value);
+			std::unique_ptr<custom_linked_list_node<T>> node_to_append = std::make_unique<custom_linked_list_node<T>>(value);
+			custom_linked_list_node<T>* node_to_append_bare_ptr = node_to_append.get();
+			this->push_back(node_to_append.get());
+			value_container.release();
+			node_to_append.release();
+			return node_to_append_bare_ptr;
 		}
 		//Add a node in the list just before "last". The argument must be a pointer to a dynamically allocated node
 		//and it will automatically be deleted by the list
@@ -153,9 +148,9 @@ namespace unlimited
 		//Receives nodes from the list, they can be the same node, but the first node start_sublist needs to be closer to _first than the second node parameter end_sublist
 		//The sublist function returns a pointer to a dynamically allocated linked list, and that pointer needs to be deleted.
 		//The function also receives the length of the sublist. Don't lie!
-		custom_linked_list<T>* sublist(custom_linked_list_node<T>* start_sublist, custom_linked_list_node<T>* end_sublist, size_t sublist_len)
+		std::unique_ptr<custom_linked_list<T>> sublist(custom_linked_list_node<T> *const start_sublist, custom_linked_list_node<T> *const end_sublist, size_t sublist_len)
 		{
-			custom_linked_list<T>* sublist = new custom_linked_list<T>;
+			std::unique_ptr<custom_linked_list<T>> sublist = std::make_unique<custom_linked_list<T>>();
 			start_sublist->previous->next = end_sublist->next;
 			end_sublist->next->previous = start_sublist->previous;
 			start_sublist->previous = &sublist->_first;
@@ -264,7 +259,7 @@ namespace unlimited
 			this->_last.previous = &this->_first;
 			this->_length = (size_t)0;
 		}
-		~custom_linked_list() { this->clear(); }
+		virtual ~custom_linked_list() { this->clear(); }
 	};
 }
 #endif

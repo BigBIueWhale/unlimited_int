@@ -58,9 +58,9 @@ void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_
 	{
 		if (num_int >= stop_at)
 		{
-			previous_num_int = num_int - previous_num_int;
-			this_index += previous_num_int;
-			low_index += previous_num_int;
+			const size_t difference = num_int - previous_num_int;
+			this_index += difference;
+			low_index += difference;
 			previous_num_int = num_int;
 			if (num_int >= length_of_low)
 				break;
@@ -216,12 +216,11 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 		it_this = it_this->next;
 	}
 	int_array* current_int_array_this = it_this->value;
-
-	int_array_list* least_significant_part_of_this = this->intarrays->sublist(this->intarrays->first(), it_this, num_of_taken_int_arrays_from_this, num_of_ints_filled_lower);
+	std::shared_ptr<int_array_list> least_significant_part_of_this = this->intarrays->sublist_int_array_list(this->intarrays->first(), it_this, num_of_taken_int_arrays_from_this, num_of_ints_filled_lower);
 	if (low->intarrays == nullptr)
 		low->intarrays = new list_of_int_arrays;
 	low->intarrays->prepend(*least_significant_part_of_this);
-	delete least_significant_part_of_this;
+	least_significant_part_of_this.reset();
 	low->num_of_intarrays_used = num_of_taken_int_arrays_from_this;
 	low->num_of_used_ints = index;
 	const size_t num_of_ints_left_in_shared_int_array = sum_used - index;
@@ -285,12 +284,10 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 				break;
 			it_this = it_this->next;
 		}
-		
-		int_array_list* most_significant_part_of_this = this->intarrays->sublist(this->intarrays->first(), it_this, num_of_transfered_int_arrays_to_high, num_of_transfered_ints_to_high);
+		std::unique_ptr<int_array_list> most_significant_part_of_this = this->intarrays->sublist_int_array_list(this->intarrays->first(), it_this, num_of_transfered_int_arrays_to_high, num_of_transfered_ints_to_high);
 		if (high->intarrays == nullptr)
 			high->intarrays = new list_of_int_arrays;
 		high->intarrays->append(*most_significant_part_of_this);
-		delete most_significant_part_of_this;
 	}
 	high->num_of_intarrays_used = high->intarrays->size();
 	high->num_of_used_ints = size_to_make_high;

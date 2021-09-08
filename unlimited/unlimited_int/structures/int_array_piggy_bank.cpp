@@ -18,9 +18,8 @@ void int_array_piggy_bank::deposit_from_significant(int_array_list& source, size
 			sum_ints += it_source->value->intarr_len;
 			++num_of_nodes_so_far;
 		}
-		int_array_list *const sublist = source.sublist(it_source, source.last(), num_of_nodes_to_deposit, sum_ints);
+		std::unique_ptr<int_array_list> sublist = source.sublist_int_array_list(it_source, source.last(), num_of_nodes_to_deposit, sum_ints);
 		this->append(*sublist);
-		delete sublist;
 		this->obey_PIGGY_BANK_MAXIMUM();
 	}
 }
@@ -42,9 +41,8 @@ void int_array_piggy_bank::deposit_from_insignificant(int_array_list& source, si
 			sum_ints += it_source->value->intarr_len;
 			++num_of_nodes_so_far;
 		}
-		int_array_list *const sublist = source.sublist(source.first(), it_source, num_of_nodes_to_deposit, sum_ints);
+		std::unique_ptr<int_array_list> sublist = source.sublist_int_array_list(source.first(), it_source, num_of_nodes_to_deposit, sum_ints);
 		this->append(*sublist);
-		delete sublist;
 		this->obey_PIGGY_BANK_MAXIMUM();
 	}
 }
@@ -66,16 +64,19 @@ void int_array_piggy_bank::withdraw(int_array_list& deposit_to, size_t amount_to
 			sum += it_this->value->intarr_len;
 			++num_int_array;
 		}
-		int_array_list* sublist = this->sublist(this->first(), it_this, num_int_array, sum);
+		std::shared_ptr<int_array_list> sublist = this->sublist_int_array_list(this->first(), it_this, num_int_array, sum);
 		deposit_to.append(*sublist);
-		delete sublist;
 	}
 }
 void int_array_piggy_bank::obey_PIGGY_BANK_MAXIMUM()
 {
 	custom_linked_list_node<int_array>* it_this = this->first();
 	while (this->num_of_ints > (size_t)PIGGY_BANK_MAXIMUM)
+	{
+		this->num_of_ints -= it_this->value->intarr_len;
+		it_this->value->destroy();
 		it_this = this->erase(it_this);
+	}
 }
 bool int_array_piggy_bank::withdraw_one_Node_to_significant(int_array_list& deposit_to)
 {

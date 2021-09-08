@@ -3,7 +3,7 @@ using namespace unlimited;
 #if DEBUG_MODE == 2
 #include <iostream>
 #endif
-std::shared_ptr<unlimited_int> unlimited_int::operator~() const
+unlimited_int unlimited_int::operator~() const
 {
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in beginning of function \"unlimited_int* unlimited_int::operator~() const\"";
@@ -12,14 +12,14 @@ std::shared_ptr<unlimited_int> unlimited_int::operator~() const
 	if (this->find_inconsistencies())
 		throw std::logic_error("\nThe inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator~() const\"");
 #endif
-	unlimited_int* result = new unlimited_int;
+	unlimited_int result;
 	const size_t len_of_result = this->num_of_used_ints;
 	if (len_of_result == (size_t)0)
-		return std::shared_ptr<unlimited_int>(result);
-	result->increase_until_num_of_ints(len_of_result);
+		return result;
+	result.increase_until_num_of_ints(len_of_result);
 	const size_t len_of_this = this->num_of_used_ints;
 	custom_linked_list_node<int_array>* current_int_array_Node_this = this->intarrays->first();
-	custom_linked_list_node<int_array>* current_int_array_Node_result = result->intarrays->first();
+	custom_linked_list_node<int_array>* current_int_array_Node_result = result.intarrays->first();
 	size_t num_of_intarrays_in_result = (size_t)1;
 	int_array current_int_array_this = *current_int_array_Node_this->value;
 	int_array current_int_array_result = *current_int_array_Node_result->value;
@@ -77,17 +77,17 @@ std::shared_ptr<unlimited_int> unlimited_int::operator~() const
 	const int num_preceding_zeros = unlimited_int::num_of_zero_bits_preceding_number(most_significant_int_in_this);
 	const few_bits inverted_most_significant_int_in_this = (few_bits)(~(most_significant_int_in_this << num_preceding_zeros)) >> num_preceding_zeros;
 	current_int_array_result.intarr[index_result] = inverted_most_significant_int_in_this;
-	result->num_of_used_ints = len_of_result;
-	result->num_of_intarrays_used = num_of_intarrays_in_result;
-	result->cutoff_leading_zeros(current_int_array_Node_result);
+	result.num_of_used_ints = len_of_result;
+	result.num_of_intarrays_used = num_of_intarrays_in_result;
+	result.cutoff_leading_zeros(current_int_array_Node_result);
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator~() const\"";
 #endif
 #if DEBUG_MODE > 0
-	if (result->find_inconsistencies())
+	if (result.find_inconsistencies())
 		throw std::logic_error("\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator~() const\"");
 #endif
-	return std::shared_ptr<unlimited_int>(result);
+	return result;
 }
 void unlimited_int::invert_bits()
 {

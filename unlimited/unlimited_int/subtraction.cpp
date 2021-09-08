@@ -45,9 +45,9 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 	num_to_subtract_copy.is_negative = false;
 	int num_of_negatives = 0;
 	if (this_is_negative)
-		num_of_negatives++;
+		++num_of_negatives;
 	if (num_to_subtract_is_negative)
-		num_of_negatives++;
+		++num_of_negatives;
 	if (num_of_negatives == 2)
 		this_copy.swap(num_to_subtract_copy);
 	else if (num_of_negatives == 1)

@@ -16,7 +16,7 @@ int unlimited_int::num_of_zero_bits_preceding_number(const few_bits original_num
 		if (original_num_cpy != original_num)
 			break;
 	}
-	return (amount_to_shift - 1);
+	return amount_to_shift - 1;
 }
 int unlimited_int::num_of_zero_bits_succeeding_number(const few_bits original_num)
 {
@@ -31,14 +31,15 @@ int unlimited_int::num_of_zero_bits_succeeding_number(const few_bits original_nu
 		if (original_num_cpy != original_num)
 			break;
 	}
-	return (amount_to_shift - 1);
+	return amount_to_shift - 1;
 }
 int unlimited_int::find_exact_log_2(const few_bits num, bool* const is_power_2)
 {
 	const int preceding = unlimited_int::num_of_zero_bits_preceding_number(num);
 	const int succeeding = unlimited_int::num_of_zero_bits_succeeding_number(num);
-	*is_power_2 = preceding + succeeding + 1 == NUM_OF_BITS_few_bits;
-	if (*is_power_2)
+	const bool is_power_of_2_local = preceding + succeeding + 1 == NUM_OF_BITS_few_bits;
+	*is_power_2 = is_power_of_2_local;
+	if (is_power_of_2_local)
 		return succeeding;
 	return 0;
 }
@@ -55,7 +56,7 @@ size_t unlimited_int::get_length_in_bits() const
 		return (size_t)0;
 	else
 	{
-		const custom_linked_list_node<int_array>* most_significant_used_int_array_Node = this->get_most_significant_used_int_array();
+		const custom_linked_list_node<int_array> *const most_significant_used_int_array_Node = this->get_most_significant_used_int_array();
 		const int_array most_significant_used_int_array = *most_significant_used_int_array_Node->value;
 		const size_t index_of_most_significant = most_significant_used_int_array.num_of_used_ints - (size_t)1;
 		const few_bits most_significant_value = most_significant_used_int_array.intarr[index_of_most_significant];
