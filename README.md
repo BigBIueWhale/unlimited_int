@@ -13,7 +13,8 @@ Note: There exists an issue in Windows with MinGW GCC / MSYS2 with clang / MSYS2
 The issue is that thread_local variables cause a crash when multithreading.\
 That's why if you're compiling on Windows on MSYS2 and/or on MinGW you just need to not use the function: unlimited::unlimited_int::generate_random_prime_multithreaded() \
 Also you can optionally change the macro in unlimited/unlimited_int/structures/settings.hpp UNLIMITED_INT_SUPPORT_MULTITHREADING from true to false.\
-Changing the macro that way will cause the problematic function not to be available.
+Changing the macro that way will cause the problematic function not to be available.\
+Even after the "fix", the unlimited library will still crash when used in a multithreaded environment, with those compilers (because of the thread_local bug in those compilers in Windows).
 # Reliability
 Untested, in prototype stage.
 # Basic use
@@ -31,7 +32,7 @@ int main()\
 The output of that program will be:\
 Result is: 68787405743989542317\
 Result in hex: 3ba9df512a7294dad
-# Fibonacci example:
+# Fibonacci example
 #include "unlimited.hpp"\
 using namespace unlimited;\
 #include \<utility\> //For std::move\
