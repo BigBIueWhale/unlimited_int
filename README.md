@@ -15,7 +15,7 @@ int main()\
 }\
 The output of that program will be:\
 Result is: 68787405743989542317\
-Result in hex: 3ba9df512a7294dad\
+Result in hex: 3ba9df512a7294dad
 # Fibonacci example:
 #include "unlimited.hpp"\
 using namespace unlimited;\
