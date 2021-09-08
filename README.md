@@ -1,6 +1,6 @@
 # unlimited_int
 # Written by Ronen Zyroff in 2019-2021
-Arbitrary-precision arithmetic library written in pure C++ for C++. Has similar syntax to int in C++ with operator overloading.\
+Arbitrary-precision arithmetic library written in pure C++ for C++. Has similar syntax to int in C++ with operator overloading.
 # Basic use
 unlimited_int small_num(5);\
 unlimited_int big_num = unlimited_int::from_string("129312981629387124981620398712489112387461298346198234");\
