@@ -3,9 +3,10 @@
 Arbitrary-precision arithmetic library written in pure C++ for C++. Has similar syntax to int in C++ with operator overloading.
 # Compilers
 Supports C++14, C++17, C++20\
-Supports MSVC++ (the microsoft compiler)\
+Supports MSVC++ (the Microsoft C++ compiler)\
 Supports GCC's g++ (The GNU Linux compiler)\
 Supports clang++\
+Supports both 32-bit architectures and 64-bit architectures on GNU and on Windows.\
 Can be compiled to a library using the source files inside "unlimited" folder.
 # Reliability
 Untested, in prototype stage.
