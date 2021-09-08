@@ -7,7 +7,7 @@ Supports MSVC++ (the Microsoft C++ compiler)\
 Supports GCC's g++ (The GNU Linux compiler)\
 Supports clang++\
 Supports both 32-bit architectures and 64-bit architectures on GNU and on Windows.\
-Can be compiled to a library using the source files inside "unlimited" folder.
+Can be compiled to a library using the source files inside "unlimited" folder.\
 Note: There exists an issue in Windows with MinGW GCC / MSYS2 with clang / MSYS2 GCC\
 The issue is that thread_local variables cause a crash when multithreading.\
 That's why if you're running on Windows using clang++ or g++ you just need to not use the function: unlimited::unlimited_int::generate_random_prime_multithreaded() and also you can optionally change the macro in unlimited/unlimited_int/structures/settings.hpp UNLIMITED_INT_SUPPORT_MULTITHREADING from true to false. Changing the macro that way will cause the problematic function not to be available.
