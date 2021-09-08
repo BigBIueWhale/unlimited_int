@@ -40,7 +40,7 @@ int main()\
   unlimited_int result;\
   if (turn_a)\
     result = std::move(b);\
-  if (turn_b)\
+  else\
     result = std::move(a);\
   std::cout << "\nThe result is: " << result;\
 }\
