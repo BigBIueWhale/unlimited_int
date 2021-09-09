@@ -175,13 +175,12 @@ unlimited_int unlimited_int::recurring_division(const unlimited_int& dividend, c
 		{
 			if (unlimited_int::Newton_Raphson_lookup.most_recent.size() > (size_t)MAX_NUM_OF_DIVISORS_TO_KEEP_TRACK_OF)
 			{
-				unlimited_int::Newton_Raphson_lookup.reciprocals_map.erase(*unlimited_int::Newton_Raphson_lookup.most_recent.end()->previous->value);
+				unlimited_int::Newton_Raphson_lookup.reciprocals_map.erase(*unlimited_int::Newton_Raphson_lookup.most_recent.last()->value);
 				unlimited_int::Newton_Raphson_lookup.most_recent.pop_back();
 			}
-			unlimited_int::Newton_Raphson_lookup.most_recent.push_back(new size_t(fingerprint_divisor));
-			item_in_list = unlimited_int::Newton_Raphson_lookup.most_recent.end()->previous;
+			item_in_list = unlimited_int::Newton_Raphson_lookup.most_recent.push_back(new size_t(fingerprint_divisor));
 		}
-		unlimited_int::Newton_Raphson_lookup.reciprocals_map.emplace(fingerprint_divisor, reciprocal_information_for_database(divisor.calculate_reciprocal_floor(dividend.num_of_used_ints + (size_t)2), std::make_unique<unlimited_int>(divisor.calculate_efficient_cryptographic_hash()), item_in_list));
+		unlimited_int::Newton_Raphson_lookup.reciprocals_map.emplace(fingerprint_divisor, reciprocal_information_for_database(divisor.calculate_reciprocal_floor(dividend.num_of_used_ints), std::make_unique<unlimited_int>(divisor.calculate_efficient_cryptographic_hash()), item_in_list));
 		reciprocal_iterator_in_map = unlimited_int::Newton_Raphson_lookup.reciprocals_map.find(fingerprint_divisor);
 	}
 	return unlimited_int::divide_using_reciprocal(dividend, reciprocal_iterator_in_map->second, divisor, remainder);

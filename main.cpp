@@ -1,4 +1,4 @@
-//This is just an example file. "The best way to learn is through example"
+//This is just an example file. "The best way to learn is by example"
 #include "unlimited/unlimited.hpp"
 #include <iostream>
 #include <string>
