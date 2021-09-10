@@ -18,7 +18,7 @@ size_t unlimited_int::fingerprint() const
 	const size_t length_in_bits = this->get_length_in_bits();
 	if (this->num_of_used_ints == (size_t)1)
 	{
-		const few_bits only_num = (few_bits)this->get_least_significant();
+		const few_bits only_num = (few_bits)this->get_least_significant_few_bits();
 #if IS_64_BIT_SYSTEM
 		return (size_t)6507803568836410511 ^ ((size_t)only_num ^ length_in_bits);
 #else

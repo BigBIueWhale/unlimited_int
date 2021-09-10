@@ -30,7 +30,7 @@ std::string unlimited_int::to_string(const unsigned int base) const
 		unlimited_int current_digit_ui; //The remainder
 		//Based on my test: when printing 512 bit numbers in base 10, recurring division is about 30% faster than using the function of dividing by few_bits.
 		numerator = numerator.recurring_division(numerator, base_str, &current_digit_ui);
-		string_intermediate.push_back(unlimited_int::number_to_char((int)current_digit_ui.get_least_significant(), base));
+		string_intermediate.push_back(unlimited_int::number_to_char((int)current_digit_ui.get_least_significant_few_bits(), base));
 	}
 	//by now we have the digits of the result backwards, in string_intermediate, and without minus symbol.
 	std::reverse(string_intermediate.begin(), string_intermediate.end());

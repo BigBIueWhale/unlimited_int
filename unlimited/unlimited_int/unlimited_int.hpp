@@ -68,14 +68,14 @@ namespace unlimited
 		//This entire function is basically a hack to gain access to a const unlimited_int
 		explicit unlimited_int(const unlimited_int& num_to_assign, bool auto_destroy_this);
 		//creates an unlimited_int from an array of uint32_t. Used heavily in the cryptographic secure random number generator, and specifically in the SHA-256 algorithm that hashes the value of an unlimited_int.
-		explicit unlimited_int(uint32_t*, size_t);
+		explicit unlimited_int(const uint32_t *const arr, const size_t len) { this->assign(arr, len); }
 		//creates an unlimited_int from an array of uint64_t. Used heavily in the cryptographic secure random number generator, and specifically in the SHA-512 algorithm that hashes the value of an unlimited_int.
-		explicit unlimited_int(uint64_t*, size_t);
+		explicit unlimited_int(const uint64_t* const arr, const size_t len) { this->assign(arr, len); };
 //Assign
 		//used by unlimited_int::unlimited_int(uint32_t*, size_t) but can also be used independently
-		void assign(uint32_t*, size_t);
+		void assign(const uint32_t *const, const size_t);
 		//used by unlimited_int::unlimited_int(uint64_t*, size_t) but can also be used independently
-		void assign(uint64_t*, size_t);
+		void assign(const uint64_t *const, const size_t);
 		void assign(const few_bits value_to_assign);
 		void assign(const many_bits value_to_assign);
 		void assign(const few_bits_signed value_to_assign)
@@ -110,6 +110,10 @@ namespace unlimited
 		char estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const;
 		//returns 'L' for larger, 'S' for smaller, 'E' for equal. This function is precise, and yet tries to increase efficiency by first using estimate_compare_to
 		char compare_to(const unlimited_int& num_to_compare_to) const;
+		char compare_to(const few_bits other_num) const;
+		char compare_to(const many_bits other_num) const;
+		char compare_to(const few_bits_signed other_num) const;
+		char compare_to(const many_bits_signed other_num) const;
 		//returns 'L' for larger, 'S' for smaller, 'E' for equal. This function is precise, and yet tries to increase efficiency by first using estimate_compare_to. Ignores minus/plus sign of this.
 		char compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const;
 		char compare_to_ignore_sign(const few_bits other_num) const;
@@ -234,16 +238,23 @@ namespace unlimited
 		}
 //Constructors
 		unlimited_int() { this->forget_memory(); }
-		explicit unlimited_int(const few_bits num_to_assign) { this->assign(num_to_assign); }
-		explicit unlimited_int(const many_bits num_to_assign) { this->assign(num_to_assign); }
-		explicit unlimited_int(const few_bits_signed num_to_assign);
-		explicit unlimited_int(const many_bits_signed num_to_assign);
+		unlimited_int(const few_bits num_to_assign) { this->assign(num_to_assign); }
+		unlimited_int(const many_bits num_to_assign) { this->assign(num_to_assign); }
+		unlimited_int(const few_bits_signed num_to_assign) { this->assign(num_to_assign); }
+		unlimited_int(const many_bits_signed num_to_assign) { this->assign(num_to_assign); };
+		//Use unlimited_int::from_string to specify the base
+		unlimited_int(const std::string& str_num) : unlimited_int(unlimited_int::from_string(str_num, 10)) {}
 		//copy constructor- creates full independent copy.
 		unlimited_int(const unlimited_int& num_to_assign) { num_to_assign.copy_to(*this); }
 		//move constructor- transfers the content of an unlimited_int prvalue, into "this"
 		unlimited_int(unlimited_int&& source) noexcept;
-		//Assign Integer
-		void operator=(const many_bits_signed num) { this->assign(num); }
+//Assign
+		//Use unlimited_int::from_string to specify the base
+		void operator=(const std::string& str_num) { (*this) = unlimited_int::from_string(str_num, 10); }
+		void operator=(const few_bits num_to_assign) { this->assign(num_to_assign); }
+		void operator=(const few_bits_signed num_to_assign) { this->assign(num_to_assign); }
+		void operator=(const many_bits num_to_assign) { this->assign(num_to_assign); }
+		void operator=(const many_bits_signed num_to_assign) { this->assign(num_to_assign); }
 //Transfers And Copies
 		//Move assignment- transfers the content of an unlimited_int prvalue, into "this"
 		void operator=(unlimited_int&& source) noexcept;
@@ -251,11 +262,18 @@ namespace unlimited
 		void swap(unlimited_int& num_to_swap_with);
 		//creates full independent copy.
 		void operator=(const unlimited_int& num_to_assign) { num_to_assign.copy_to(*this); }
+//Conversions
+		operator few_bits();
+		operator few_bits_signed();
+		operator many_bits();
+		operator many_bits_signed();
 //Information Gathering O(1)
 		//converts unlimited_int to few_bits (ignoring the sign of the unlimited_int object)
 		//This function works no matter the size of this. It returns 0 of this is 0. It can work as a conversion
 		//to few_bits when this unlimited_int is within the range of few_bits (meaning, it would have to be very small).
-		few_bits get_least_significant() const;
+		few_bits get_least_significant_few_bits() const;
+		//Just like get_least_significant_few_bits() except that it returns a many_bits, and therefore bases on the last 2 least significant few_bits.
+		many_bits get_least_significant_many_bits() const;
 		//Returns the length in bits (the used part).
 		//It gives the precise number, and manipulates the most significant few_bits using bitwise operators to get the precise length in bits
 		size_t get_length_in_bits() const;
@@ -264,7 +282,7 @@ namespace unlimited
 		//super-efficient method to find modulo_2 of unlimited_int number.
 		//This function returns either 1 or 0.
 		//Confusingly it's actually modulo and not remainder of division (different approach with negative numbers).
-		int modulo_2() const { return (int)(this->get_least_significant() & (few_bits)1); }
+		int modulo_2() const { return (int)(this->get_least_significant_few_bits() & (few_bits)1); }
 //Karatsuba multiplication
 		//The interface through which to use Karatsuba multiplication algorithm.
 		//multiplies using Karatsuba and tries to optimize multiplication process by checking if one of the multiplicands is a power of 2. Also deals with negative numbers.
@@ -274,8 +292,9 @@ namespace unlimited
 		//Uses multiply_karatsuba_destroy_this for extra efficiency over the normal multiply_karatsuba.
 		void operator*=(const unlimited_int&);
 //Multiplication by few_bits
+		//Multiplication by few_bits specifically has a more efficient implementation.
 		friend unlimited_int operator*(const few_bits, const unlimited_int&);
-		//A little bit more efficient than using the regular multiplication by few_bits function.
+		//Multiplication by few_bits specifically has a more efficient implementation.
 		void operator*=(const few_bits num) { this->multiply(num, this); }
 		//interface to access multiply functions. It multiplies an unlimited_int by few_bits. Efficiency: O(n) where n is the number of digits in the unlimited_int number.
 		unlimited_int operator*(const few_bits num) const;
@@ -290,8 +309,10 @@ namespace unlimited
 		//Interface through which to use "unlimited_int* divide_by(const unlimited_int& num_to_divide_by) const" when the number is big, and
 		//"unlimited_int* divide_by(const unlimited_int& num_to_divide_by) const"
 		unlimited_int operator/(const unlimited_int& denominator) const;
+		//Division by few_bits specifically has a more efficient implementation.
 		unlimited_int operator/(const few_bits divisor) const;
 		void operator/=(const unlimited_int& denominator) { (*this) = (*this) / denominator; }
+		//Division by few_bits specifically has a more efficient implementation.
 		void operator/=(const few_bits divisor) { (*this) = (*this) / divisor; }
 //Newton Raphson
 		//Newton-Raphson method (kind of like binary search but faster) to find the reciprocal of an integer.
@@ -325,9 +346,7 @@ namespace unlimited
 		void operator-=(const unlimited_int& other) { this->subtract(&other, this); }
 		unlimited_int operator-(const unlimited_int& other) const;
 //Onary Operations
-		//expected Efficiency O(1)
 		void operator++();
-		//expected Efficiency O(1)
 		void operator--();
 		//Creates full copy with opposite sign, unless number is zero because then the sign stays positive.
 		unlimited_int operator-() const;
@@ -346,6 +365,55 @@ namespace unlimited
 		bool operator<(const unlimited_int& other) const { const char value = this->compare_to(other); return value == 'S'; }
 		bool operator>(const unlimited_int& other) const { const char value = this->compare_to(other); return value == 'L'; }
 		bool operator!=(const unlimited_int& ui) const { return (this->compare_to(ui) != 'E'); }
+		bool operator<(const few_bits num) const { return this->compare_to(num) == 'S'; }
+		bool operator<(const many_bits num) const { return this->compare_to(num) == 'S'; }
+		bool operator<(const few_bits_signed num) const { return this->compare_to(num) == 'S'; }
+		bool operator<(const many_bits_signed num) const { return this->compare_to(num) == 'S'; }
+		friend bool operator<(const few_bits num, const unlimited_int& other);
+		friend bool operator<(const many_bits num, const unlimited_int& other);
+		friend bool operator<(const few_bits_signed num, const unlimited_int& other);
+		friend bool operator<(const many_bits_signed num, const unlimited_int& other);
+		bool operator>(const few_bits num) const { return this->compare_to(num) == 'L'; }
+		bool operator>(const many_bits num) const { return this->compare_to(num) == 'L'; }
+		bool operator>(const few_bits_signed num) const { return this->compare_to(num) == 'L'; }
+		bool operator>(const many_bits_signed num) const { return this->compare_to(num) == 'L'; }
+		friend bool operator>(const few_bits num, const unlimited_int& other);
+		friend bool operator>(const many_bits num, const unlimited_int& other);
+		friend bool operator>(const few_bits_signed num, const unlimited_int& other);
+		friend bool operator>(const many_bits_signed num, const unlimited_int& other);
+		bool operator<=(const few_bits num) const { const char result = this->compare_to(num); return result == 'S' || result == 'E'; }
+		bool operator<=(const many_bits num) const { const char result = this->compare_to(num); return result == 'S' || result == 'E'; }
+		bool operator<=(const few_bits_signed num) const { const char result = this->compare_to(num); return result == 'S' || result == 'E'; }
+		bool operator<=(const many_bits_signed num) const { const char result = this->compare_to(num); return result == 'S' || result == 'E'; }
+		friend bool operator<=(const few_bits num, const unlimited_int& other);
+		friend bool operator<=(const many_bits num, const unlimited_int& other);
+		friend bool operator<=(const few_bits_signed num, const unlimited_int& other);
+		friend bool operator<=(const many_bits_signed num, const unlimited_int& other);
+		bool operator>=(const few_bits num) const { const char result = this->compare_to(num); return result == 'L' || result == 'E'; }
+		bool operator>=(const many_bits num) const { const char result = this->compare_to(num); return result == 'L' || result == 'E'; }
+		bool operator>=(const few_bits_signed num) const { const char result = this->compare_to(num); return result == 'L' || result == 'E'; }
+		bool operator>=(const many_bits_signed num) const { const char result = this->compare_to(num); return result == 'L' || result == 'E'; }
+		friend bool operator>=(const few_bits num, const unlimited_int& other);
+		friend bool operator>=(const many_bits num, const unlimited_int& other);
+		friend bool operator>=(const few_bits_signed num, const unlimited_int& other);
+		friend bool operator>=(const many_bits_signed num, const unlimited_int& other);
+
+		bool operator==(const few_bits num) const { return this->compare_to(num) == 'E'; }
+		bool operator==(const many_bits num) const { return this->compare_to(num) == 'E'; }
+		bool operator==(const few_bits_signed num) const { return this->compare_to(num) == 'E'; }
+		bool operator==(const many_bits_signed num) const { return this->compare_to(num) == 'E'; }
+		friend bool operator==(const few_bits num, const unlimited_int& other);
+		friend bool operator==(const many_bits num, const unlimited_int& other);
+		friend bool operator==(const few_bits_signed num, const unlimited_int& other);
+		friend bool operator==(const many_bits_signed num, const unlimited_int& other);
+		bool operator!=(const few_bits num) const { return this->compare_to(num) != 'E'; }
+		bool operator!=(const many_bits num) const { return this->compare_to(num) != 'E'; }
+		bool operator!=(const few_bits_signed num) const { return this->compare_to(num) != 'E'; }
+		bool operator!=(const many_bits_signed num) const { return this->compare_to(num) != 'E'; }
+		friend bool operator!=(const few_bits num, const unlimited_int& other);
+		friend bool operator!=(const many_bits num, const unlimited_int& other);
+		friend bool operator!=(const few_bits_signed num, const unlimited_int& other);
+		friend bool operator!=(const many_bits_signed num, const unlimited_int& other);
 //Bitwise Operators
 		friend std::ostream& operator<<(std::ostream& os, const unlimited_int& ui);
 		void operator<<=(const size_t num_to_shift_by) { this->shift_left_by_bits(num_to_shift_by); }
@@ -476,5 +544,29 @@ namespace unlimited
 	std::ostream& operator<<(std::ostream& os, const unlimited_int& ui);
 	//Optimized method for multiplying unlimited_int by few_bits
 	unlimited_int operator*(const few_bits, const unlimited_int&);
+	bool operator<(const few_bits num, const unlimited_int& other);
+	bool operator<(const many_bits num, const unlimited_int& other);
+	bool operator<(const few_bits_signed num, const unlimited_int& other);
+	bool operator<(const many_bits_signed num, const unlimited_int& other);
+	bool operator>(const few_bits num, const unlimited_int& other);
+	bool operator>(const many_bits num, const unlimited_int& other);
+	bool operator>(const few_bits_signed num, const unlimited_int& other);
+	bool operator>(const many_bits_signed num, const unlimited_int& other);
+	bool operator<=(const few_bits num, const unlimited_int& other);
+	bool operator<=(const many_bits num, const unlimited_int& other);
+	bool operator<=(const few_bits_signed num, const unlimited_int& other);
+	bool operator<=(const many_bits_signed num, const unlimited_int& other);
+	bool operator>=(const few_bits num, const unlimited_int& other);
+	bool operator>=(const many_bits num, const unlimited_int& other);
+	bool operator>=(const few_bits_signed num, const unlimited_int& other);
+	bool operator>=(const many_bits_signed num, const unlimited_int& other);
+	bool operator==(const few_bits num, const unlimited_int& other);
+	bool operator==(const many_bits num, const unlimited_int& other);
+	bool operator==(const few_bits_signed num, const unlimited_int& other);
+	bool operator==(const many_bits_signed num, const unlimited_int& other);
+	bool operator!=(const few_bits num, const unlimited_int& other);
+	bool operator!=(const many_bits num, const unlimited_int& other);
+	bool operator!=(const few_bits_signed num, const unlimited_int& other);
+	bool operator!=(const many_bits_signed num, const unlimited_int& other);
 }
 #endif

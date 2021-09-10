@@ -145,3 +145,27 @@ std::ostream& unlimited::operator<<(std::ostream& os, const unlimited_int& ui)
 	os << str_of_this;
 	return os;
 }
+bool unlimited::operator<(const few_bits num, const unlimited_int& other) { return other.compare_to(num) == 'L'; }
+bool unlimited::operator<(const many_bits num, const unlimited_int& other) { return other.compare_to(num) == 'L'; }
+bool unlimited::operator<(const few_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'L'; }
+bool unlimited::operator<(const many_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'L'; }
+bool unlimited::operator>(const few_bits num, const unlimited_int& other) { return other.compare_to(num) == 'S'; }
+bool unlimited::operator>(const many_bits num, const unlimited_int& other) { return other.compare_to(num) == 'S'; }
+bool unlimited::operator>(const few_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'S'; }
+bool unlimited::operator>(const many_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'S'; }
+bool unlimited::operator<=(const few_bits num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'L' || result == 'E'; }
+bool unlimited::operator<=(const many_bits num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'L' || result == 'E'; }
+bool unlimited::operator<=(const few_bits_signed num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'L' || result == 'E'; }
+bool unlimited::operator<=(const many_bits_signed num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'L' || result == 'E'; }
+bool unlimited::operator>=(const few_bits num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'S' || result == 'E'; }
+bool unlimited::operator>=(const many_bits num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'S' || result == 'E'; }
+bool unlimited::operator>=(const few_bits_signed num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'S' || result == 'E'; }
+bool unlimited::operator>=(const many_bits_signed num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'S' || result == 'E'; }
+bool unlimited::operator==(const few_bits num, const unlimited_int& other) { return other.compare_to(num) == 'E'; }
+bool unlimited::operator==(const many_bits num, const unlimited_int& other) { return other.compare_to(num) == 'E'; }
+bool unlimited::operator==(const few_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'E'; }
+bool unlimited::operator==(const many_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'E'; }
+bool unlimited::operator!=(const few_bits num, const unlimited_int& other) { return other.compare_to(num) != 'E'; }
+bool unlimited::operator!=(const many_bits num, const unlimited_int& other) { return other.compare_to(num) != 'E'; }
+bool unlimited::operator!=(const few_bits_signed num, const unlimited_int& other) { return other.compare_to(num) != 'E'; }
+bool unlimited::operator!=(const many_bits_signed num, const unlimited_int& other) { return other.compare_to(num) != 'E'; }

@@ -49,7 +49,7 @@ unlimited_int unlimited_int::from_string(const char* str, const unsigned int bas
 		int value = unlimited_int::char_to_number(str[index], base);
 		if (value < 0 || value > 35) //until base 36 (including)
 			throw std::invalid_argument("\nError in function \"unlimited_int::from_c_string(char*, const int base)\": Invalid char in the char array");
-		answer += multiplicand * value;
+		answer += multiplicand * (few_bits)value;
 		multiplicand *= base_ui;
 		if (index-- == (size_t)0)
 			break;

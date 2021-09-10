@@ -64,22 +64,30 @@ using namespace unlimited;
 //		std::cout << "\nPrime number: " << prime;
 //	}
 //}
+//void helper()
+//{
+//	const size_t num_of_bits = 512;
+//	unlimited_int min = unlimited_int((few_bits)1) << num_of_bits - (size_t)1;
+//	unlimited_int max = (unlimited_int((few_bits)1) << num_of_bits) - unlimited_int(1);
+//	const auto start_time = std::chrono::steady_clock::now();
+//	constexpr int NUM_ITERATIONS = 40;
+//	for (int counter = 0; counter < NUM_ITERATIONS; ++counter)
+//	{
+//		std::cout << "\nnumber " << std::setw(4) << std::setfill(' ') << counter + 1 << " / " << NUM_ITERATIONS << ": ";
+//		std::cout.flush();
+//		std::cout << unlimited_int::generate_random_prime_multithreaded(min, max);
+//		std::cout.flush();
+//	}
+//	const auto end_time = std::chrono::steady_clock::now();
+//	const auto time_duration = end_time - start_time;
+//	const long double time_duration_seconds = static_cast<long double>(std::chrono::duration_cast<std::chrono::nanoseconds>(time_duration).count()) / static_cast<long double>(1000000000);
+//	std::cout << "\nTime took: " << time_duration_seconds << " seconds.";
+//}
 void helper()
 {
-	const size_t num_of_bits = 512;
-	unlimited_int min = unlimited_int((few_bits)1) << num_of_bits - (size_t)1;
-	unlimited_int max = (unlimited_int((few_bits)1) << num_of_bits) - unlimited_int(1);
-	const auto start_time = std::chrono::steady_clock::now();
-	constexpr int NUM_ITERATIONS = 40;
-	for (int counter = 0; counter < NUM_ITERATIONS; ++counter)
+	for (unlimited_int counter = -5; counter < 20000000; ++counter)
 	{
-		std::cout << "\nnumber " << std::setw(4) << std::setfill(' ') << counter + 1 << " / " << NUM_ITERATIONS << ": ";
-		std::cout.flush();
-		std::cout << unlimited_int::generate_random_prime_multithreaded(min, max);
-		std::cout.flush();
+		if (static_cast<few_bits>(counter) % (few_bits)10000 == 0)
+			std::cout << "  " << counter;
 	}
-	const auto end_time = std::chrono::steady_clock::now();
-	const auto time_duration = end_time - start_time;
-	const long double time_duration_seconds = static_cast<long double>(std::chrono::duration_cast<std::chrono::nanoseconds>(time_duration).count()) / static_cast<long double>(1000000000);
-	std::cout << "\nTime took: " << time_duration_seconds << " seconds.";
 }

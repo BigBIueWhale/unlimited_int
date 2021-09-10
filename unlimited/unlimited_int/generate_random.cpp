@@ -81,7 +81,7 @@ unlimited_int unlimited_int::generate_truly_random()
 	}
 	//using memory addresses and current structure of num_to_return to increase randomness
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_length_in_bits()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_least_significant()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_least_significant_few_bits()), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.num_of_intarrays_used), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->num_of_ints), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->size()), nums_to_generate_seed.data(), &uint32_t_index);
@@ -90,7 +90,7 @@ unlimited_int unlimited_int::generate_truly_random()
 	insert_long_long_into_uint32_t(reinterpret_cast<long long>(num_to_return.intarrays), nums_to_generate_seed.data(), &uint32_t_index);
 	num_to_return = unlimited_int(nums_to_generate_seed.data(), SIZE_OF_SEED_ARR).calculate_efficient_cryptographic_hash();
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_length_in_bits()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_least_significant()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_least_significant_few_bits()), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.num_of_intarrays_used), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->num_of_ints), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->size()), nums_to_generate_seed.data(), &uint32_t_index);
@@ -115,11 +115,26 @@ unlimited_int unlimited_int::generate_next_random()
 	return fork_of_main_chain;
 }
 //returns the least significant few_bits, and 0 if empty
-few_bits unlimited_int::get_least_significant() const
+few_bits unlimited_int::get_least_significant_few_bits() const
 {
-	if (this->num_of_used_ints == (size_t)0)
+	if (this->is_zero())
 		return (few_bits)0;
 	return *this->intarrays->first()->value->intarr;
+}
+many_bits unlimited_int::get_least_significant_many_bits() const
+{
+	if (this->is_zero())
+		return (few_bits)0;
+	const custom_linked_list_node<int_array> *const this_intarrays_first = this->intarrays->first();
+	const many_bits least_significant_many_bits = static_cast<many_bits>(*this_intarrays_first->value->intarr);
+	if (this->num_of_used_ints == (size_t)1)
+		return least_significant_many_bits;
+	many_bits second_least_significant_many_bits;
+	if (this_intarrays_first->value->num_of_used_ints == (size_t)1)
+		second_least_significant_many_bits = static_cast<many_bits>(*this_intarrays_first->next->value->intarr);
+	else
+		second_least_significant_many_bits = static_cast<many_bits>(*(this_intarrays_first->value->intarr + (size_t)1));
+	return (second_least_significant_many_bits << NUM_OF_BITS_few_bits) + least_significant_many_bits;
 }
 size_t ceiling_division(size_t numerator, size_t denominator)
 {

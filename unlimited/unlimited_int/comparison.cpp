@@ -252,7 +252,7 @@ char unlimited_int::compare_to_ignore_sign(const few_bits other_num) const
 {
 	if (this->num_of_used_ints > (size_t)1)
 		return 'L';
-	const few_bits this_only_num = this->get_least_significant();
+	const few_bits this_only_num = this->get_least_significant_few_bits();
 	if (this_only_num < other_num)
 		return 'S';
 	else if (this_only_num > other_num)
@@ -272,7 +272,7 @@ char unlimited_int::compare_to_ignore_sign(const many_bits other_num) const
 		return 'S';
 	if (num_of_few_bits == (size_t)0)
 		return 'E';
-	const few_bits this_least_significant_num = this->get_least_significant();
+	const few_bits this_least_significant_num = this->get_least_significant_few_bits();
 	if (num_of_few_bits == (size_t)1)
 	{
 		if (this_least_significant_num < other_num)
@@ -301,5 +301,53 @@ char unlimited_int::compare_to_ignore_sign(const many_bits other_num) const
 		if (this_least_significant_num < low_part)
 			return 'S';
 	}
+	return 'E';
+}
+char unlimited_int::compare_to(const few_bits other_num) const
+{
+	if (this->is_negative)
+		return 'S';
+	return this->compare_to_ignore_sign(other_num);
+}
+char unlimited_int::compare_to(const many_bits other_num) const
+{
+	if (this->is_negative)
+		return 'S';
+	return this->compare_to_ignore_sign(other_num);
+}
+char unlimited_int::compare_to(const few_bits_signed other_num) const
+{
+	const bool other_num_is_negative = other_num < (few_bits_signed)0;
+	if (this->is_negative && !other_num_is_negative)
+		return 'S';
+	if (!this->is_negative && other_num_is_negative)
+		return 'L';
+	if (!this->is_negative && !other_num_is_negative)
+		return this->compare_to_ignore_sign(static_cast<few_bits>(other_num));
+	//By now we know that both are negative
+	const unlimited_int this_positive(*this, false);
+	const char result_comparison = this_positive.compare_to_ignore_sign(static_cast<few_bits>(-other_num));
+	if (result_comparison == 'L')
+		return 'S';
+	if (result_comparison == 'S')
+		return 'L';
+	return 'E';
+}
+char unlimited_int::compare_to(const many_bits_signed other_num) const
+{
+	const bool other_num_is_negative = other_num < (few_bits_signed)0;
+	if (this->is_negative && !other_num_is_negative)
+		return 'S';
+	if (!this->is_negative && other_num_is_negative)
+		return 'L';
+	if (!this->is_negative && !other_num_is_negative)
+		return this->compare_to_ignore_sign(static_cast<few_bits>(other_num));
+	//By now we know that both are negative
+	const unlimited_int this_positive(*this, false);
+	const char result_comparison = this_positive.compare_to_ignore_sign(static_cast<few_bits>(-other_num));
+	if (result_comparison == 'L')
+		return 'S';
+	if (result_comparison == 'S')
+		return 'L';
 	return 'E';
 }

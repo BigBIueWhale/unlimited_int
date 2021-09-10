@@ -3,7 +3,7 @@ using namespace unlimited;
 #if DEBUG_MODE == 2
 #include <iostream>
 #endif
-void unlimited_int::assign(uint32_t* arr, size_t len)
+void unlimited_int::assign(const uint32_t *const arr, const size_t len)
 {
 	if (this->auto_destroy)
 		this->flush();
@@ -75,86 +75,7 @@ void unlimited_int::assign(uint32_t* arr, size_t len)
 		throw std::logic_error("\nThe inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, size_t len)\"");
 #endif
 }
-void unlimited_int::assign(const few_bits value_to_assign)
-{
-	if (this->auto_destroy)
-		this->flush();
-	else
-	{
-		this->forget_memory();
-		this->auto_destroy = true;
-	}
-	if (value_to_assign == (few_bits)0)
-		return;
-	else
-	{
-		this->increase_until_num_of_ints((size_t)1);
-		this->num_of_intarrays_used = (size_t)1;
-		this->is_negative = false;
-		this->num_of_used_ints = (size_t)1;
-		this->intarrays->first()->value->assign(value_to_assign);
-	}
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"assign(few_ints value_to_assign)\":";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::assign(const few_bits value_to_assign)\"");
-#endif
-}
-void unlimited_int::assign(const many_bits value_to_assign)
-{
-	if (this->auto_destroy)
-		this->flush();
-	else
-	{
-		this->forget_memory();
-		this->auto_destroy = true;
-	}
-	if (value_to_assign == (many_bits)0)
-		return;
-	else
-	{
-		this->is_negative = false;
-		const few_bits remainder = (few_bits)value_to_assign;
-		const few_bits carry = (few_bits)(value_to_assign >> NUM_OF_BITS_few_bits);
-		if (carry != (few_bits)0)
-		{
-			this->num_of_used_ints = (size_t)2;
-			this->increase_until_num_of_ints((size_t)2);
-			custom_linked_list_node<int_array>* it = this->intarrays->first();
-			int_array* int_array_to_change = it->value;
-			int_array_to_change->assign(remainder);
-			if (int_array_to_change->intarr_len == (size_t)1)
-			{
-				this->num_of_intarrays_used = (size_t)2;
-				it = it->next;
-				it->value->assign(carry);
-			}
-			else
-			{
-				this->num_of_intarrays_used = (size_t)1;
-				int_array_to_change->intarr[(size_t)1] = carry;
-				int_array_to_change->num_of_used_ints = (size_t)2;
-			}
-		}
-		else
-		{
-			this->num_of_used_ints = (size_t)1;
-			this->num_of_intarrays_used = (size_t)1;
-			this->increase_until_num_of_ints((size_t)1);
-			this->intarrays->first()->value->assign(remainder);
-		}
-	}
-#if DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"assign(many_bits value_to_assign)\":";
-#endif
-#if DEBUG_MODE > 0
-	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::assign(const many_bits value_to_assign)\"");
-#endif
-}
-void unlimited_int::assign(uint64_t* arr, size_t len)
+void unlimited_int::assign(const uint64_t *const arr, const size_t len)
 {
 	if (this->auto_destroy)
 		this->flush();
@@ -234,5 +155,84 @@ void unlimited_int::assign(uint64_t* arr, size_t len)
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("\nThe inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"");
+#endif
+}
+void unlimited_int::assign(const few_bits value_to_assign)
+{
+	if (this->auto_destroy)
+		this->flush();
+	else
+	{
+		this->forget_memory();
+		this->auto_destroy = true;
+	}
+	if (value_to_assign == (few_bits)0)
+		return;
+	else
+	{
+		this->increase_until_num_of_ints((size_t)1);
+		this->num_of_intarrays_used = (size_t)1;
+		this->is_negative = false;
+		this->num_of_used_ints = (size_t)1;
+		this->intarrays->first()->value->assign(value_to_assign);
+	}
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"assign(few_ints value_to_assign)\":";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies())
+		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::assign(const few_bits value_to_assign)\"");
+#endif
+}
+void unlimited_int::assign(const many_bits value_to_assign)
+{
+	if (this->auto_destroy)
+		this->flush();
+	else
+	{
+		this->forget_memory();
+		this->auto_destroy = true;
+	}
+	if (value_to_assign == (many_bits)0)
+		return;
+	else
+	{
+		this->is_negative = false;
+		const few_bits remainder = (few_bits)value_to_assign;
+		const few_bits carry = (few_bits)(value_to_assign >> NUM_OF_BITS_few_bits);
+		if (carry != (few_bits)0)
+		{
+			this->num_of_used_ints = (size_t)2;
+			this->increase_until_num_of_ints((size_t)2);
+			custom_linked_list_node<int_array>* it = this->intarrays->first();
+			int_array* int_array_to_change = it->value;
+			int_array_to_change->assign(remainder);
+			if (int_array_to_change->intarr_len == (size_t)1)
+			{
+				this->num_of_intarrays_used = (size_t)2;
+				it = it->next;
+				it->value->assign(carry);
+			}
+			else
+			{
+				this->num_of_intarrays_used = (size_t)1;
+				int_array_to_change->intarr[(size_t)1] = carry;
+				int_array_to_change->num_of_used_ints = (size_t)2;
+			}
+		}
+		else
+		{
+			this->num_of_used_ints = (size_t)1;
+			this->num_of_intarrays_used = (size_t)1;
+			this->increase_until_num_of_ints((size_t)1);
+			this->intarrays->first()->value->assign(remainder);
+		}
+	}
+#if DEBUG_MODE == 2
+	std::cout << "\nFinding inconsistencies in end of function \"assign(many_bits value_to_assign)\":";
+#endif
+#if DEBUG_MODE > 0
+	if (this->find_inconsistencies())
+		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::assign(const many_bits value_to_assign)\"");
 #endif
 }
