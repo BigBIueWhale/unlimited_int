@@ -54,6 +54,6 @@ unlimited_int unlimited_int::from_string(const char* str, const unsigned int bas
 		if (index-- == (size_t)0)
 			break;
 	}
-	answer.is_negative = set_is_negative_to_true;
+	answer._is_negative = set_is_negative_to_true;
 	return answer;
 }

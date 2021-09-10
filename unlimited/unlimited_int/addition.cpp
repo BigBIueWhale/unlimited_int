@@ -34,16 +34,16 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		return;
 	}
 	int num_of_negatives = 0;
-	bool this_is_negative = this->is_negative, add_is_negative = num_to_add->is_negative, set_answer_to_negative;
+	bool this_is_negative = this->_is_negative, add_is_negative = num_to_add->_is_negative, set_answer_to_negative;
 	if (this_is_negative)
 		++num_of_negatives;
 	if (add_is_negative)
 		++num_of_negatives;
 	unlimited_int this_copy(*this, false);
 	unlimited_int num_to_add_copy(*num_to_add, false);
-	this_copy.is_negative = false;
+	this_copy._is_negative = false;
 	this_copy.auto_destroy = false;
-	num_to_add_copy.is_negative = false;
+	num_to_add_copy._is_negative = false;
 	num_to_add_copy.auto_destroy = false;
 	if (num_of_negatives == 2)
 		set_answer_to_negative = true;
@@ -320,7 +320,7 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		current_intarray_for_answer->num_of_used_ints = index_answer + (size_t)1;
 		answer->num_of_intarrays_used = num_of_intarrays_used_for_answer;
 	}
-	answer->is_negative = set_answer_to_negative;
+	answer->_is_negative = set_answer_to_negative;
 #if DEBUG_MODE == 2
 	std::cout << "\nEnd of add:";
 #endif

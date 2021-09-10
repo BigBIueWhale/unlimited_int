@@ -14,9 +14,9 @@ unlimited_int unlimited_int::operator/(const unlimited_int& denominator) const
 	else
 		answer = this->divide_by(denominator);
 	if (answer.num_of_used_ints == (size_t)0)
-		answer.is_negative = false;
-	else if (this->is_negative != denominator.is_negative)
-		answer.is_negative = true;
+		answer._is_negative = false;
+	else if (this->_is_negative != denominator._is_negative)
+		answer._is_negative = true;
 	return answer;
 }
 unlimited_int unlimited_int::operator/(const few_bits divisor) const
@@ -24,9 +24,9 @@ unlimited_int unlimited_int::operator/(const few_bits divisor) const
 	if (divisor == (few_bits)0)
 		throw std::invalid_argument("\nError in function: \"unlimited_int* unlimited_int::operator/(const few_bits denominator) const\" Can't divide by zero");
 	unlimited_int answer = this->divide_by(divisor);
-	answer.is_negative = this->is_negative;
+	answer._is_negative = this->_is_negative;
 	if (answer.is_zero())
-		answer.is_negative = false;
+		answer._is_negative = false;
 	return answer;
 }
 unlimited_int unlimited_int::operator*(const few_bits num) const
@@ -54,9 +54,9 @@ void unlimited_int::operator*=(const unlimited_int& other)
 	else //neither numbers are powers of 2.
 		*this = this->multiply_karatsuba_destroy_this(&other);
 	if (this->num_of_used_ints == (size_t)0)
-		this->is_negative = false;
-	else if (this->is_negative != other.is_negative)
-		this->is_negative = true;
+		this->_is_negative = false;
+	else if (this->_is_negative != other._is_negative)
+		this->_is_negative = true;
 }
 unlimited_int unlimited_int::operator+(const unlimited_int& other) const
 {

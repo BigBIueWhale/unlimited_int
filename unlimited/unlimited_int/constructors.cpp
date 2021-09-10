@@ -7,7 +7,7 @@ unlimited_int::unlimited_int(const unlimited_int& num_to_assign, bool auto_destr
 {
 	this->auto_destroy = auto_destroy_this;
 	this->intarrays = num_to_assign.intarrays;
-	this->is_negative = num_to_assign.is_negative;
+	this->_is_negative = num_to_assign._is_negative;
 	this->num_of_intarrays_used = num_to_assign.num_of_intarrays_used;
 	this->num_of_used_ints = num_to_assign.num_of_used_ints;
 #if DEBUG_MODE == 2

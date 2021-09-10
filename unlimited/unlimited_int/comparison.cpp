@@ -23,7 +23,7 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 #endif
 		return 'E';
 	}
-	if ((this->is_negative) && (num_to_compare_to.is_negative == false))
+	if ((this->_is_negative) && (num_to_compare_to._is_negative == false))
 	{
 #if DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
@@ -34,7 +34,7 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 #endif
 		return 'S';
 	}
-	if ((this->is_negative == false) && (num_to_compare_to.is_negative))
+	if ((this->_is_negative == false) && (num_to_compare_to._is_negative))
 	{
 #if DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
@@ -46,7 +46,7 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 		return 'L';
 	}
 	bool both_negative = false;
-	if (this->is_negative)
+	if (this->_is_negative)
 	{
 		both_negative = true;
 	}
@@ -148,7 +148,7 @@ char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const
 	char value_compare_estimation = this->estimate_compare_to(num_to_compare_to);
 	if (value_compare_estimation != 'E')
 		return value_compare_estimation;
-	const bool both_are_negative = this->is_negative;
+	const bool both_are_negative = this->_is_negative;
 	if (this->num_of_intarrays_used == (size_t)0) //meaning they're both zero
 		return 'E';
 	const custom_linked_list_node<int_array>* it_this = this->intarrays->first();
@@ -242,9 +242,9 @@ char unlimited_int::compare_to_ignore_sign(const unlimited_int& num_to_compare_t
 {
 //Get rid of the sign
 	unlimited_int this_cpy(*this, false);
-	this_cpy.is_negative = false;
+	this_cpy._is_negative = false;
 	unlimited_int num_to_compare_to_cpy(num_to_compare_to, false);
-	num_to_compare_to_cpy.is_negative = false;
+	num_to_compare_to_cpy._is_negative = false;
 //Compare using the normal compare_to function (that does care about sign)
 	return this_cpy.compare_to(num_to_compare_to_cpy);
 }
@@ -305,24 +305,24 @@ char unlimited_int::compare_to_ignore_sign(const many_bits other_num) const
 }
 char unlimited_int::compare_to(const few_bits other_num) const
 {
-	if (this->is_negative)
+	if (this->_is_negative)
 		return 'S';
 	return this->compare_to_ignore_sign(other_num);
 }
 char unlimited_int::compare_to(const many_bits other_num) const
 {
-	if (this->is_negative)
+	if (this->_is_negative)
 		return 'S';
 	return this->compare_to_ignore_sign(other_num);
 }
 char unlimited_int::compare_to(const few_bits_signed other_num) const
 {
 	const bool other_num_is_negative = other_num < (few_bits_signed)0;
-	if (this->is_negative && !other_num_is_negative)
+	if (this->_is_negative && !other_num_is_negative)
 		return 'S';
-	if (!this->is_negative && other_num_is_negative)
+	if (!this->_is_negative && other_num_is_negative)
 		return 'L';
-	if (!this->is_negative && !other_num_is_negative)
+	if (!this->_is_negative && !other_num_is_negative)
 		return this->compare_to_ignore_sign(static_cast<few_bits>(other_num));
 	//By now we know that both are negative
 	const unlimited_int this_positive(*this, false);
@@ -336,11 +336,11 @@ char unlimited_int::compare_to(const few_bits_signed other_num) const
 char unlimited_int::compare_to(const many_bits_signed other_num) const
 {
 	const bool other_num_is_negative = other_num < (few_bits_signed)0;
-	if (this->is_negative && !other_num_is_negative)
+	if (this->_is_negative && !other_num_is_negative)
 		return 'S';
-	if (!this->is_negative && other_num_is_negative)
+	if (!this->_is_negative && other_num_is_negative)
 		return 'L';
-	if (!this->is_negative && !other_num_is_negative)
+	if (!this->_is_negative && !other_num_is_negative)
 		return this->compare_to_ignore_sign(static_cast<few_bits>(other_num));
 	//By now we know that both are negative
 	const unlimited_int this_positive(*this, false);

@@ -6,7 +6,7 @@ void unlimited_int::operator=(unlimited_int&& source) noexcept
 	if (this->auto_destroy)
 		this->flush();
 	this->auto_destroy = source.auto_destroy;
-	this->is_negative = source.is_negative;
+	this->_is_negative = source._is_negative;
 	this->num_of_intarrays_used = source.num_of_intarrays_used;
 	this->num_of_used_ints = source.num_of_used_ints;
 	this->intarrays = source.intarrays;
@@ -16,7 +16,7 @@ void unlimited_int::operator=(unlimited_int&& source) noexcept
 unlimited_int::unlimited_int(unlimited_int&& source) noexcept
 {
 	this->auto_destroy = source.auto_destroy;
-	this->is_negative = source.is_negative;
+	this->_is_negative = source._is_negative;
 	this->num_of_intarrays_used = source.num_of_intarrays_used;
 	this->num_of_used_ints = source.num_of_used_ints;
 	this->intarrays = source.intarrays;

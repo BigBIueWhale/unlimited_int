@@ -20,7 +20,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		throw std::invalid_argument("\nInvalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod)\" division by zero is undefined");
 	if (power.num_of_used_ints == (size_t)0)
 		return unlimited_int((few_bits)1);
-	if (base.num_of_used_ints == (size_t)0 || power.is_negative == true)
+	if (base.num_of_used_ints == (size_t)0 || power._is_negative == true)
 	{
 		return unlimited_int();
 	}
@@ -96,7 +96,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		throw std::invalid_argument("\nInvalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power)\" pow(0, 0) is mathematically undefined");
 	if (power.is_zero())
 		return unlimited_int(1);
-	if (base.is_zero() || power.is_negative)
+	if (base.is_zero() || power._is_negative)
 	{
 		return unlimited_int();
 	}

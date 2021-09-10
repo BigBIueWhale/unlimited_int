@@ -172,7 +172,7 @@ void unlimited_int::assign(const few_bits value_to_assign)
 	{
 		this->increase_until_num_of_ints((size_t)1);
 		this->num_of_intarrays_used = (size_t)1;
-		this->is_negative = false;
+		this->_is_negative = false;
 		this->num_of_used_ints = (size_t)1;
 		this->intarrays->first()->value->assign(value_to_assign);
 	}
@@ -197,7 +197,7 @@ void unlimited_int::assign(const many_bits value_to_assign)
 		return;
 	else
 	{
-		this->is_negative = false;
+		this->_is_negative = false;
 		const few_bits remainder = (few_bits)value_to_assign;
 		const few_bits carry = (few_bits)(value_to_assign >> NUM_OF_BITS_few_bits);
 		if (carry != (few_bits)0)

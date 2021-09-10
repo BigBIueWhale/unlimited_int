@@ -26,7 +26,7 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 			else
 			{
 				num_to_subtract->copy_to(*answer);
-				answer->is_negative = !answer->is_negative;
+				answer->_is_negative = !answer->_is_negative;
 			}
 			return;
 		}
@@ -37,12 +37,12 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 			this->copy_to(*answer);
 		return;
 	}
-	const bool num_to_subtract_is_negative = num_to_subtract->is_negative;
-	const bool this_is_negative = this->is_negative;
+	const bool num_to_subtract_is_negative = num_to_subtract->_is_negative;
+	const bool this_is_negative = this->_is_negative;
 	unlimited_int this_copy(*this, false);
 	unlimited_int num_to_subtract_copy(*num_to_subtract, false);
-	this_copy.is_negative = false;
-	num_to_subtract_copy.is_negative = false;
+	this_copy._is_negative = false;
+	num_to_subtract_copy._is_negative = false;
 	int num_of_negatives = 0;
 	if (this_is_negative)
 		++num_of_negatives;
@@ -55,7 +55,7 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 		if (this_is_negative)
 		{
 			this_copy.add(&num_to_subtract_copy, answer);
-			answer->is_negative = true;
+			answer->_is_negative = true;
 		}
 		else
 			this_copy.add(&num_to_subtract_copy, answer);
@@ -85,11 +85,11 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 		return;
 	}
 	if (compare_result == 'L')
-		answer->is_negative = false;
+		answer->_is_negative = false;
 	else //if compare_result == 'S'
 	{
 		this_copy.swap(num_to_subtract_copy);
-		answer->is_negative = true;
+		answer->_is_negative = true;
 	}
 	size_t num_of_used_ints_this = this_copy.num_of_used_ints;
 	answer->increase_until_num_of_ints(num_of_used_ints_this);

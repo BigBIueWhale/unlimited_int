@@ -32,8 +32,8 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 		destructor_unlimited_int = std::make_unique<unlimited_int>(*num_to_mult);
 		num_to_mult_cpy = destructor_unlimited_int.get();
 	}
-	if (this_cpy->is_negative != num_to_mult_cpy->is_negative)
-		answer->is_negative = true;
+	if (this_cpy->_is_negative != num_to_mult_cpy->_is_negative)
+		answer->_is_negative = true;
 	const unlimited_int *smaller_num, *bigger_num;
 	char value_of_comparison = this_cpy->estimate_compare_to_ignore_sign(*num_to_mult_cpy);
 	if (value_of_comparison == 'L')

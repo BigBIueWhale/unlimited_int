@@ -171,7 +171,7 @@ unlimited_int unlimited_int::divide_by(const unlimited_int& num_to_divide_by) co
 		const few_bits binary_search_division_result = partial_this.binary_search_divide(num_to_divide_by);
 		answer.push_to_insignificant(binary_search_division_result);
 		num_to_divide_by.multiply(binary_search_division_result, &result_of_multiplication);
-		result_of_multiplication.is_negative = false;
+		result_of_multiplication._is_negative = false;
 		partial_this.subtract(&result_of_multiplication, &partial_this);
 		result_of_multiplication.flush();
 		if (num_of_ints_currently_using_from_this >= num_of_used_ints_this)

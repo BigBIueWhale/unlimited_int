@@ -276,9 +276,9 @@ unlimited_int unlimited_int::operator*(const unlimited_int& other) const
 			answer = this->multiply_karatsuba(&other);
 	}
 	if (this->num_of_used_ints == (size_t)0)
-		answer.is_negative = false;
-	else if (this->is_negative != other.is_negative)
-		answer.is_negative = true;
+		answer._is_negative = false;
+	else if (this->_is_negative != other._is_negative)
+		answer._is_negative = true;
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
 #endif

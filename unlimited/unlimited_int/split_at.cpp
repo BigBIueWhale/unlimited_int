@@ -26,8 +26,8 @@ void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_
 		low->set_to_zero();
 		return;
 	}
-	high->is_negative = false;
-	low->is_negative = false;
+	high->_is_negative = false;
+	low->_is_negative = false;
 	const size_t length_of_high = this_num_of_used_ints - index;
 	const size_t length_of_low = index;
 	low->increase_until_num_of_ints(length_of_low);

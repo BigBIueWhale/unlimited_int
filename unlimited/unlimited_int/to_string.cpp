@@ -35,7 +35,7 @@ std::string unlimited_int::to_string(const unsigned int base) const
 	//by now we have the digits of the result backwards, in string_intermediate, and without minus symbol.
 	std::reverse(string_intermediate.begin(), string_intermediate.end());
 	//Now we're only missing the minus symbol
-	if (this->is_negative)
+	if (this->_is_negative)
 		return '-' + string_intermediate;
 	return string_intermediate;
 }

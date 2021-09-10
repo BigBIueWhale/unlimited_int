@@ -54,7 +54,7 @@ namespace unlimited
 		//The first Node in the linked list is the least-significant part of the integer. The first element of node "first" is the least significant part of the integer.
 		list_of_int_arrays* intarrays = nullptr;
 		size_t num_of_intarrays_used; //number of "Node"s used inside of the list_of_int_arrays function
-		bool is_negative; //By default the various constructors will set is_negative to false. Some functions (like SHA256 and the various bitwise operations) ignore is_negative.
+		bool _is_negative; //By default the various constructors will set is_negative to false. Some functions (like SHA256 and the various bitwise operations) ignore is_negative.
 		bool auto_destroy = true;
 #if DEBUG_MODE > 0
 //Debugging Functions
@@ -81,18 +81,18 @@ namespace unlimited
 		void assign(const few_bits_signed value_to_assign)
 		{
 			this->assign((few_bits)value_to_assign);
-			this->is_negative = value_to_assign < (few_bits_signed)0;
+			this->_is_negative = value_to_assign < (few_bits_signed)0;
 		}
 		void assign(const many_bits_signed value_to_assign)
 		{
 			this->assign((many_bits)value_to_assign);
-			this->is_negative = value_to_assign < (few_bits_signed)0;
+			this->_is_negative = value_to_assign < (few_bits_signed)0;
 		}
 		//sets the most immediate variables in unlimited_int to thier default values. Doesn't touch the variables in this->intarrays
 		void set_to_zero()
 		{
 			this->num_of_intarrays_used = (size_t)0;
-			this->is_negative = false;
+			this->_is_negative = false;
 			this->num_of_used_ints = (size_t)0;
 		}
 //Transfers
@@ -226,31 +226,35 @@ namespace unlimited
 		static unlimited_int generate_next_random();
 		//stacks 256bit sha256 hashes or 512bit sha512 hashes until the number is long enough.
 		static unlimited_int generate_random_that_is_at_least(const size_t num_of_bits);
-
-//########################## End of Protected #######################################
-
-	public:
+//Memory allocation
 		void increase_until_num_of_ints(size_t num_of_ints_to_increase_until)
 		{
 			if (this->intarrays == nullptr)
 				this->intarrays = new list_of_int_arrays;
 			this->intarrays->increase_until_num_of_ints(num_of_ints_to_increase_until);
 		}
+
+//########################## End of Protected #######################################
+
+	public:
+
 //Constructors
 		unlimited_int() { this->forget_memory(); }
-		unlimited_int(const few_bits num_to_assign) { this->assign(num_to_assign); }
-		unlimited_int(const many_bits num_to_assign) { this->assign(num_to_assign); }
-		unlimited_int(const few_bits_signed num_to_assign) { this->assign(num_to_assign); }
-		unlimited_int(const many_bits_signed num_to_assign) { this->assign(num_to_assign); };
-		//Use unlimited_int::from_string to specify the base
-		unlimited_int(const std::string& str_num) : unlimited_int(unlimited_int::from_string(str_num, 10)) {}
+		explicit unlimited_int(const few_bits num_to_assign) { this->assign(num_to_assign); }
+		explicit unlimited_int(const many_bits num_to_assign) { this->assign(num_to_assign); }
+		explicit unlimited_int(const few_bits_signed num_to_assign) { this->assign(num_to_assign); }
+		explicit unlimited_int(const many_bits_signed num_to_assign) { this->assign(num_to_assign); };
+		//The same thing as static unlimited_int::from_string()
+		explicit unlimited_int(const std::string& str_num, unsigned base = 10) : unlimited_int(unlimited_int::from_string(str_num, base)) {}
+		//The same thing as static unlimited_int::from_string()
+		explicit unlimited_int(const char* str_num, unsigned base = 10) : unlimited_int(unlimited_int::from_string(str_num, base)) {}
 		//copy constructor- creates full independent copy.
 		unlimited_int(const unlimited_int& num_to_assign) { num_to_assign.copy_to(*this); }
 		//move constructor- transfers the content of an unlimited_int prvalue, into "this"
 		unlimited_int(unlimited_int&& source) noexcept;
 //Assign
-		//Use unlimited_int::from_string to specify the base
-		void operator=(const std::string& str_num) { (*this) = unlimited_int::from_string(str_num, 10); }
+		//Use static unlimited_int::from_string instead, to specify the base.
+		void operator=(const std::string& str_num) { (*this) = unlimited_int::from_string(str_num, 10U); }
 		void operator=(const few_bits num_to_assign) { this->assign(num_to_assign); }
 		void operator=(const few_bits_signed num_to_assign) { this->assign(num_to_assign); }
 		void operator=(const many_bits num_to_assign) { this->assign(num_to_assign); }
@@ -263,10 +267,26 @@ namespace unlimited
 		//creates full independent copy.
 		void operator=(const unlimited_int& num_to_assign) { num_to_assign.copy_to(*this); }
 //Conversions
-		operator few_bits();
-		operator few_bits_signed();
-		operator many_bits();
-		operator many_bits_signed();
+		//Throws std::overflow_error exception if the unlimited_int number can't be fully translated into few_bits (too big, or negative).
+		explicit operator few_bits() const;
+		//Throws std::overflow_error exception if the unlimited_int number can't be fully translated into few_bits_signed (too big, or too negative).
+		//This function has a guarantee that if the unlimited_int object is in range of the macros: MIN_few_bits_signed_NUM and MAX_few_bits_signed_NUM then it will succeed.
+		explicit operator few_bits_signed() const;
+		//Throws std::overflow_error exception if the unlimited_int number can't be fully translated into many_bits (too big, or negative).
+		explicit operator many_bits() const;
+		//Throws std::overflow_error exception if the unlimited_int number can't be fully translated into many_bits_signed (too big, or too negative).
+		//This function has a guarantee that if the unlimited_int object is in range of the macros: MIN_many_bits_signed_NUM and MAX_many_bits_signed_NUM then it will succeed.
+		explicit operator many_bits_signed() const;
+		//Use unlimited_int::to_string instead, to specify the base.
+		explicit operator std::string() const { return this->to_string(10U); }
+		//Explicitly uses std::operator few_bits, will throw exception if the result doesn't fit.
+		few_bits to_few_bits() const { return static_cast<few_bits>(*this); }
+		//Explicitly uses std::operator few_bits_signed, will throw exception if the result doesn't fit.
+		few_bits_signed to_few_bits_signed() const { return static_cast<few_bits>(*this); }
+		//Explicitly uses std::operator many_bits, will throw exception if the result doesn't fit.
+		many_bits to_many_bits() const { return static_cast<many_bits>(*this); }
+		//Explicitly uses std::operator many_bits_signed, will throw exception if the result doesn't fit.
+		many_bits_signed to_many_bits_signed() const { return static_cast<many_bits_signed>(*this); }
 //Information Gathering O(1)
 		//converts unlimited_int to few_bits (ignoring the sign of the unlimited_int object)
 		//This function works no matter the size of this. It returns 0 of this is 0. It can work as a conversion
@@ -278,7 +298,9 @@ namespace unlimited
 		//It gives the precise number, and manipulates the most significant few_bits using bitwise operators to get the precise length in bits
 		size_t get_length_in_bits() const;
 		//checks if unlimited_int's value is equal to 0, based on num_of_used_ints
-		bool is_zero() const { return (this->num_of_used_ints == (size_t)0); }
+		bool is_zero() const { return this->num_of_used_ints == (size_t)0; }
+		//Returns false if and only if the number is zero.
+		explicit operator bool() const { return !this->is_zero(); }
 		//super-efficient method to find modulo_2 of unlimited_int number.
 		//This function returns either 1 or 0.
 		//Confusingly it's actually modulo and not remainder of division (different approach with negative numbers).
@@ -351,13 +373,13 @@ namespace unlimited
 		//Creates full copy with opposite sign, unless number is zero because then the sign stays positive.
 		unlimited_int operator-() const;
 		//O(1) operation to flip a numbers sign from positive to negative or from negative to positive. Doesn't do anything when the number is 0.
-		void flip_sign() { if (!this->is_zero()) this->is_negative = !this->is_negative; }
+		void flip_sign() { if (!this->is_zero()) this->_is_negative = !this->_is_negative; }
 		//Creates full copy with positive, unless number is zero because then the sign stays positive.
 		unlimited_int abs() const;
 		//O(1) operation to flip a number's sign to positive.
-		void self_abs() { this->is_negative = false; }
+		void self_abs() { this->_is_negative = false; }
 		//O(1) operation to flip a number's sign to negative. Doesn't do anything when the number is 0.
-		void make_negative() { if (!this->is_zero()) this->is_negative = false; }
+		void self_negative() { if (!this->is_zero()) this->_is_negative = false; }
 //Comparison Operators
 		bool operator<=(const unlimited_int& other) const { const char value = this->compare_to(other); return value == 'S' || value == 'E'; }
 		bool operator>=(const unlimited_int& other) const { const char value = this->compare_to(other); return value == 'L' || value == 'E'; }
@@ -365,6 +387,7 @@ namespace unlimited
 		bool operator<(const unlimited_int& other) const { const char value = this->compare_to(other); return value == 'S'; }
 		bool operator>(const unlimited_int& other) const { const char value = this->compare_to(other); return value == 'L'; }
 		bool operator!=(const unlimited_int& ui) const { return (this->compare_to(ui) != 'E'); }
+//Efficient comparison methods for comparing with small numbers
 		bool operator<(const few_bits num) const { return this->compare_to(num) == 'S'; }
 		bool operator<(const many_bits num) const { return this->compare_to(num) == 'S'; }
 		bool operator<(const few_bits_signed num) const { return this->compare_to(num) == 'S'; }
@@ -397,7 +420,6 @@ namespace unlimited
 		friend bool operator>=(const many_bits num, const unlimited_int& other);
 		friend bool operator>=(const few_bits_signed num, const unlimited_int& other);
 		friend bool operator>=(const many_bits_signed num, const unlimited_int& other);
-
 		bool operator==(const few_bits num) const { return this->compare_to(num) == 'E'; }
 		bool operator==(const many_bits num) const { return this->compare_to(num) == 'E'; }
 		bool operator==(const few_bits_signed num) const { return this->compare_to(num) == 'E'; }
@@ -496,14 +518,8 @@ namespace unlimited
 		static unlimited_int gcd(const unlimited_int& a, const unlimited_int& b);
 		//lowest common multiple- treats negative numbers as positive
 		static unlimited_int lcm(const unlimited_int& a, const unlimited_int& b);
-//Getters And Setters- There's no reason to need to use these functions
-		bool get_is_negative() const { return this->is_negative; }
-		bool get_auto_destroy() const { return this->auto_destroy; }
-		list_of_int_arrays* get_intarrays() { return this->intarrays; }
-		size_t get_num_of_used_ints() { return this->num_of_used_ints; }
-
-		void set_auto_destroy(bool tof) { this->auto_destroy = tof; }
-		void set_num_of_intarrays_used(size_t set_to) { this->num_of_intarrays_used = set_to; }
+//Getters
+		bool is_negative() const { return this->_is_negative; }
 //Manual Destructors
 		//Manual method to destroy the dynamically allocated memory that's used by this object
 		//The variables (pointers etc.) are then reset for future use.

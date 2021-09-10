@@ -29,10 +29,10 @@ void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) 
 			this->multiply_this_only_one_array(num_to_mult, answer);
 		else
 			this->multiply_answer_only_one_array(num_to_mult, answer);
-		answer->is_negative = this->is_negative;
+		answer->_is_negative = this->_is_negative;
 		return;
 	}
-	answer->is_negative = this->is_negative;
+	answer->_is_negative = this->_is_negative;
 	const many_bits num_to_mult_many = (many_bits)num_to_mult;
 	custom_linked_list_node<int_array>* it_this = this->intarrays->first();
 	custom_linked_list_node<int_array>* it_answer = answer->intarrays->first();

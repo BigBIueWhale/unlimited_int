@@ -17,7 +17,7 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 	size_t this_num_of_used_ints = this->num_of_used_ints;
 	num_to_paste_into.increase_until_num_of_ints(this_num_of_used_ints);
 	num_to_paste_into.num_of_used_ints = this_num_of_used_ints;
-	num_to_paste_into.is_negative = this->is_negative;
+	num_to_paste_into._is_negative = this->_is_negative;
 	if (this->num_of_used_ints == (size_t)0)
 	{
 		num_to_paste_into.set_to_zero();
@@ -104,7 +104,7 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, c
 	if (this->find_inconsistencies())
 		throw std::logic_error("Inconsistency was found in start of function \"void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const size_t num_of_ints_to_copy) const\"");
 #endif
-	num_to_paste_into.is_negative = false;
+	num_to_paste_into._is_negative = false;
 	if (this->num_of_intarrays_used == (size_t)0)
 	{
 		num_to_paste_into.set_to_zero();
@@ -195,7 +195,7 @@ void unlimited_int::swap(unlimited_int& num_to_swap_with)
 	if (this->find_inconsistencies() || num_to_swap_with.find_inconsistencies())
 		throw std::logic_error("Inconsistency was found in start of function \"void unlimited_int::swap(unlimited_int& num_to_swap_with)\"");
 #endif
-	std::swap(this->is_negative, num_to_swap_with.is_negative);
+	std::swap(this->_is_negative, num_to_swap_with._is_negative);
 	std::swap(this->auto_destroy, num_to_swap_with.auto_destroy);
 	std::swap(this->num_of_intarrays_used, num_to_swap_with.num_of_intarrays_used);
 	std::swap(this->num_of_used_ints, num_to_swap_with.num_of_used_ints);

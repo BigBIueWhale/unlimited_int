@@ -27,6 +27,7 @@
 #include <stdint.h> //for the typenames uint32_t, uint64_t, uint16_t
 #include <exception> //For the declaration of std::exception
 #include <stdexcept> //For the declarations of std::logic_error, std::out_of_range etc.
+#include <limits> //For std::numeric_limits
 namespace unlimited //macros that are inside of the namespace, aren't affected by it, they're global anyways. But the typedef declarations will belong to the namespace "unlimited".
 {
 #if IS_64_BIT_SYSTEM
@@ -35,19 +36,24 @@ namespace unlimited //macros that are inside of the namespace, aren't affected b
 	typedef int32_t few_bits_signed;
 	typedef int64_t many_bits_signed;
 #define NUM_OF_BITS_few_bits 32
+#define NUM_OF_BITS_many_bits 64
 #else
 	typedef uint16_t few_bits;
 	typedef uint32_t many_bits;
 	typedef int16_t few_bits_signed;
 	typedef int32_t many_bits_signed;
 #define NUM_OF_BITS_few_bits 16
+#define NUM_OF_BITS_many_bits 32
 #endif
-#define NUM_OF_BITS_many_bits (sizeof(many_bits) * 8)
-#define MAX_few_bits_NUM ((few_bits)(~((few_bits)0)))
+#define MAX_few_bits_NUM (std::numeric_limits<few_bits>::max())
 #define MASK_LOW_BITS MAX_few_bits_NUM
 #define MAX_few_bits_NUM_PLUS_ONE ((many_bits)MAX_few_bits_NUM + (many_bits)1)
-#define MAX_many_bits_NUM ((many_bits)(~((many_bits)0)))
-#define MAX_size_t_NUM ((size_t)(~((size_t)0)))
+#define MAX_many_bits_NUM (std::numeric_limits<many_bits>::max())
+#define MAX_size_t_NUM (std::numeric_limits<size_t>::max())
+#define MAX_few_bits_signed_NUM (std::numeric_limits<few_bits_signed>::max())
+#define MAX_many_bits_signed_NUM (std::numeric_limits<many_bits_signed>::max())
+#define MIN_few_bits_signed_NUM (std::numeric_limits<few_bits_signed>::min())
+#define MIN_many_bits_signed_NUM (std::numeric_limits<many_bits_signed>::min())
 }
 //list_of_int_arrays::bank_storage is a thread_local pool of memory for lower latency when quickly allocating and deallocating memory.
 //This macro specifies the maximum size of list_of_int_arrays::bank_storage per thread. Each thread can have the amount of RAM specified in this C++ macro

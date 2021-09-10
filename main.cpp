@@ -5,10 +5,12 @@
 #include <sstream>
 #include <chrono>
 #include <iomanip>
-void helper();
+//void helper();
+void test_unlimited_int();
 int main(int argc, char* argv[])
 {
-	helper();
+	//helper();
+	test_unlimited_int();
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
 	unlimited::delete_all_static_memory(); //not actually required, it's just so that when we print num_of_ints_created and num_of_ints_destroyed we can ensure that there's no memory leak.
 	std::cout << "\n\nDEBUG INFORMATION:\n" << std::dec;
@@ -83,11 +85,24 @@ using namespace unlimited;
 //	const long double time_duration_seconds = static_cast<long double>(std::chrono::duration_cast<std::chrono::nanoseconds>(time_duration).count()) / static_cast<long double>(1000000000);
 //	std::cout << "\nTime took: " << time_duration_seconds << " seconds.";
 //}
-void helper()
+unlimited_int generate_random()
 {
-	for (unlimited_int counter = -5; counter < 20000000; ++counter)
+	static const unlimited_int max(unlimited_int::pow(unlimited_int("10"), unlimited_int("100")));
+	static const unlimited_int min(-max);
+	return unlimited_int::generate_random(min, max);
+}
+void test_unlimited_int()
+{
+	while (true)
 	{
-		if (static_cast<few_bits>(counter) % (few_bits)10000 == 0)
-			std::cout << "  " << counter;
+		unlimited_int random1 = generate_random();
+		random1.self_abs();
+		const few_bits random_few_bits = static_cast<few_bits>(random1 % (few_bits)MAX_few_bits_NUM);
+		unlimited_int from_few_bits(random_few_bits);
+		if (from_few_bits != random_few_bits || from_few_bits > random_few_bits || from_few_bits < random_few_bits || !(from_few_bits <= random_few_bits) || !(from_few_bits >= random_few_bits) || !(from_few_bits == random_few_bits) || from_few_bits != unlimited_int(std::to_string(random_few_bits)))
+		{
+			std::cout << "\nFailed with few_bits number: " << random_few_bits;
+		}
+		const unlimited_int random2 = generate_random();
 	}
 }

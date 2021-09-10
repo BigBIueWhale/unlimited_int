@@ -165,7 +165,7 @@ void generate_random_prime_single_thread(const unlimited_int& min, const unlimit
 unlimited_int unlimited_int::generate_random_prime_multithreaded(const unlimited_int& min, const unlimited_int& max, const unsigned num_threads)
 {
 	unlimited_int range_size = max - min;
-	if (range_size.is_negative)
+	if (range_size._is_negative)
 		throw std::invalid_argument("Error in function \"std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)\". Invalid arguments: max is smaller than min.");
 	++range_size;
 	unsigned max_cores = std::thread::hardware_concurrency() / 2;
@@ -237,7 +237,7 @@ unlimited_int unlimited_int::generate_random_prime(const unlimited_int& min, con
 {
 	const bool terminator_is_nullptr = terminator == nullptr;
 	unlimited_int range_size(max - min);
-	if (range_size.is_negative)
+	if (range_size._is_negative)
 		throw std::invalid_argument("Error in function \"std::shared_ptr<unlimited_int> unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max)\". Invalid arguments: max is smaller than min.");
 	unlimited_int current_try;
 	do

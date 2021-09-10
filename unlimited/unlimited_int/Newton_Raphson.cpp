@@ -19,7 +19,7 @@ reciprocal_information unlimited_int::calculate_reciprocal_floor(size_t length_d
 	approx.shift_left(amount_to_shift_by - this->num_of_used_ints);
 	unlimited_int previous_approx;
 	unlimited_int N(*this, false);
-	N.is_negative = false;
+	N._is_negative = false;
 	unlimited_int approx_times_N;
 	do
 	{
@@ -45,7 +45,7 @@ reciprocal_information unlimited_int::calculate_reciprocal_floor(size_t length_d
 }
 unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& dividend, const reciprocal_information& reciprocal, const unlimited_int& divisor, unlimited_int* remainder)
 {
-	if (reciprocal.reciprocal->is_negative)
+	if (reciprocal.reciprocal->_is_negative)
 		throw std::invalid_argument("Error in function divide using reciprocal! The reciprocal is negative");
 	if (reciprocal.amount_shifted < (dividend.num_of_used_ints + (size_t)AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL))
 		throw std::invalid_argument("Error while trying to divide using reciprocal: the reciprocal doesn\'t have enough accuracy relative to the given dividend");
@@ -83,11 +83,11 @@ unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& divide
 		result_multiplication_error_by_1 += divisor_positive;
 		comparison_result = result_multiplication_error_by_1.compare_to_ignore_sign(dividend);
 	}
-	answer.is_negative = dividend.is_negative != divisor.is_negative;
+	answer._is_negative = dividend._is_negative != divisor._is_negative;
 	if (remainder != nullptr)
 	{
 		*remainder = dividend - result_multiplication;
-		remainder->is_negative = dividend.is_negative; //because this is remainder of division, not modulo
+		remainder->_is_negative = dividend._is_negative; //because this is remainder of division, not modulo
 	}
 #if DEBUG_MODE > 0
 	unlimited_int long_division_check = dividend / divisor;
@@ -119,7 +119,7 @@ unlimited_int unlimited_int::recurring_division(const unlimited_int& dividend, c
 	if (result_comparison == 'E')
 	{
 		unlimited_int result((few_bits)1);
-		result.is_negative = dividend.is_negative != divisor.is_negative;
+		result._is_negative = dividend._is_negative != divisor._is_negative;
 		if (remainder != nullptr)
 			*remainder = (few_bits)0;
 		return result;
@@ -135,7 +135,7 @@ unlimited_int unlimited_int::recurring_division(const unlimited_int& dividend, c
 	if (divisor_is_a_power_of_2)
 	{
 		unlimited_int result = dividend >> log2_divisor;
-		result.is_negative = dividend.is_negative != divisor.is_negative;
+		result._is_negative = dividend._is_negative != divisor._is_negative;
 		if (remainder != nullptr)
 		{
 			unlimited_int result_multiplication = result * divisor;
