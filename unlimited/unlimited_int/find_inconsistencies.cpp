@@ -6,7 +6,7 @@ void unlimited_int::print_properties() const
 {
 	std::cout << "\nthis: " << this;
 	std::cout << "\nthis->auto_destroy: " << this->auto_destroy;
-	std::cout << "\nthis->is_negative: " << this->is_negative;
+	std::cout << "\nthis->is_negative: " << this->_is_negative;
 	std::cout << "\nthis->num_of_intarrays_used: " << this->num_of_intarrays_used;
 	std::cout << "\nthis->num_of_used_ints: " << this->num_of_used_ints;
 }
@@ -27,7 +27,7 @@ bool unlimited_int::find_inconsistencies() const
 		intarrays_is_empty = true;
 	else
 		intarrays_is_empty = this->intarrays->size() == (size_t)0;
-	if (intarrays_is_empty && ((this->is_negative) || (this->num_of_used_ints != 0) || (this->num_of_intarrays_used != 0)))
+	if (intarrays_is_empty && ((this->_is_negative) || (this->num_of_used_ints != 0) || (this->num_of_intarrays_used != 0)))
 	{
 		std::cerr << "\nError found by function \"find_inconsistencies\": \"this->intarrays.intarrays.length\" == 0 and one of \"is_negative\", \"num_of_used_ints\", \"num_of_intarrays_used\" doesn\'t fit with that";
 		to_return_true = true;
@@ -59,7 +59,7 @@ bool unlimited_int::find_inconsistencies() const
 		else
 		{
 			bool this_intarrays_intarrays_empty = this->intarrays->size() == 0;
-			if (this_intarrays_intarrays_empty && (this->is_negative || this->num_of_used_ints != 0 || this->num_of_intarrays_used != 0))
+			if (this_intarrays_intarrays_empty && (this->_is_negative || this->num_of_used_ints != 0 || this->num_of_intarrays_used != 0))
 			{
 				std::cerr << "\nError found by function \"find_inconsistencies\": \"this->intarrays.intarrays\" is empty, and one of \"is_negative\", \"num_of_used_ints\", \"num_of_intarrays_used\" doesn\'t fit with that";
 				to_return_true = true;

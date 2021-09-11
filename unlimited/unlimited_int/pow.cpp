@@ -39,7 +39,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 			return unlimited_int();
 	unlimited_int power_cpy = power;
 	unlimited_int answer((few_bits)1);
-	if (power_cpy.modulo_2() == 1)
+	if (power_cpy.modulo_2() == static_cast<unsigned short>(1))
 	{
 		answer *= current_power;
 		answer = unlimited_int::remainder_recurring_divison(answer, mod);
@@ -55,7 +55,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 			if (*terminator)
 				return unlimited_int();
 		current_power = unlimited_int::remainder_recurring_divison(current_power, mod);
-		if (power_cpy.modulo_2() == 1)
+		if (power_cpy.modulo_2() == static_cast < unsigned short>(1))
 		{
 			if (!terminator_is_nullptr)
 				if (*terminator)
@@ -109,7 +109,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		if (*terminator)
 			return unlimited_int();
 	unlimited_int answer((few_bits)1);
-	if (power_cpy.modulo_2() == 1)
+	if (power_cpy.modulo_2() == static_cast<unsigned short>(1))
 		answer *= current_power;
 	if (!terminator_is_nullptr)
 		if (*terminator)
@@ -127,7 +127,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		if (!terminator_is_nullptr)
 			if (*terminator)
 				return unlimited_int();
-		if (power_cpy.modulo_2() == 1)
+		if (power_cpy.modulo_2() == static_cast <unsigned short>(1))
 			answer *= current_power;
 		if (!terminator_is_nullptr)
 			if (*terminator)

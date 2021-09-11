@@ -31,7 +31,7 @@ void unlimited_int::flush_current_random()
 	unlimited_int::current_random.flush();
 }
 //Most methods here to increase randomness don't actually work, but it's just a failsafe. Anyways the entire "uint32_t* nums_to_generate_seed" ends up getting hashed, so it can only increase randomness.
-//BTW this is not truly random, because it relies on time and memory address management, but for all intents and purposes it's truly random.
+//BTW this is not truly random, because it relies on time and memory address management, and if it can, the thread ID. But for most intents and purposes it's truly random.
 unlimited_int unlimited_int::generate_truly_random()
 {
 	//don't let this confuse you. There aren't actually 4096 * sizeof(int) bytes of randomness.

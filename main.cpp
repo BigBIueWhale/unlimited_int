@@ -87,22 +87,126 @@ using namespace unlimited;
 //}
 unlimited_int generate_random()
 {
-	static const unlimited_int max(unlimited_int::pow(unlimited_int("10"), unlimited_int("100")));
-	static const unlimited_int min(-max);
+	const unlimited_int max(unlimited_int::pow(unlimited_int("10"), unlimited_int("100")));
+	const unlimited_int min(-max);
 	return unlimited_int::generate_random(min, max);
+}
+int generate_random_int(int max_int)
+{
+	if (max_int < 0)
+		throw std::invalid_argument("Min < Max");
+	else if (max_int == 0)
+		return 0;
+	else
+		return static_cast<int>(generate_random().abs() % (unlimited_int(max_int) + unlimited_int(1)));
 }
 void test_unlimited_int()
 {
-	while (true)
+	enum class number_types { signed_short_int, signed_int, signed_long_int, signed_long_long_int, unsigned_short_int, unsigned_int, unsigned_long_int, unsigned_long_long_int, unlimited_int, end_enum };
+	enum class operator_types_binary { addition, subtraction, multiplication, division, remainder, bitwise_and, bitwise_or, bitwise_xor, swap, comparison, pow, end_enum };
+	enum class operator_types_unary { bitwise_not_and_inversion, unary_plus_plus_and_minus_minus, change_or_flip_sign, get_length_in_bits, is_zero, modulo_2, power2, bitwise_shift, end_enum};
+	for (int counter = 0; counter < 1000; ++counter)
 	{
-		unlimited_int random1 = generate_random();
-		random1.self_abs();
-		const few_bits random_few_bits = static_cast<few_bits>(random1 % (few_bits)MAX_few_bits_NUM);
-		unlimited_int from_few_bits(random_few_bits);
-		if (from_few_bits != random_few_bits || from_few_bits > random_few_bits || from_few_bits < random_few_bits || !(from_few_bits <= random_few_bits) || !(from_few_bits >= random_few_bits) || !(from_few_bits == random_few_bits) || from_few_bits != unlimited_int(std::to_string(random_few_bits)))
+		auto assign_num = [](number_types num_type, unlimited_int& num)
 		{
-			std::cout << "\nFailed with few_bits number: " << random_few_bits;
+			switch (num_type)
+			{
+			case number_types::signed_short_int:
+				num = (signed short int)unlimited_int::generate_random(unlimited_int(std::numeric_limits<signed short int>::min()), unlimited_int(std::numeric_limits<signed short int>::max()));
+				break;
+			case number_types::signed_int:
+				num = (signed int)unlimited_int::generate_random(unlimited_int(std::numeric_limits<signed int>::min()), unlimited_int(std::numeric_limits<signed int>::max()));
+				break;
+			case number_types::signed_long_int:
+				num = (signed long int)unlimited_int::generate_random(unlimited_int(std::numeric_limits<signed long int>::min()), unlimited_int(std::numeric_limits<signed long int>::max()));
+				break;
+			case number_types::signed_long_long_int:
+				num = (signed long long int)unlimited_int::generate_random(unlimited_int(std::numeric_limits<signed long long int>::min()), unlimited_int(std::numeric_limits<signed long long int>::max()));
+				break;
+			case number_types::unsigned_short_int:
+				num = (unsigned short int)unlimited_int::generate_random(unlimited_int(std::numeric_limits<unsigned short int>::min()), unlimited_int(std::numeric_limits<unsigned short int>::max()));
+				break;
+			case number_types::unsigned_int:
+				num = (unsigned int)unlimited_int::generate_random(unlimited_int(std::numeric_limits<unsigned int>::min()), unlimited_int(std::numeric_limits<unsigned int>::max()));
+				break;
+			case number_types::unsigned_long_int:
+				num = (unsigned long int)unlimited_int::generate_random(unlimited_int(std::numeric_limits<unsigned long int>::min()), unlimited_int(std::numeric_limits<unsigned long int>::max()));
+				break;
+			case number_types::unsigned_long_long_int:
+				num = (unsigned long long int)unlimited_int::generate_random(unlimited_int(std::numeric_limits<unsigned long long int>::min()), unlimited_int(std::numeric_limits<unsigned long long int>::max()));
+				break;
+			case number_types::unlimited_int:
+				num = unlimited_int::generate_random(unlimited_int("-10000000000000000000000000000000000000000000", 16), unlimited_int("10000000000000000000000000000000000000000000", 16));
+				break;
+			default:
+				throw std::logic_error("This isn't supposed to happen.");
+			}
+		};
+		std::string binary_or_unary_operator = (generate_random_int(1) == 0) ? "binary" : "unary";
+		if (binary_or_unary_operator == "binary")
+		{
+			int num1_type = generate_random_int(static_cast<int>(number_types::end_enum) - 1);
+			int num2_type = generate_random_int(static_cast<int>(number_types::end_enum) - 1);
+			unlimited_int num1;
+			unlimited_int num2;
+			assign_num(static_cast<number_types>(num1_type), num1);
+			assign_num(static_cast<number_types>(num2_type), num2);
+			operator_types_binary operator_type = static_cast<operator_types_binary>(generate_random_int(static_cast<int>(operator_types_binary::end_enum) - 1));
+			switch (operator_type)
+			{
+			case operator_types_binary::addition:
+				break;
+			case operator_types_binary::subtraction:
+				break;
+			case operator_types_binary::multiplication:
+				break;
+			case operator_types_binary::division:
+				break;
+			case operator_types_binary::remainder:
+				break;
+			case operator_types_binary::bitwise_and:
+				break;
+			case operator_types_binary::bitwise_or:
+				break;
+			case operator_types_binary::bitwise_xor:
+				break;
+			case operator_types_binary::swap:
+				break;
+			case operator_types_binary::comparison:
+				break;
+			case operator_types_binary::pow:
+				break;
+			default:
+				throw std::logic_error("It\'s not supposed to be possible to get here.");
+			}
 		}
-		const unlimited_int random2 = generate_random();
+		else if (binary_or_unary_operator == "unary")
+		{
+			int num_type = generate_random_int(static_cast<int>(number_types::end_enum) - 1);
+			unlimited_int num;
+			assign_num(static_cast<number_types>(num_type), num);
+			operator_types_unary operator_type = static_cast<operator_types_unary>(generate_random_int(static_cast<int>(operator_types_unary::end_enum) - 1));
+			switch (operator_type)
+			{
+			case operator_types_unary::bitwise_not_and_inversion:
+				break;
+			case operator_types_unary::unary_plus_plus_and_minus_minus:
+				break;
+			case operator_types_unary::change_or_flip_sign:
+				break;
+			case operator_types_unary::get_length_in_bits:
+				break;
+			case operator_types_unary::is_zero:
+				break;
+			case operator_types_unary::modulo_2:
+				break;
+			case operator_types_unary::power2:
+				break;
+			case operator_types_unary::bitwise_shift:
+				break;
+			default:
+				throw std::logic_error("It\'s not supposed to be possible to get here.");
+			}
+		}
 	}
 }

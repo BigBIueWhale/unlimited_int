@@ -24,21 +24,8 @@ unlimited_int unlimited_int::operator/(const few_bits divisor) const
 	if (divisor == (few_bits)0)
 		throw std::invalid_argument("\nError in function: \"unlimited_int* unlimited_int::operator/(const few_bits denominator) const\" Can't divide by zero");
 	unlimited_int answer = this->divide_by(divisor);
-	answer._is_negative = this->_is_negative;
-	if (answer.is_zero())
-		answer._is_negative = false;
-	return answer;
-}
-unlimited_int unlimited_int::operator*(const few_bits num) const
-{
-	unlimited_int answer;
-	this->multiply(num, &answer);
-	return answer;
-}
-unlimited_int unlimited::operator*(const few_bits num, const unlimited_int& ui)
-{
-	unlimited_int answer;
-	ui.multiply(num, &answer);
+	if (this->is_negative())
+		answer.self_negative();
 	return answer;
 }
 void unlimited_int::operator*=(const unlimited_int& other)
@@ -92,15 +79,13 @@ unlimited_int unlimited_int::operator-() const
 }
 unlimited_int unlimited_int::abs() const
 {
-	if (this->is_zero())
-		return unlimited_int();
 	unlimited_int cpy = *this;
 	cpy.self_abs();
 	return cpy;
 }
 unlimited_int unlimited_int::operator%(const unlimited_int& ui) const
 {
-	unlimited_int answer_divide = this->divide_by(ui);
+	unlimited_int answer_divide = *this / ui;
 	unlimited_int answer_multiply = answer_divide * ui;
 	answer_divide.flush();
 	unlimited_int answer;
@@ -109,8 +94,9 @@ unlimited_int unlimited_int::operator%(const unlimited_int& ui) const
 }
 unlimited_int unlimited_int::operator%(const few_bits divisor) const
 {
-	unlimited_int answer_divide = this->divide_by(divisor);
-	unlimited_int answer_multiply = answer_divide * divisor;
+	unlimited_int answer_divide = *this / divisor;
+	unlimited_int answer_multiply;
+	answer_divide.multiply(divisor, &answer_multiply);
 	answer_divide.flush();
 	unlimited_int answer;
 	this->subtract(&answer_multiply, &answer);
@@ -118,15 +104,16 @@ unlimited_int unlimited_int::operator%(const few_bits divisor) const
 }
 void unlimited_int::operator%=(const unlimited_int& ui)
 {
-	unlimited_int answer_divide = this->divide_by(ui);
+	unlimited_int answer_divide = *this / ui;
 	unlimited_int answer_multiply = answer_divide * ui;
 	answer_divide.flush();
 	this->subtract(&answer_multiply, this);
 }
 void unlimited_int::operator%=(const few_bits divisor)
 {
-	unlimited_int answer_divide = this->divide_by(divisor);
-	unlimited_int answer_multiply = answer_divide * divisor;
+	unlimited_int answer_divide = *this / divisor;
+	unlimited_int answer_multiply;
+	answer_divide.multiply(divisor, &answer_multiply);
 	answer_divide.flush();
 	this->subtract(&answer_multiply, this);
 }
@@ -145,27 +132,1259 @@ std::ostream& unlimited::operator<<(std::ostream& os, const unlimited_int& ui)
 	os << str_of_this;
 	return os;
 }
-bool unlimited::operator<(const few_bits num, const unlimited_int& other) { return other.compare_to(num) == 'L'; }
-bool unlimited::operator<(const many_bits num, const unlimited_int& other) { return other.compare_to(num) == 'L'; }
-bool unlimited::operator<(const few_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'L'; }
-bool unlimited::operator<(const many_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'L'; }
-bool unlimited::operator>(const few_bits num, const unlimited_int& other) { return other.compare_to(num) == 'S'; }
-bool unlimited::operator>(const many_bits num, const unlimited_int& other) { return other.compare_to(num) == 'S'; }
-bool unlimited::operator>(const few_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'S'; }
-bool unlimited::operator>(const many_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'S'; }
-bool unlimited::operator<=(const few_bits num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'L' || result == 'E'; }
-bool unlimited::operator<=(const many_bits num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'L' || result == 'E'; }
-bool unlimited::operator<=(const few_bits_signed num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'L' || result == 'E'; }
-bool unlimited::operator<=(const many_bits_signed num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'L' || result == 'E'; }
-bool unlimited::operator>=(const few_bits num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'S' || result == 'E'; }
-bool unlimited::operator>=(const many_bits num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'S' || result == 'E'; }
-bool unlimited::operator>=(const few_bits_signed num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'S' || result == 'E'; }
-bool unlimited::operator>=(const many_bits_signed num, const unlimited_int& other) { const char result = other.compare_to(num); return result == 'S' || result == 'E'; }
-bool unlimited::operator==(const few_bits num, const unlimited_int& other) { return other.compare_to(num) == 'E'; }
-bool unlimited::operator==(const many_bits num, const unlimited_int& other) { return other.compare_to(num) == 'E'; }
-bool unlimited::operator==(const few_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'E'; }
-bool unlimited::operator==(const many_bits_signed num, const unlimited_int& other) { return other.compare_to(num) == 'E'; }
-bool unlimited::operator!=(const few_bits num, const unlimited_int& other) { return other.compare_to(num) != 'E'; }
-bool unlimited::operator!=(const many_bits num, const unlimited_int& other) { return other.compare_to(num) != 'E'; }
-bool unlimited::operator!=(const few_bits_signed num, const unlimited_int& other) { return other.compare_to(num) != 'E'; }
-bool unlimited::operator!=(const many_bits_signed num, const unlimited_int& other) { return other.compare_to(num) != 'E'; }
+
+bool unlimited_int::operator<=(const signed short int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator>=(const signed short int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator<(const signed short int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator>(const signed short int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator==(const signed short int num) const
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator!=(const signed short int num) const
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator<=(const signed short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator>=(const signed short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator<(const signed short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator>(const signed short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator==(const signed short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator!=(const signed short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef signed short int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+
+bool unlimited_int::operator<=(const signed int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator>=(const signed int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator<(const signed int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator>(const signed int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator==(const signed int num) const
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator!=(const signed int num) const
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator<=(const signed int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator>=(const signed int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator<(const signed int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator>(const signed int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator==(const signed int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator!=(const signed int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef signed int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+
+bool unlimited_int::operator<=(const signed long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator>=(const signed long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator<(const signed long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator>(const signed long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator==(const signed long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator!=(const signed long int num) const
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator<=(const signed long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator>=(const signed long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator<(const signed long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator>(const signed long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator==(const signed long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator!=(const signed long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef signed long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+
+bool unlimited_int::operator<=(const signed long long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator>=(const signed long long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator<(const signed long long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator>(const signed long long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator==(const signed long long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited_int::operator!=(const signed long long int num) const
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(this->compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator<=(const signed long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator>=(const signed long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator<(const signed long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator>(const signed long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator==(const signed long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+bool unlimited::operator!=(const signed long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef signed long long int origin_type;
+	constexpr bool fits_in_few_bits_signed = sizeof(origin_type) <= sizeof(few_bits_signed);
+	constexpr bool fits_in_many_bits_signed = sizeof(origin_type) <= sizeof(many_bits_signed);
+	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+		"Assertion error: Cannot compare \"" "signed long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits_signed)
+		return fits(ui.compare_to(static_cast<few_bits_signed>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits_signed>(num)));
+}
+
+bool unlimited_int::operator<=(const unsigned short int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator>=(const unsigned short int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator<(const unsigned short int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator>(const unsigned short int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator==(const unsigned short int num) const
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator!=(const unsigned short int num) const
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator<=(const unsigned short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator>=(const unsigned short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator<(const unsigned short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator>(const unsigned short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator==(const unsigned short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator!=(const unsigned short int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef unsigned short int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned short int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+
+bool unlimited_int::operator<=(const unsigned int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator>=(const unsigned int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator<(const unsigned int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator>(const unsigned int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator==(const unsigned int num) const
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator!=(const unsigned int num) const
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator<=(const unsigned int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator>=(const unsigned int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator<(const unsigned int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator>(const unsigned int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator==(const unsigned int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator!=(const unsigned int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef unsigned int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+
+bool unlimited_int::operator<=(const unsigned long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator>=(const unsigned long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator<(const unsigned long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator>(const unsigned long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator==(const unsigned long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator!=(const unsigned long int num) const
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator<=(const unsigned long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator>=(const unsigned long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator<(const unsigned long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator>(const unsigned long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator==(const unsigned long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator!=(const unsigned long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef unsigned long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+
+bool unlimited_int::operator<=(const unsigned long long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator>=(const unsigned long long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator<(const unsigned long long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator>(const unsigned long long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator==(const unsigned long long int num) const
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited_int::operator!=(const unsigned long long int num) const
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(this->compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(this->compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator<=(const unsigned long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L' || ch == 'E'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator>=(const unsigned long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S' || ch == 'E'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator<(const unsigned long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'L'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator>(const unsigned long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'S'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator==(const unsigned long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch == 'E'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}
+bool unlimited::operator!=(const unsigned long long int num, const unlimited_int& ui)
+{
+	auto fits = [](const char ch) { return ch != 'E'; };
+	typedef unsigned long long int origin_type;
+	constexpr bool fits_in_few_bits = sizeof(origin_type) <= sizeof(few_bits);
+	constexpr bool fits_in_many_bits = sizeof(origin_type) <= sizeof(many_bits);
+	static_assert((fits_in_few_bits && fits_in_few_bits) || fits_in_many_bits,
+		"Assertion error: Cannot compare \"" "unsigned long long int" "\" to \"unlimited_int\"");
+	if (fits_in_few_bits)
+		return fits(ui.compare_to(static_cast<few_bits>(num)));
+	else //If only fits_in_many_bits_signed
+		return fits(ui.compare_to(static_cast<many_bits>(num)));
+}

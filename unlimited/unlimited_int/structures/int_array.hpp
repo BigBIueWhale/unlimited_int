@@ -37,7 +37,7 @@ namespace unlimited
 			this->num_of_used_ints = (size_t)0;
 			this->intarr = nullptr;
 		}
-		//Allocates the array if needed, sets the array to represent a number.
+		//Allocates the array if needed, sets the first element of the array, and sets num_of_used_ints to 0
 		void assign(const few_bits num_to_assign);
 		//Fills the entire array with 0, the actual entire array including the "unused" portion.
 		void fillzero();

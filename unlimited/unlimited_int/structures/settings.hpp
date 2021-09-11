@@ -24,11 +24,11 @@
 #if (DEBUG_MODE <= -3) || (DEBUG_MODE == -1) || (DEBUG_MODE >= 3) //Invalid options
 #error "FATAL COMPILATION ERROR of \"unlimited\" library. The DEBUG_MODE macro is set to an invalid option. Try manually editing the valud of DEBUG_MODE in file: \"unlimited/unlimited_int/structures/settings.h\""
 #endif
-#include <stdint.h> //for the typenames uint32_t, uint64_t, uint16_t
+#include <stdint.h> //For the typenames uint32_t, uint64_t, uint16_t
 #include <exception> //For the declaration of std::exception
 #include <stdexcept> //For the declarations of std::logic_error, std::out_of_range etc.
 #include <limits> //For std::numeric_limits
-namespace unlimited //macros that are inside of the namespace, aren't affected by it, they're global anyways. But the typedef declarations will belong to the namespace "unlimited".
+namespace unlimited //Macros that are inside of the namespace, aren't affected by it, they're global anyways. But the typedef declarations will belong to the namespace "unlimited".
 {
 #if IS_64_BIT_SYSTEM
 	typedef uint32_t few_bits;

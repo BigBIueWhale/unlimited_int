@@ -188,9 +188,9 @@ unlimited_int unlimited_int::divide_by(const unlimited_int& num_to_divide_by) co
 	if (answer.find_inconsistencies())
 		throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"");
 	unlimited_int multiplication_check(answer * num_to_divide_by);
-	multiplication_check.is_negative = false;
+	multiplication_check._is_negative = false;
 	unlimited_int num_to_divide_by_cpy(num_to_divide_by, false);
-	num_to_divide_by_cpy.is_negative = false;
+	num_to_divide_by_cpy._is_negative = false;
 	if (!(multiplication_check.compare_to_ignore_sign(*this) != 'L' && (multiplication_check + num_to_divide_by_cpy).compare_to_ignore_sign(*this) != 'S'))
 		throw std::logic_error("\nWrong answer in function unlimited_int::divide_by");
 #endif
@@ -227,26 +227,26 @@ unlimited_int unlimited_int::divide_by(const few_bits num_to_divide_by) const
 	custom_linked_list_node<int_array>* it_this = nullptr;
 	int_array* current_int_array_this = nullptr; //Initializing to rediculous values
 	size_t index_this = MAX_size_t_NUM;          //just to make sure that there's an error if the variables don't end up getting a valid value.
+	const custom_linked_list_node<int_array>* const this_intarrays_begin = this->intarrays->begin();
 	if (num_of_ints_currently_using_from_this < this->num_of_used_ints)
 	{
 		int_array_list::list_location ll_start = this->find_num_used_int_from_significant(num_of_ints_currently_using_from_this + (size_t)1);
 		it_this = ll_start.node;
 		current_int_array_this = it_this->value;
 		index_this = ll_start.index;
-	}
-	const custom_linked_list_node<int_array>* const this_intarrays_begin = this->intarrays->begin();
-	const char result_compare2 = partial_this.compare_to_ignore_sign(num_to_divide_by);
-	if (result_compare2 == 'S')
-	{
-		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
-		++num_of_ints_currently_using_from_this;
-		if (index_this-- == 0)
+		const char result_compare2 = partial_this.compare_to_ignore_sign(num_to_divide_by);
+		if (result_compare2 == 'S')
 		{
-			it_this = it_this->previous;
-			if (it_this != this_intarrays_begin)
+			partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
+			++num_of_ints_currently_using_from_this;
+			if (index_this-- == 0)
 			{
-				current_int_array_this = it_this->value;
-				index_this = current_int_array_this->num_of_used_ints - (size_t)1;
+				it_this = it_this->previous;
+				if (it_this != this_intarrays_begin)
+				{
+					current_int_array_this = it_this->value;
+					index_this = current_int_array_this->num_of_used_ints - (size_t)1;
+				}
 			}
 		}
 	}
@@ -289,7 +289,7 @@ unlimited_int unlimited_int::divide_by(const few_bits num_to_divide_by) const
 	if (answer.find_inconsistencies())
 		throw std::logic_error("\nThe inconsistency was found in end of function \"divide_by(const few_bits num_to_divide_by)\"");
 	unlimited_int multiplication_check(answer * num_to_divide_by);
-	multiplication_check.is_negative = false;
+	multiplication_check._is_negative = false;
 	if (!(multiplication_check.compare_to_ignore_sign(*this) != 'L' && (multiplication_check + unlimited_int(num_to_divide_by)).compare_to_ignore_sign(*this) != 'S'))
 		throw std::logic_error("\nWrong answer in function unlimited_int::divide_by");
 #endif

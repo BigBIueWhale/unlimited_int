@@ -11,14 +11,9 @@ std::atomic<uint64_t> int_array::num_of_ints_destroyed((uint64_t)0);
 #endif
 void int_array::assign(const few_bits num_to_assign)
 {
-	if (num_to_assign == (size_t)0)
-		this->num_of_used_ints = (size_t)0;
-	else
-	{
-		this->num_of_used_ints = (size_t)1;
-		if (this->intarr_len == (size_t)0) {this->resize((size_t)MIN_ALLOC); }
-		this->intarr[(size_t)0] = num_to_assign;
-	}
+	this->num_of_used_ints = (size_t)1;
+	if (this->intarr_len == (size_t)0) {this->resize((size_t)MIN_ALLOC); }
+	this->intarr[(size_t)0] = num_to_assign;
 }
 void int_array::fillzero()
 {

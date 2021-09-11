@@ -236,3 +236,27 @@ void unlimited_int::assign(const many_bits value_to_assign)
 		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::assign(const many_bits value_to_assign)\"");
 #endif
 }
+void unlimited_int::assign(const few_bits_signed value_to_assign)
+{
+	few_bits few_bits_equivalent;
+	if (value_to_assign < (few_bits_signed)0)
+		//It's required to do it this way, in case value_to_assign is the most negative number that few_bits_signed can be.
+		//In that case the positive version wouldn't fit in few_bits_signed, so that's why we do the add 1 and only then use unary operator -
+		few_bits_equivalent = static_cast<few_bits>(-(value_to_assign + (few_bits_signed)1)) + (few_bits)1;
+	else
+		few_bits_equivalent = static_cast<few_bits>(value_to_assign);
+	this->assign(few_bits_equivalent);
+	this->_is_negative = value_to_assign < (few_bits_signed)0;
+}
+void unlimited_int::assign(const many_bits_signed value_to_assign)
+{
+	many_bits many_bits_equivalent;
+	if (value_to_assign < (many_bits_signed)0)
+		//It's required to do it this way, in case value_to_assign is the most negative number that many_bits_signed can be.
+		//In that case the positive version wouldn't fit in many_bits_signed, so that's why we do the add 1 and only then use unary operator -
+		many_bits_equivalent = static_cast<many_bits>(-(value_to_assign + (many_bits_signed)1)) + (many_bits)1;
+	else
+		many_bits_equivalent = static_cast<many_bits>(value_to_assign);
+	this->assign(many_bits_equivalent);
+	this->_is_negative = value_to_assign < (many_bits_signed)0;
+}

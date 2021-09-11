@@ -326,7 +326,10 @@ char unlimited_int::compare_to(const few_bits_signed other_num) const
 		return this->compare_to_ignore_sign(static_cast<few_bits>(other_num));
 	//By now we know that both are negative
 	const unlimited_int this_positive(*this, false);
-	const char result_comparison = this_positive.compare_to_ignore_sign(static_cast<few_bits>(-other_num));
+	//It's required to do it this way, in case other_num is the most negative number that few_bits_signed can be.
+	//In that case the positive version wouldn't fit in few_bits_signed, so that's why we do the add 1 and only then use unary operator -
+	const few_bits other_num_positive = static_cast<few_bits>(-(other_num + (few_bits_signed)1)) + (few_bits)1;
+	const char result_comparison = this_positive.compare_to_ignore_sign(other_num_positive);
 	if (result_comparison == 'L')
 		return 'S';
 	if (result_comparison == 'S')
@@ -335,16 +338,19 @@ char unlimited_int::compare_to(const few_bits_signed other_num) const
 }
 char unlimited_int::compare_to(const many_bits_signed other_num) const
 {
-	const bool other_num_is_negative = other_num < (few_bits_signed)0;
+	const bool other_num_is_negative = other_num < (many_bits_signed)0;
 	if (this->_is_negative && !other_num_is_negative)
 		return 'S';
 	if (!this->_is_negative && other_num_is_negative)
 		return 'L';
 	if (!this->_is_negative && !other_num_is_negative)
-		return this->compare_to_ignore_sign(static_cast<few_bits>(other_num));
+		return this->compare_to_ignore_sign(static_cast<many_bits>(other_num));
 	//By now we know that both are negative
 	const unlimited_int this_positive(*this, false);
-	const char result_comparison = this_positive.compare_to_ignore_sign(static_cast<few_bits>(-other_num));
+	//It's required to do it this way, in case other_num is the most negative number that many_bits_signed can be.
+	//In that case the positive version wouldn't fit in many_bits_signed, so that's why we do the add 1 and only then use unary operator -
+	const many_bits other_num_positive = static_cast<many_bits>(-(other_num + (many_bits_signed)1)) + (many_bits)1;
+	const char result_comparison = this_positive.compare_to_ignore_sign(other_num_positive);
 	if (result_comparison == 'L')
 		return 'S';
 	if (result_comparison == 'S')

@@ -8,7 +8,7 @@
 #include <sstream>
 #include <array>
 using namespace unlimited;
-void initialize_small_prime_numbers(std::vector<few_bits>* small_prime_numbers)
+static void initialize_small_prime_numbers(std::vector<few_bits>* small_prime_numbers)
 {
 	constexpr size_t PRIME_NUMBERS_UNTIL = (size_t)200; //Until and including, although in this case 200 isn't actually a prime number so it'll only be until 199.
 	static_assert(PRIME_NUMBERS_UNTIL < (size_t)MAX_few_bits_NUM, "static_assert failed in function \"initialize_small_prime_numbers\", can\'t calculate that many small prime numbers");
@@ -59,14 +59,14 @@ bool unlimited_int::is_prime(const int num_of_iterations, const volatile bool *c
 	const char comparison_to_2 = this->compare_to_ignore_sign((few_bits)2);
 	if (comparison_to_2 == 'E' || this->compare_to_ignore_sign((few_bits)3) == 'E')
 		return true;
-	if (comparison_to_2 == 'S' || this->modulo_2() == 0)
+	if (comparison_to_2 == 'S' || this->modulo_2() == static_cast<unsigned short>(0))
 		return false;
 	unlimited_int pMinusOne = *this;
 	pMinusOne.self_abs();
 	--pMinusOne;
 	size_t _k = (size_t)0;
 	unlimited_int _m = pMinusOne;
-	while (_m.modulo_2() == 0)
+	while (_m.modulo_2() == static_cast<unsigned short>(0))
 	{
 		_m >>= (size_t)1;
 		++_k;
@@ -101,25 +101,24 @@ bool unlimited_int::is_prime(const int num_of_iterations, const volatile bool *c
 	return true;
 }
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
-void generate_random_prime_single_thread(const unlimited_int& min, const unlimited_int& max, volatile bool *const result_was_set, unlimited_int *const result, std::mutex& result_lock, std::condition_variable& wakeup_main_thread, std::mutex& wakeup_main_thread_lock)
+static void generate_random_prime_single_thread(const unlimited_int& min, const unlimited_int& max, volatile bool *const result_was_set, unlimited_int *const result, std::mutex& result_lock, std::condition_variable& wakeup_main_thread, std::mutex& wakeup_main_thread_lock)
 {
 	try
 	{
 		//Just a syntax trick, to limit the scope of the local variables, thereby getting all of the local variable's destructors called
 		//before calling unlimited_int::delete_all_thread_local_memory(). Without this syntax trick, someone editing this code might accidentally cause a memory leak.
-		if (true)
 		{
 			unlimited_int current_try;
-			do current_try = unlimited_int::generate_random(min, max);
-			while (!current_try.is_prime(64, result_was_set) && !(*result_was_set));
-			if (true)
+			do
+			{
+				current_try = unlimited_int::generate_random(min, max);
+			} while (!current_try.is_prime(64, result_was_set) && !(*result_was_set));
 			{
 				std::lock_guard<std::mutex> locker_result(result_lock);
 				if (!(*result_was_set)) //if it ended because it actually found a prime number, rather than because of is_ending
 				{
 					*result = current_try;
 					*result_was_set = true;
-					if (true)
 					{
 						std::lock_guard<std::mutex> locker(wakeup_main_thread_lock);
 						wakeup_main_thread.notify_one();
@@ -143,13 +142,11 @@ void generate_random_prime_single_thread(const unlimited_int& min, const unlimit
 			//Nothing I can really do to clear up MSVC++'s issue at this point.
 		}
 		static_cast<void>(e); //Suppress compiler warning of unreference local variable.
-		if (true)
 		{
 			std::unique_lock<std::mutex> locker_result(result_lock);
 			if (!(*result_was_set)) //if we're not too late to the party
 			{
 				*result_was_set = true;
-				if (true)
 				{
 					std::lock_guard<std::mutex> locker(wakeup_main_thread_lock);
 					wakeup_main_thread.notify_one();
