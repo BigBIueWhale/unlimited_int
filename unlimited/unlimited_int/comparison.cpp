@@ -261,6 +261,7 @@ char unlimited_int::compare_to_ignore_sign(const few_bits other_num) const
 }
 char unlimited_int::compare_to_ignore_sign(const many_bits other_num) const
 {
+	static_assert(sizeof(few_bits) * 2 == sizeof(many_bits), "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
 	const few_bits low_part = (few_bits)other_num;
 	const few_bits high_part = (few_bits)(other_num >> NUM_OF_BITS_few_bits);
 	size_t num_of_few_bits = (high_part == 0) ? (size_t)0 : (size_t)2;
@@ -317,6 +318,7 @@ char unlimited_int::compare_to(const many_bits other_num) const
 }
 char unlimited_int::compare_to(const few_bits_signed other_num) const
 {
+	static_assert(sizeof(few_bits) >= sizeof(few_bits_signed), "Assertion error: few_bits needs to be at least as big as few_bits_signed");
 	const bool other_num_is_negative = other_num < (few_bits_signed)0;
 	if (this->_is_negative && !other_num_is_negative)
 		return 'S';
@@ -338,6 +340,7 @@ char unlimited_int::compare_to(const few_bits_signed other_num) const
 }
 char unlimited_int::compare_to(const many_bits_signed other_num) const
 {
+	static_assert(sizeof(many_bits) >= sizeof(many_bits_signed), "Assertion error: many_bits needs to be at least as big as many_bits_signed");
 	const bool other_num_is_negative = other_num < (many_bits_signed)0;
 	if (this->_is_negative && !other_num_is_negative)
 		return 'S';

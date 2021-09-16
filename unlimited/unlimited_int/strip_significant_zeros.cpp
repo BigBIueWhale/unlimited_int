@@ -40,6 +40,6 @@ void unlimited_int::cutoff_leading_zeros(custom_linked_list_node<int_array> *con
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe error was found in end of function \"cutoff_leading_zeros(Node* int_array_to_start_at)\"");
+		throw std::logic_error("The error was found in end of function \"cutoff_leading_zeros(Node* int_array_to_start_at)\"");
 #endif
 }

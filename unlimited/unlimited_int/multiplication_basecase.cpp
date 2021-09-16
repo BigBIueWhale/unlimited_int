@@ -5,12 +5,13 @@ using namespace unlimited;
 #endif
 void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimited_int* answer) const
 {
+	static_assert(sizeof(few_bits) * 2 == sizeof(many_bits), "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"multiply_basecase(unlimited_int* num_to_mult, unlimited_int* answer)\":";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_mult->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function \"void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimited_int* answer) const\"");
 #endif
 	if (num_to_mult->num_of_intarrays_used == (size_t)0 || this->num_of_intarrays_used == (size_t)0)
 	{
@@ -214,6 +215,6 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistencies were found at the end of multiply_basecase with answer.");
+		throw std::logic_error("The inconsistencies were found at the end of multiply_basecase with answer.");
 #endif
 }

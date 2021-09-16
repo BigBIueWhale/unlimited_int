@@ -10,8 +10,10 @@ unlimited_int unlimited_int::operator&(const unlimited_int& right) const
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || right.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator&(const unlimited_int& right) const\"");
+		throw std::logic_error("The inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator&(const unlimited_int& right) const\"");
 #endif
+	if (this->is_negative() || right.is_negative())
+		throw std::invalid_argument("Can\'t do bitwise operation on negative number");
 	if (this->is_zero() || right.is_zero())
 		return unlimited_int(); //returns 0
 	const unlimited_int* shorter_num = this;
@@ -76,9 +78,9 @@ unlimited_int unlimited_int::operator&(const unlimited_int& right) const
 				current_int_array_Node_longer_num = current_int_array_Node_longer_num->next;
 				current_int_array_longer_num = *current_int_array_Node_longer_num->value;
 			}
-			const many_bits stop_for_result = int_num_counter + current_int_array_result.intarr_len - index_result;
-			const many_bits stop_for_shorter_num = int_num_counter + current_int_array_shorter_num.num_of_used_ints - index_shorter_num;
-			const many_bits stop_for_longer_num = int_num_counter + current_int_array_longer_num.num_of_used_ints - index_longer_num;
+			const size_t stop_for_result = int_num_counter + current_int_array_result.intarr_len - index_result;
+			const size_t stop_for_shorter_num = int_num_counter + current_int_array_shorter_num.num_of_used_ints - index_shorter_num;
+			const size_t stop_for_longer_num = int_num_counter + current_int_array_longer_num.num_of_used_ints - index_longer_num;
 			stop_at = stop_for_result;
 			if (stop_for_shorter_num < stop_at)
 				stop_at = stop_for_shorter_num;
@@ -103,7 +105,7 @@ unlimited_int unlimited_int::operator&(const unlimited_int& right) const
 #endif
 #if DEBUG_MODE > 0
 	if (result.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator&(const unlimited_int& right) const\"");
+		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator&(const unlimited_int& right) const\"");
 #endif
 	return result;
 }

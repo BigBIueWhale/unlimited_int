@@ -11,8 +11,10 @@ unlimited_int unlimited_int::operator^(const unlimited_int& right) const
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || right.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator^(const unlimited_int& right) const\"");
+		throw std::logic_error("The inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator^(const unlimited_int& right) const\"");
 #endif
+	if (this->is_negative() || right.is_negative())
+		throw std::invalid_argument("Can\'t do bitwise operation on negative number");
 	if (this->is_zero())
 	{
 		unlimited_int right_copy = right;
@@ -145,7 +147,7 @@ unlimited_int unlimited_int::operator^(const unlimited_int& right) const
 #endif
 #if DEBUG_MODE > 0
 	if (result.find_inconsistencies() || this->find_inconsistencies() || right.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator^(const unlimited_int& right) const\"");
+		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator^(const unlimited_int& right) const\"");
 #endif
 	return result;
 }

@@ -33,6 +33,7 @@ unlimited_int unlimited_int::calculate_sha256_hash() const
 		size_t length_of_preimage_in_bits = this->num_of_used_ints * (size_t)(sizeof(few_bits)) * (size_t)8;
 		int index_in_block = 0;
 #if NUM_OF_BITS_few_bits == 16
+		static_assert(sizeof(few_bits) * 2 == sizeof(uint32_t), "Assuming that few_bits is half the size of uint32_t");
 		few_bits previous_few_bits;
 		bool have_beginning_of_number;
 		if (this->num_of_used_ints % (size_t)2 == 1)
@@ -49,6 +50,7 @@ unlimited_int unlimited_int::calculate_sha256_hash() const
 			have_beginning_of_number = true;
 		}
 #else
+		static_assert(sizeof(few_bits) == sizeof(uint32_t), "Assuming that few_bits is the same size as uint32_t");
 		current_block[index_in_block] = most_significant_used_few_bits_in_number;
 		++index_in_block;
 #endif

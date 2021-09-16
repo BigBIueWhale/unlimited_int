@@ -13,15 +13,17 @@ many_bits ceiling_division(many_bits, many_bits);
 #if DEBUG_MODE == 2
 #include <iostream>
 #endif
-void insert_long_long_into_uint32_t(long long origin, uint32_t* destination_arr, size_t* counter_in_uint32_t)
+static void insert_long_long_into_uint32_t(long long origin, uint32_t* destination_arr, size_t* counter_in_uint32_t)
 {
 #if IS_64_BIT_SYSTEM == false
+	static_assert(sizeof(long long) == sizeof(uint32_t), "Size of long long int must be 32 bits.");
 	destination_arr[*counter_in_uint32_t] = (uint32_t)origin;
 	++(*counter_in_uint32_t);
 #else
-	destination_arr[*counter_in_uint32_t] = (uint32_t)((many_bits)origin >> 32);
+	static_assert(sizeof(long long) == sizeof(uint32_t) * 2, "Size of long long int must be 64 bits.");
+	destination_arr[*counter_in_uint32_t] = (uint32_t)((uint64_t)origin >> 32);
 	++(*counter_in_uint32_t);
-	destination_arr[*counter_in_uint32_t] = (uint32_t)((many_bits)origin & (many_bits)MASK_LOW_BITS);
+	destination_arr[*counter_in_uint32_t] = (uint32_t)((uint64_t)origin & (uint64_t)MASK_LOW_BITS);
 	++(*counter_in_uint32_t);
 #endif
 }
@@ -34,6 +36,8 @@ void unlimited_int::flush_current_random()
 //BTW this is not truly random, because it relies on time and memory address management, and if it can, the thread ID. But for most intents and purposes it's truly random.
 unlimited_int unlimited_int::generate_truly_random()
 {
+	static_assert(sizeof(long long) <= sizeof(void*), "\nPointer size must fit in long long in order to do reinterpret_cast<long long>.");
+	static_assert(sizeof(size_t) <= sizeof(void*), "\nPointer size must fit in size_t in order to do reinterpret_cast<size_t>.");
 	//don't let this confuse you. There aren't actually 4096 * sizeof(int) bytes of randomness.
 	//I don't have a camera pointing at a lava lamp in real time.
 	constexpr size_t SIZE_OF_SEED_ARR = (size_t)1024; //should be enough
@@ -184,7 +188,7 @@ unlimited_int unlimited_int::generate_random_that_is_at_least(const size_t min_n
 #endif
 #if DEBUG_MODE > 0
 	if (result_random.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function: \"unlimited_int* unlimited_int::generate_random_that_is_at_least(size_t min_num_of_bits)\"");
+		throw std::logic_error("The inconsistency was found in start of function: \"unlimited_int* unlimited_int::generate_random_that_is_at_least(size_t min_num_of_bits)\"");
 #endif
 	return result_random;
 }
@@ -192,7 +196,7 @@ unlimited_int unlimited_int::generate_random(const unlimited_int& min, const unl
 {
 	char result_compare = min.compare_to(max);
 	if (result_compare == 'L')
-		throw std::invalid_argument("\nError found in function \"unlimited_int::generate_random(unlimited_int&, unlimited_int&)\": min > max");
+		throw std::invalid_argument("Error found in function \"unlimited_int::generate_random(unlimited_int&, unlimited_int&)\": min > max");
 	else if (result_compare == 'E')
 	{
 		unlimited_int min_cpy = min;
@@ -210,7 +214,7 @@ unlimited_int unlimited_int::generate_random(const unlimited_int& min, const unl
 #endif
 #if DEBUG_MODE > 0
 	if (answer.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)\"");
+		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)\"");
 	if (answer < min || answer > max)
 		throw std::logic_error("Error in function \"unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)\". Result is out of range (an internal bug)");
 #endif

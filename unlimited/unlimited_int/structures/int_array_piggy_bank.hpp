@@ -5,7 +5,6 @@ namespace unlimited
 {
 	class int_array_piggy_bank : public int_array_list
 	{
-		//In the function implementations the mutex makes sure that only one thread can access the piggy bank at a time. The others must wait patiently.
 	public:
 		int_array_piggy_bank() {}
 		void withdraw(int_array_list& deposit_to, size_t amount_to_withdraw);

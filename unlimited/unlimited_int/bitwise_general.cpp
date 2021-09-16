@@ -50,7 +50,7 @@ size_t unlimited_int::get_length_in_bits() const
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function: \"size_t unlimited_int::get_length_in_bits() const\"");
+		throw std::logic_error("The inconsistency was found in start of function: \"size_t unlimited_int::get_length_in_bits() const\"");
 #endif
 	if (this->num_of_used_ints == (size_t)0)
 		return (size_t)0;

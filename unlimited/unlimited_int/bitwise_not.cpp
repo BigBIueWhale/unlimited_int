@@ -10,8 +10,10 @@ unlimited_int unlimited_int::operator~() const
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator~() const\"");
+		throw std::logic_error("The inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator~() const\"");
 #endif
+	if (this->is_negative())
+		throw std::invalid_argument("Can\'t do bitwise operation on negative number");
 	unlimited_int result;
 	const size_t len_of_result = this->num_of_used_ints;
 	if (len_of_result == (size_t)0)
@@ -85,7 +87,7 @@ unlimited_int unlimited_int::operator~() const
 #endif
 #if DEBUG_MODE > 0
 	if (result.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator~() const\"");
+		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator~() const\"");
 #endif
 	return result;
 }
@@ -96,15 +98,15 @@ void unlimited_int::invert_bits()
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in beginning of function: \"void unlimited_int::invert_bits()\"");
+		throw std::logic_error("The inconsistency was found in beginning of function: \"void unlimited_int::invert_bits()\"");
 #endif
+	if (this->is_negative())
+		throw std::invalid_argument("Can\'t do bitwise operation on negative number");
 	const size_t len_of_this = this->num_of_used_ints;
 	custom_linked_list_node<int_array>* current_int_array_Node_this = this->intarrays->first();
 	int_array current_int_array_this = *current_int_array_Node_this->value;
 	size_t index_this = (size_t)0;
-
 	const size_t stop_for_this = current_int_array_this.num_of_used_ints;
-
 	size_t stop_at = stop_for_this;
 	if (len_of_this < stop_at)
 		stop_at = len_of_this;
@@ -121,7 +123,7 @@ void unlimited_int::invert_bits()
 				current_int_array_Node_this = current_int_array_Node_this->next;
 				current_int_array_this = *current_int_array_Node_this->value;
 			}
-			const many_bits stop_for_this = int_num_counter + current_int_array_this.num_of_used_ints - index_this;
+			const size_t stop_for_this = int_num_counter + current_int_array_this.num_of_used_ints - index_this;
 			stop_at = stop_for_this;
 			if (len_of_this < stop_at)
 				stop_at = len_of_this;
@@ -132,9 +134,10 @@ void unlimited_int::invert_bits()
 		++int_num_counter;
 	}
 	--index_this;
-	const few_bits most_significant_int_in_this = current_int_array_this.intarr[index_this];
+	//We already inverted the most significant few_bits, so we need to invert it back.
+	const few_bits most_significant_int_in_this = ~current_int_array_this.intarr[index_this];
 	const int num_preceding_zeros = unlimited_int::num_of_zero_bits_preceding_number(most_significant_int_in_this);
-	const few_bits inverted_most_significant_int_in_this = (few_bits)(~(most_significant_int_in_this << num_preceding_zeros)) >> num_preceding_zeros;
+	const few_bits inverted_most_significant_int_in_this = static_cast<few_bits>(~(most_significant_int_in_this << num_preceding_zeros)) >> num_preceding_zeros;
 	current_int_array_this.intarr[index_this] = inverted_most_significant_int_in_this;
 	this->cutoff_leading_zeros(current_int_array_Node_this);
 #if DEBUG_MODE == 2
@@ -142,6 +145,6 @@ void unlimited_int::invert_bits()
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function: \"void unlimited_int::invert_bits()\"");
+		throw std::logic_error("The inconsistency was found in end of function: \"void unlimited_int::invert_bits()\"");
 #endif
 }

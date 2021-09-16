@@ -6,8 +6,18 @@ using namespace unlimited;
 #include <iomanip>
 #endif
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
-std::atomic<uint64_t> int_array::num_of_ints_created((uint64_t)0);
-std::atomic<uint64_t> int_array::num_of_ints_destroyed((uint64_t)0);
+#include <iostream>
+#include <sstream>
+void int_array::find_memory_leaks::assert_no_memory_leak() noexcept(false)
+{
+	const bool were_memory_leaks = int_array::num_of_ints_created != int_array::num_of_ints_destroyed;
+	if (were_memory_leaks)
+	{
+		std::ostringstream err_msg;
+		err_msg << "Found memory leak in the end of the program unlimited_int. num_of_ints_created: " << int_array::num_of_ints_created << "  num_of_ints_destroyed: " << int_array::num_of_ints_destroyed;
+		throw std::runtime_error(err_msg.str());
+	}
+}
 #endif
 void int_array::assign(const few_bits num_to_assign)
 {
@@ -71,7 +81,7 @@ size_t int_array::find_first_used_not_zero(bool *const found) const
 	if (this->num_of_used_ints == (size_t)0)
 	{
 		*found = false; 
-		return MAX_size_t_NUM;
+		return static_cast<size_t>(MAX_size_t_NUM);
 	}
 	few_bits* current_address = this->intarr + (this->num_of_used_ints - (size_t)1);
 	const few_bits *const stop_at = this->intarr;
@@ -87,7 +97,7 @@ size_t int_array::find_first_used_not_zero(bool *const found) const
 		--index;
 	}
 	*found = false;
-	return MAX_size_t_NUM;
+	return static_cast<size_t>(MAX_size_t_NUM);
 }
 void int_array::shift_right(const size_t num_of_ints_to_shift_right_by)
 {
@@ -176,3 +186,4 @@ void int_array::destroy()
 	delete[] intarr;
 	this->set_null();
 }
+static_assert(MAX_ALLOC >= MIN_ALLOC || MIN_ALLOC <= 0, "Error in unlimited_int library in the file settings.h: MAX_ALLOC and/or MIN_ALLOC have invalid values.");

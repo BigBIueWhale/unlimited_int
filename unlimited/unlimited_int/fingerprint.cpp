@@ -6,6 +6,11 @@ using namespace unlimited;
 //There's nothing special about them, don't scratch your head about it.
 size_t unlimited_int::fingerprint() const
 {
+#if IS_64_BIT_SYSTEM
+	static_assert(sizeof(size_t) * 8 == 64);
+#else
+	static_assert(sizeof(size_t) * 8 == 32);
+#endif
 	if (this->num_of_used_ints == (size_t)0)
 	{
 #if IS_64_BIT_SYSTEM

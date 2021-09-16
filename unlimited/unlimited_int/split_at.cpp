@@ -11,7 +11,7 @@ void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function \"void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_int* low) const\"");
+		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_int* low) const\"");
 #endif
 	const size_t this_num_of_used_ints = this->num_of_used_ints;
 	if (index >= this_num_of_used_ints)
@@ -164,7 +164,7 @@ void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_
 #endif
 #if DEBUG_MODE > 0
 	if (high->find_inconsistencies() || low->find_inconsistencies() || this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_int* low) const\"");
+		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_int* low) const\"");
 #endif
 }
 void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int* high, unlimited_int* low)
@@ -174,7 +174,7 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function \"void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int* high, unlimited_int* low)\"");
+		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int* high, unlimited_int* low)\"");
 #endif
 	size_t size_of_this = this->num_of_used_ints;
 	if (size_of_this == (size_t)0)
@@ -298,6 +298,6 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 #endif
 #if DEBUG_MODE > 0
 	if (high->find_inconsistencies() || low->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistencies were found at the end of split_at_and_use_original.");
+		throw std::logic_error("The inconsistencies were found at the end of split_at_and_use_original.");
 #endif
 }

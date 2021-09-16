@@ -10,7 +10,7 @@ void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) 
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function \"void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
 	if (this->num_of_intarrays_used == (size_t)0 || num_to_mult == (size_t)0)
 	{
@@ -126,7 +126,7 @@ void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) 
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
 }
 void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const
@@ -136,7 +136,7 @@ void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unl
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function \"void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
 	const many_bits num_to_mult_many = (many_bits)num_to_mult;
 	int_array* this_int_array = this->intarrays->first()->value;
@@ -174,7 +174,7 @@ void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unl
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
 }
 void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const
@@ -184,7 +184,7 @@ void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unl
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function \"void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
 	const many_bits num_to_mult_many = (many_bits)num_to_mult;
 	custom_linked_list_node<int_array>* it_answer = answer->intarrays->first();
@@ -260,7 +260,7 @@ void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unl
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
 }
 void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const
@@ -270,7 +270,7 @@ void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, u
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function \"void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
 	const many_bits num_to_mult_many = (many_bits)num_to_mult;
 	custom_linked_list_node<int_array>* it_this = this->intarrays->first();
@@ -332,6 +332,6 @@ void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, u
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
 }

@@ -71,7 +71,6 @@ static_assert(PIGGY_BANK_MAXIMUM >= 0, "Error in unlimited_int library in the fi
 #define MIN_ALLOC 128
 //#define MAX_ALLOC 256000
 //#define MIN_ALLOC 128000
-static_assert(MAX_ALLOC >= MIN_ALLOC || MIN_ALLOC <= 0, "Error in unlimited_int library in the file settings.h: MAX_ALLOC and/or MIN_ALLOC have invalid values.");
 //set the multithreading macro to false if you want to compile for Linux using g++ with -static flag because that causes issues with multithreading
 //Even if it's set to false, this library will still be thread-safe, it just won't open any threads of its own: unlimited::unlimited_int::generate_random_prime_multithreaded()
 #define UNLIMITED_INT_SUPPORT_MULTITHREADING true

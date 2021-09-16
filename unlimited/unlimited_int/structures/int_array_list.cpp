@@ -95,9 +95,9 @@ size_t int_array_list::double_check_length()
 		++length_counter_reverse;
 	}
 	if (length_counter != length_counter_reverse)
-		throw std::logic_error("\nError in function \"size_t int_array_list::double_check_length()\" the length of the doubly-linked list going forward is not the same as the length going in reverse.");
+		throw std::logic_error("Error in function \"size_t int_array_list::double_check_length()\" the length of the doubly-linked list going forward is not the same as the length going in reverse.");
 	if (length_counter != this->_length)
-		throw std::logic_error("\nError in function \"size_t int_array_list::double_check_length()\" the length of the doubly-linked list measured manually is not the same as the _length variable");
+		throw std::logic_error("Error in function \"size_t int_array_list::double_check_length()\" the length of the doubly-linked list measured manually is not the same as the _length variable");
 	return length_counter;
 }
 #endif

@@ -10,7 +10,7 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_subtract->find_inconsistencies())
-		throw std::logic_error("\nThe error was found in start of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
+		throw std::logic_error("The error was found in start of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
 #endif
 	if (num_to_subtract == this)
 	{
@@ -64,7 +64,7 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 #endif
 #if DEBUG_MODE > 0
 		if (answer->find_inconsistencies())
-			throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
+			throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
 #endif
 		return;
 	}
@@ -79,18 +79,26 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 		if (answer->find_inconsistencies())
 		{
 			if (answer->find_inconsistencies())
-				throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
+				throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
 		}
 #endif
 		return;
 	}
+	bool set_answer_to_negative;
 	if (compare_result == 'L')
-		answer->_is_negative = false;
+		set_answer_to_negative = false;
 	else //if compare_result == 'S'
 	{
 		this_copy.swap(num_to_subtract_copy);
-		answer->_is_negative = true;
+		set_answer_to_negative = true;
 	}
+	if (this_copy.fits_in_many_bits() && num_to_subtract_copy.fits_in_many_bits())
+	{
+		*answer = this_copy.to_many_bits() - num_to_subtract_copy.to_many_bits();
+		answer->_is_negative = set_answer_to_negative;
+		return;
+	}
+	answer->_is_negative = set_answer_to_negative;
 	size_t num_of_used_ints_this = this_copy.num_of_used_ints;
 	answer->increase_until_num_of_ints(num_of_used_ints_this);
 	custom_linked_list_node<int_array>* it_this = this_copy.intarrays->first();
@@ -172,17 +180,17 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 		many_bits_signed current_value_in_this;
 		const many_bits_signed current_value_in_subtract = *subtract_current_int_array_intarr;
 		if (is_carry)
-			current_value_in_this = (many_bits_signed)(*this_current_int_array_intarr) - (many_bits_signed)1;
+			current_value_in_this = static_cast<many_bits_signed>(*this_current_int_array_intarr) - static_cast<many_bits_signed>(1);
 		else
-			current_value_in_this = *this_current_int_array_intarr;
+			current_value_in_this = static_cast<many_bits_signed>(*this_current_int_array_intarr);
 		if (current_value_in_this < current_value_in_subtract)
 		{
-			*answer_current_int_array_intarr = (few_bits)(current_value_in_this + (many_bits_signed)MAX_few_bits_NUM_PLUS_ONE - current_value_in_subtract);
+			*answer_current_int_array_intarr = static_cast<few_bits>(current_value_in_this + (many_bits_signed)MAX_few_bits_NUM_PLUS_ONE - current_value_in_subtract);
 			is_carry = true;
 		}
 		else
 		{
-			*answer_current_int_array_intarr = (few_bits)(current_value_in_this - current_value_in_subtract);
+			*answer_current_int_array_intarr = static_cast<few_bits>(current_value_in_this - current_value_in_subtract);
 			is_carry = false;
 		}
 		++answer_current_int_array_intarr;
@@ -355,6 +363,6 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
 #endif
 }

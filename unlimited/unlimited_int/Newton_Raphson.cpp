@@ -24,7 +24,7 @@ reciprocal_information unlimited_int::calculate_reciprocal_floor(size_t length_d
 	do
 	{
 		approx_times_N = approx * N;
-		unlimited_int difference = two_shifted - approx_times_N;
+		const unlimited_int difference = two_shifted - approx_times_N;
 		previous_approx = approx;
 		approx *= difference;
 		approx.shift_right(amount_to_shift_by);
@@ -32,12 +32,16 @@ reciprocal_information unlimited_int::calculate_reciprocal_floor(size_t length_d
 //Correction of error by 1
 	unlimited_int numerator((few_bits)1);
 	numerator.shift_left(amount_to_shift_by);
-	const char result_comparison = approx_times_N.compare_to(numerator); //They're both non-negative to I don't need to use "compare_to_ignore_sign"
+	char result_comparison = approx_times_N.compare_to(numerator); //They're both non-negative to I don't need to use "compare_to_ignore_sign"
 	if (result_comparison == 'S')
 	{
-		approx_times_N += N;
-		if (approx_times_N <= numerator)
-			throw std::logic_error("Error in function \"calculate_reciprocal_ceiling\". The reciprocal result given by Newton Raphson is certainly wrong (too small)");
+		while (result_comparison == 'S')
+		{
+			approx_times_N += N;
+			result_comparison = approx_times_N.compare_to(numerator);
+			if (result_comparison != 'L')
+				++approx;
+		}
 	}
 	else if (result_comparison == 'L')
 		throw std::logic_error("Error in function \"calculate_reciprocal_ceiling\". The reciprocal result given by Newton Raphson is certainly wrong (too big)");
@@ -50,7 +54,6 @@ unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& divide
 	if (reciprocal.amount_shifted < (dividend.num_of_used_ints + (size_t)AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL))
 		throw std::invalid_argument("Error while trying to divide using reciprocal: the reciprocal doesn\'t have enough accuracy relative to the given dividend");
 	const size_t amount_to_reduce_reciprocal = reciprocal.amount_shifted - (dividend.num_of_used_ints + (size_t)AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL);
-	//const many_bits amount_to_reduce_reciprocal = 0;
 	unlimited_int reciprocal_shifted(*reciprocal.reciprocal, false);
 	//Only make an independent copy of reciprocal if it needs to be shifted
 	if (amount_to_reduce_reciprocal > 0)
@@ -61,8 +64,8 @@ unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& divide
 	}
 	const size_t amount_to_shift_answer = reciprocal.amount_shifted - amount_to_reduce_reciprocal;
 	unlimited_int answer = dividend * reciprocal_shifted;
-	answer.shift_right(amount_to_shift_answer);
 	answer.self_abs();
+	answer.shift_right(amount_to_shift_answer);
 	//By now, the answer is either correct, or too small. That's because the reciprocal is floored, and shifting right also floors the answer, so it's definitely not too big.
 	//Based on observasion, if the result is wrong, it's always too small by 1.
 	//Even though I obseved that, I can't actually prove that the result can't be too small by 2 (for example).
@@ -72,21 +75,29 @@ unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& divide
 	unlimited_int divisor_positive(divisor, false);
 	divisor_positive.self_abs();
 	unlimited_int result_multiplication = answer * divisor_positive;
-	if (result_multiplication.compare_to_ignore_sign(dividend) == 'L')
-		throw std::logic_error("\nNewton Raphson division error in function \"divide_using_reciprocal\". The result is certainly wrong (too big).");
-	unlimited_int result_multiplication_error_by_1 = result_multiplication + divisor_positive;
-	char comparison_result = result_multiplication_error_by_1.compare_to_ignore_sign(dividend);
-	while (comparison_result != 'L')
+	const char result_multiplication_comparison_to_dividend = result_multiplication.compare_to_ignore_sign(dividend);
+	if (result_multiplication_comparison_to_dividend == 'L')
+		throw std::logic_error("Newton Raphson division error in function \"divide_using_reciprocal\". The result is certainly wrong (too big).");
+	else if (result_multiplication_comparison_to_dividend == 'S')
 	{
-		++answer; //fix error by 1 (the while loop is expected to only run once, but nonetheless it exists because I can't prove that the largest possible error is an error by 1)
-		result_multiplication = result_multiplication_error_by_1;
-		result_multiplication_error_by_1 += divisor_positive;
-		comparison_result = result_multiplication_error_by_1.compare_to_ignore_sign(dividend);
+		unlimited_int result_multiplication_error_by_1 = result_multiplication + divisor_positive;
+		char comparison_result = result_multiplication_error_by_1.compare_to_ignore_sign(dividend);
+		while (comparison_result != 'L')
+		{
+			++answer; //fix error by 1 (the while loop is expected to only run once, but nonetheless it exists because I can't prove that the largest possible error is an error by 1)
+			result_multiplication = result_multiplication_error_by_1;
+			result_multiplication_error_by_1 += divisor_positive;
+			comparison_result = result_multiplication_error_by_1.compare_to_ignore_sign(dividend);
+		}
 	}
 	answer._is_negative = dividend._is_negative != divisor._is_negative;
+	if (answer.is_zero())
+		answer._is_negative = false;
 	if (remainder != nullptr)
 	{
-		*remainder = dividend - result_multiplication;
+		unlimited_int dividend_positive(dividend, false);
+		dividend_positive.self_abs();
+		*remainder = dividend_positive - result_multiplication;
 		remainder->_is_negative = dividend._is_negative; //because this is remainder of division, not modulo
 	}
 #if DEBUG_MODE > 0
@@ -134,8 +145,12 @@ unlimited_int unlimited_int::recurring_division(const unlimited_int& dividend, c
 	const size_t log2_divisor = divisor.find_exact_log_2(&divisor_is_a_power_of_2);
 	if (divisor_is_a_power_of_2)
 	{
-		unlimited_int result = dividend >> log2_divisor;
+		unlimited_int dividend_positive(dividend, false);
+		dividend_positive._is_negative = false;
+		unlimited_int result = dividend_positive >> log2_divisor;
 		result._is_negative = dividend._is_negative != divisor._is_negative;
+		if (result.is_zero())
+			result._is_negative = false;
 		if (remainder != nullptr)
 		{
 			unlimited_int result_multiplication = result * divisor;

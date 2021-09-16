@@ -11,6 +11,12 @@ namespace unlimited
 #if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
 		static std::atomic<uint64_t> num_of_ints_created;
 		static std::atomic<uint64_t> num_of_ints_destroyed;
+		class find_memory_leaks
+		{
+		public:
+			find_memory_leaks() noexcept {}
+			void assert_no_memory_leak() noexcept(false);
+		} static automatic_memory_leak_checker_on_program_end;
 #endif
 		few_bits* intarr;
 		size_t intarr_len;

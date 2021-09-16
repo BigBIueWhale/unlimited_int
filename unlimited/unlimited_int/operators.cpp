@@ -6,30 +6,62 @@ using namespace unlimited;
 #define MAXIMUM_NUMERATOR_SIZE_FOR_WHICH_TO_USE_REPEATED_ADDITION 16
 unlimited_int unlimited_int::operator/(const unlimited_int& denominator) const
 {
-	if (denominator.num_of_used_ints == (size_t)0)
-		throw std::invalid_argument("\nError in function: \"unlimited_int* unlimited_int::operator/(const unlimited_int& denominator) const\" Can't divide by zero");
+	if (denominator.is_zero())
+		throw std::invalid_argument("Error in function: \"unlimited_int* unlimited_int::operator/(const unlimited_int& denominator) const\" Can't divide by zero");
 	unlimited_int answer;
-	if (this->num_of_used_ints <= (size_t)MAXIMUM_NUMERATOR_SIZE_FOR_WHICH_TO_USE_REPEATED_ADDITION)
-		answer = this->divide_by_repeated_addition(denominator);
+	unlimited_int this_positive(*this, false);
+	this_positive.self_abs();
+	unlimited_int denominator_positive(denominator, false);
+	denominator_positive.self_abs();
+	if (this_positive.fits_in_many_bits() && denominator_positive.fits_in_many_bits())
+		answer = this_positive.to_many_bits() / denominator_positive.to_many_bits();
 	else
-		answer = this->divide_by(denominator);
-	if (answer.num_of_used_ints == (size_t)0)
-		answer._is_negative = false;
-	else if (this->_is_negative != denominator._is_negative)
-		answer._is_negative = true;
-	return answer;
-}
-unlimited_int unlimited_int::operator/(const few_bits divisor) const
-{
-	if (divisor == (few_bits)0)
-		throw std::invalid_argument("\nError in function: \"unlimited_int* unlimited_int::operator/(const few_bits denominator) const\" Can't divide by zero");
-	unlimited_int answer = this->divide_by(divisor);
-	if (this->is_negative())
+	{
+		if (denominator_positive.fits_in_few_bits())
+			answer = this_positive.divide_by(denominator_positive.to_few_bits());
+		else
+		{
+			if (this->num_of_used_ints <= (size_t)MAXIMUM_NUMERATOR_SIZE_FOR_WHICH_TO_USE_REPEATED_ADDITION)
+				answer = this->divide_by_repeated_addition(denominator);
+			else
+				answer = this->divide_by(denominator);
+		}
+	}
+	answer.self_abs();
+	if (this->_is_negative != denominator._is_negative)
 		answer.self_negative();
 	return answer;
 }
 void unlimited_int::operator*=(const unlimited_int& other)
 {
+	const bool this_was_negative = this->is_negative();
+	this->_is_negative = false;
+	unlimited_int other_positive(other, false);
+	other_positive.self_abs();
+	const bool this_fits_in_few_bits = this->fits_in_few_bits();
+	const bool other_fits_in_few_bits = other_positive.fits_in_few_bits();
+	if (this_fits_in_few_bits || other_fits_in_few_bits)
+	{
+		few_bits this_as_few_bits = MAX_few_bits_NUM; //Initializing to make compiler warning disappear
+		few_bits other_as_few_bits = MAX_few_bits_NUM; //Initializing to make compiler warning disappear
+		if (this_fits_in_few_bits)
+			this_as_few_bits = this->to_few_bits();
+		if (other_fits_in_few_bits)
+			other_as_few_bits = other_positive.to_few_bits();
+		if (this_fits_in_few_bits && other_fits_in_few_bits)
+		{
+			static_assert(sizeof(many_bits) >= sizeof(few_bits) * 2, "Assuming that many_bits is at least twice as large as few_bits");
+			*this = static_cast<many_bits>(this_as_few_bits) * static_cast<many_bits>(other_as_few_bits);
+		}
+		else if (this_fits_in_few_bits)
+			other_positive.multiply(this_as_few_bits, this);
+		else if (other_fits_in_few_bits)
+			this->multiply(other_as_few_bits, this);
+		this->self_abs();
+		if (this_was_negative != other.is_negative())
+			this->self_negative();
+		return;
+	}
 	bool other_is_a_power_of_2, this_is_a_power_of_2;
 	//it's more efficient when either other or this is a power of 2 because then bit shifting can be used instead of the Karatsuba multiplication algorithm.
 	const size_t other_log2 = other.find_exact_log_2(&other_is_a_power_of_2);
@@ -37,13 +69,15 @@ void unlimited_int::operator*=(const unlimited_int& other)
 	if (other_is_a_power_of_2)
 		*this <<= other_log2;
 	else if (this_is_a_power_of_2)
-		*this = other << this_log2;
+		*this = other_positive << this_log2;
 	else //neither numbers are powers of 2.
 		*this = this->multiply_karatsuba_destroy_this(&other);
 	if (this->num_of_used_ints == (size_t)0)
 		this->_is_negative = false;
-	else if (this->_is_negative != other._is_negative)
+	else if (this_was_negative != other.is_negative())
 		this->_is_negative = true;
+	else
+		this->_is_negative = false;
 }
 unlimited_int unlimited_int::operator+(const unlimited_int& other) const
 {
@@ -57,17 +91,31 @@ unlimited_int unlimited_int::operator-(const unlimited_int& other) const
 	this->subtract(&other, &answer);
 	return answer;
 }
+//Pre increment
 void unlimited_int::operator++()
 {
-	//Can't do it in one line because the standard says that getting a pointer of an rvalue is undefined behaviour.
-	const unlimited_int one((few_bits)1);
-	this->add(&one, this);
+	const unlimited_int one(1);
+	(*this) += one;
 }
+//Pre decrement
 void unlimited_int::operator--()
 {
-	//Can't do it in one line because the standard says that getting a pointer of an rvalue is undefined behaviour.
-	const unlimited_int one((few_bits)1);
-	this->subtract(&one, this);
+	const unlimited_int one(1);
+	(*this) -= one;
+}
+//Post increment
+unlimited_int unlimited_int::operator++(int)
+{
+	unlimited_int this_cpy = *this;
+	++(*this);
+	return this_cpy;
+}
+//Post decrement
+unlimited_int unlimited_int::operator--(int)
+{
+	unlimited_int this_cpy = *this;
+	--(*this);
+	return this_cpy;
 }
 unlimited_int unlimited_int::operator-() const
 {
@@ -94,7 +142,7 @@ unlimited_int unlimited_int::operator%(const unlimited_int& ui) const
 }
 unlimited_int unlimited_int::operator%(const few_bits divisor) const
 {
-	unlimited_int answer_divide = *this / divisor;
+	unlimited_int answer_divide = this->divide_by_respect_sign(divisor);
 	unlimited_int answer_multiply;
 	answer_divide.multiply(divisor, &answer_multiply);
 	answer_divide.flush();
@@ -111,7 +159,7 @@ void unlimited_int::operator%=(const unlimited_int& ui)
 }
 void unlimited_int::operator%=(const few_bits divisor)
 {
-	unlimited_int answer_divide = *this / divisor;
+	unlimited_int answer_divide = this->divide_by_respect_sign(divisor);
 	unlimited_int answer_multiply;
 	answer_divide.multiply(divisor, &answer_multiply);
 	answer_divide.flush();

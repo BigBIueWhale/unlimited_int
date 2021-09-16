@@ -12,7 +12,7 @@ void unlimited_int::shift_left(const size_t shift_by)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function \"void unlimited_int::shift_left(const size_t shift_by)\"");
+		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::shift_left(const size_t shift_by)\"");
 #endif
 	if (this->num_of_intarrays_used == (size_t)0 || shift_by == (size_t)0)
 		return;
@@ -27,7 +27,7 @@ void unlimited_int::shift_left(const size_t shift_by)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::shift_left(const size_t shift_by)\"");
+		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::shift_left(const size_t shift_by)\"");
 #endif
 }
 void unlimited_int::shift_left_by_bits(const size_t num_of_bits_to_shift_by)
@@ -37,11 +37,13 @@ void unlimited_int::shift_left_by_bits(const size_t num_of_bits_to_shift_by)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe error was found in start of function \"void unlimited_int::shift_left_by_bits(const many_bits num_of_bits_to_shift_by)\"");
+		throw std::logic_error("The error was found in start of function \"void unlimited_int::shift_left_by_bits(const many_bits num_of_bits_to_shift_by)\"");
 #endif
+	if (this->is_negative())
+		throw std::invalid_argument("Can\'t do bitwise operation on negative number");
 	if (this->num_of_used_ints == (size_t)0 || num_of_bits_to_shift_by == (size_t)0)
 		return;
-	this->shift_left(num_of_bits_to_shift_by / (size_t)NUM_OF_BITS_few_bits); //macro shift
+	this->shift_left(num_of_bits_to_shift_by / (size_t)NUM_OF_BITS_few_bits); //macro shift (as opposed to micro)
 	const int micro_shift = num_of_bits_to_shift_by % (size_t)NUM_OF_BITS_few_bits;
 	if (micro_shift != 0)
 	{
@@ -88,6 +90,6 @@ void unlimited_int::shift_left_by_bits(const size_t num_of_bits_to_shift_by)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe error was found in end of function \"void unlimited_int::shift_left_by_bits(const many_bits num_of_bits_to_shift_by)\"");
+		throw std::logic_error("The error was found in end of function \"void unlimited_int::shift_left_by_bits(const many_bits num_of_bits_to_shift_by)\"");
 #endif
 }

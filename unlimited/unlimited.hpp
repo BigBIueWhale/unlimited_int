@@ -9,5 +9,7 @@ namespace unlimited
 	//Everything will continue working after calling this function. It will however restart the random number generator (if it's called again) by recreating a seed.
 	void delete_all_static_memory();
 	void delete_all_thread_local_memory();
+	//Will throw std::runtime_error if there was a memory leak (isn't guaranteed to find all memory leaks).
+	void assert_no_memory_leak();
 }
 #endif

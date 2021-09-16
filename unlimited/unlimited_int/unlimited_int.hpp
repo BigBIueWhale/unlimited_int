@@ -148,9 +148,9 @@ namespace unlimited
 		void shift_left_by_bits(const size_t num_of_bits_to_shift_by);
 		//uses shift_right and bit manipulation to shift number right by a certain number of bits.
 		void shift_right_by_bits(const size_t num_of_bits_to_shift_by);
-		//shifts right by number of few_bits
+		//shifts right by number of few_bits. Keeps sign of number intact (a negative number will stay negative, unless it becomes 0).
 		void shift_right(const size_t shift_by);
-		//shifts right by number of few_bits. Method is to prepend int_arrays to the number.
+		//shifts right by number of few_bits. Method is to prepend int_arrays to the number.  Keeps sign of number intact (a negative number will stay negative, unless it becomes 0).
 		void shift_left(const size_t shift_by);
 //Karatsuba
 		//grade school algorithm for multiplication. I need to design and write a squaring basecase multiplication algorithm to use in function "unlimited_int unlimited_int::power2() const" (for example) instead of using this function.
@@ -177,17 +177,17 @@ namespace unlimited
 		//Divides two numbers, ignores sign.
 		//Splits the numerator so that its length is roughly equal to the denominator and then uses binary_search_divide.
 		//It's the grade-school algorithm.
+		//Ignores sign, returns non-negative value.
 		unlimited_int divide_by(const unlimited_int& num_to_divide_by) const;
 		//Divides two numbers, ignores sign.
 		//Fastest division method for small numbers
 		//It's the grade-school algorithm.
+		//Ignores sign, returns non-negative value.
 		unlimited_int divide_by(const few_bits num_to_divide_by) const;
+		unlimited_int divide_by_respect_sign(const few_bits num_to_divide_by) const;
 		//Faster than divide_by for values up to (and including) 16 few_bits
+		//Ignores sign, returns non-negative value.
 		unlimited_int divide_by_repeated_addition(const unlimited_int& num_to_divide_by) const;
-		//Division by few_bits specifically has a more efficient implementation.
-		unlimited_int operator/(const few_bits divisor) const;
-		//Division by few_bits specifically has a more efficient implementation.
-		void operator/=(const few_bits divisor) { (*this) = (*this) / divisor; }
 		//Accepts two unlimited_ints that the result of their division fits in "few_bits".
 		//It uses binary search while continuously using compare_multiplication_to_num to get the comparisons for the binary search.
 		few_bits binary_search_divide(const unlimited_int& num_to_divide_by) const;
@@ -218,6 +218,7 @@ namespace unlimited
 		//Checks whether a number is an exact power of 2 and if it is, the result is returned.
 		//Receives bool* of is_power_2 and if the number isn't an exact power of 2, that bool is set to false.
 		//Expected efficiency: O(1) where n is the number of bits.
+		//Unlike other bitwise operators, this one works on negative unlimited_ints, and simply ignores the sign.
 		size_t find_exact_log_2(bool *const is_power_2) const;
 //Random
 		//generates random number from the time in milliseconds and from the speed of the machine (the measured using time in milliseconds)
@@ -236,6 +237,8 @@ namespace unlimited
 			this->intarrays->increase_until_num_of_ints(num_of_ints_to_increase_until);
 		}
 //Conversions
+		bool fits_in_few_bits() const { return this->num_of_used_ints <= (size_t)1 && !this->is_negative(); }
+		bool fits_in_many_bits() const { return this->num_of_used_ints <= (size_t)2 && !this->is_negative(); }
 		//Throws std::overflow_error exception if the unlimited_int number can't be fully translated into few_bits (too big, or negative).
 		few_bits to_few_bits() const;
 		//Throws std::overflow_error exception if the unlimited_int number can't be fully translated into few_bits_signed (too big, or too negative).
@@ -307,7 +310,7 @@ namespace unlimited
 		explicit operator std::string() const { return this->to_string(); }
 //Information Gathering O(1)
 		//Returns the length in bits (the used part).
-		//It gives the precise number, and manipulates the most significant few_bits using bitwise operators to get the precise length in bits
+		//It gives the precise number, and manipulates a copy of the most significant few_bits using bitwise operators to get the precise length in bits
 		size_t get_length_in_bits() const;
 		//checks if unlimited_int's value is equal to 0, based on num_of_used_ints
 		bool is_zero() const { return this->num_of_used_ints == (size_t)0; }
@@ -349,6 +352,7 @@ namespace unlimited
 		static unlimited_int divide_using_reciprocal(const unlimited_int& dividend, const reciprocal_information& reciprocal, const unlimited_int& divisor, unlimited_int* remainder = nullptr);
 		//divides using Newton Raphson method and saves the reciprocal for later. More efficient when dividing by the same divisor again and again.
 		//returns the division result, and puts the remainder in "remainder" if it's given as an unlimited_int*
+		//Returns the correct sign of the results of division and remainder. Remember that remainder will always have the sign of the dividend, because we're talking about remainder, not modulo.
 		static unlimited_int recurring_division(const unlimited_int& dividend, const unlimited_int& divisor, unlimited_int* remainder = nullptr);
 //Remainder Of Division
 		//Remainder (of division) operator. Not modulo. The sign of the result will always be the same as the left side of the operator.
@@ -365,8 +369,14 @@ namespace unlimited
 		void operator-=(const unlimited_int& other) { this->subtract(&other, this); }
 		unlimited_int operator-(const unlimited_int& other) const;
 //Unary Operations
+		//Pre increment- use this function instead of post increment
 		void operator++();
+		//Pre decrement- use this function instead of post decrement
 		void operator--();
+		//Post increment- don't use this oeprator because it's not efficient.
+		unlimited_int operator++(int);
+		//Post decrement- don't use this operator because it's not efficient.
+		unlimited_int operator--(int);
 		//Creates full copy with opposite sign, unless number is zero because then the sign stays positive.
 		unlimited_int operator-() const;
 		//O(1) operation to flip a numbers sign from positive to negative or from negative to positive. Doesn't do anything when the number is 0.
@@ -490,31 +500,43 @@ namespace unlimited
 		friend bool operator!=(const unsigned long long int num, const unlimited_int& ui);
 
 //Bitwise Operators
+		//Uses unlimited_int::to_string() and respects flags std::ios::hex, std::ios::dec, std::ios::oct
 		friend std::ostream& operator<<(std::ostream& os, const unlimited_int& ui);
+		//Bitwise shift left, Throws exception std::invalid_argument when used on a negative number
 		void operator<<=(const size_t num_to_shift_by) { this->shift_left_by_bits(num_to_shift_by); }
+		//Bitwise shift right, Throws exception std::invalid_argument when used on a negative number
 		void operator>>=(const size_t num_to_shift_by) { this->shift_right_by_bits(num_to_shift_by); }
-		//Bitwise operator AND, returns positive number, ignores the sign
+		//Bitwise operator AND, throws exception std::invalid_argument when used on negative number(s)
 		unlimited_int operator&(const unlimited_int&) const;
-		//Bitwise operator OR, the result will be as long as the longer number between the two. Returns positive number, ignores the sign
+		//Bitwise operator OR, the result will be as long as the longer number between the two. Throws exception std::invalid_argument when used on negative number(s)
 		unlimited_int operator|(const unlimited_int&) const;
-		//Bitwise operator XOR, the result will be as long as the longer number between the two. Returns positive number, ignores the sign.
+		//Bitwise operator XOR, the result will be as long as the longer number between the two. Throws exception std::invalid_argument when used on negative number(s)
 		unlimited_int operator^(const unlimited_int&) const;
 		//Bitwise operator NOT. Only inverses the used bits. For example:
-		//unlimited_int num = 0b00001101
+		//unlimited_int num(0b00001101);
 		//std::cout << unlimited_int(~num);
-		//That code will output 0b00000010 because it's ignoring all bits that are before the most significant 1.
+		//That code will output the number 0b10 because it's ignoring all bits that are before the most significant 1 of the original number.
+		//Throws exception std::invalid_argument when used on a negative number
 		unlimited_int operator~() const;
 		//Just like operator~ except that it's more efficient because it directly changes the original number's bits. Just like &= compared to & (for example)
+		//Throws exception std::invalid_argument when used on a negative number
 		void invert_bits();
+		//Bitwise operator AND. Throws exception std::invalid_argument when used on a negative number
 		void operator&=(const unlimited_int& right) { *this = (*this) & right; }
+		//Bitwise operator OR. Throws exception std::invalid_argument when used on a negative number
 		void operator|=(const unlimited_int& right) { *this = (*this) | right; }
+		//Bitwise operator XOR. Throws exception std::invalid_argument when used on a negative number
 		void operator^=(const unlimited_int& right) { *this = (*this) ^ right; }
+		//Bitwise shift right, Throws exception std::invalid_argument when used on a negative number
 		unlimited_int operator>>(const size_t num_to_shift_by) const {
-			unlimited_int answer; this->copy_to(answer); answer >>= num_to_shift_by;
+			unlimited_int answer = *this;
+			answer >>= num_to_shift_by;
 			return answer;
 		}
+		//Bitwise shift left, Throws exception std::invalid_argument when used on a negative number
 		unlimited_int operator<<(const size_t num_to_shift_by) const {
-			unlimited_int answer; this->copy_to(answer); answer <<= num_to_shift_by;
+			unlimited_int answer = *this;
+			answer <<= num_to_shift_by;
 			return answer;
 		}
 //String Conversions
@@ -526,8 +548,11 @@ namespace unlimited
 		std::string to_string(const unsigned int base = 10) const;
 //Power (^)
 		//efficient method for power (math function) with remainder as well. Receives boolean pointer used for early termination of calculation.
+		//Offers no support for negative numbers. If it receives a negative number it will throw an std::invalid_argument exception.
+		//Because of the lack of support for negative numbers, there is no difference between mod and remainder in this case.
 		static unlimited_int pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod, const volatile bool *const terminator = nullptr);
 		//efficient method for power (math function)
+		//Works with negative numbers as well. If power is negative it will return 0.
 		static unlimited_int pow(const unlimited_int& base, const unlimited_int& power, const volatile bool *const terminator = nullptr);
 //Random
 		//Uses generate_random_that_is_at_least and then the modulo operator to generate a random number with perfectly random distribution in the given range.
@@ -607,9 +632,7 @@ namespace unlimited
 			}
 		}
 	};
-	//respects flags: std::ios::dec, std::ios::oct, std::ios::hex.
-	//Super slow when printing in a base that's not a power of 2, because the division algorithm is still binary search (really slow).
-	//Really fast when printing in base 8, 16.
+	//Uses unlimited_int::to_string() and respects flags std::ios::hex, std::ios::dec, std::ios::oct
 	std::ostream& operator<<(std::ostream& os, const unlimited_int& ui);
 
 	bool operator<=(const signed short int num, const unlimited_int& ui);

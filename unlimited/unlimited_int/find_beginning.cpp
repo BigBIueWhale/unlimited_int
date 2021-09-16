@@ -39,7 +39,7 @@ int_array_list::list_location unlimited_int::find_num_used_int_from_significant(
 custom_linked_list_node<int_array>* unlimited_int::get_most_significant_used_int_array() const
 {
 	if (this->num_of_intarrays_used == (size_t)0)
-		throw std::logic_error("\nError in start of function \"Node* unlimited_int::get_last_intarray() const\" there are no used intarrays");
+		throw std::logic_error("Error in start of function \"Node* unlimited_int::get_last_intarray() const\" there are no used intarrays");
 	const size_t num_of_intarrays_unused = this->intarrays->size() - this->num_of_intarrays_used;
 	custom_linked_list_node<int_array>* it = this->intarrays->last();
 	for (size_t counter = (size_t)0; counter < num_of_intarrays_unused; ++counter)

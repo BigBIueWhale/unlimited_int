@@ -74,7 +74,7 @@ unlimited_int unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult
 #endif
 #if DEBUG_MODE > 0
 	if (z2.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const\"");
+		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const\"");
 #endif
 	return z2;
 }
@@ -120,7 +120,7 @@ unlimited_int unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unl
 #endif
 #if DEBUG_MODE > 0
 	if (z2.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unlimited_int* num_to_mult)\"");
+		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unlimited_int* num_to_mult)\"");
 #endif
 	return z2;
 }
@@ -165,7 +165,7 @@ unlimited_int unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int
 #endif
 #if DEBUG_MODE > 0
 	if (z2.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult)\"");
+		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult)\"");
 #endif
 	return z2;
 }
@@ -203,7 +203,7 @@ unlimited_int unlimited_int::power2() const
 #endif
 #if DEBUG_MODE > 0
 	if (answer.find_inconsistencies() || this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::power2() const\"");
+		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::power2() const\"");
 #endif
 	return answer;
 }
@@ -214,7 +214,7 @@ unlimited_int unlimited_int::power2_destroy_this()
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function \"unlimited_int* unlimited_int::power2_destroy_this()\"");
+		throw std::logic_error("The inconsistency was found in start of function \"unlimited_int* unlimited_int::power2_destroy_this()\"");
 #endif
 	if (this->num_of_used_ints <= (size_t)MIN_KARATSUBA_SQUARING)
 	{
@@ -241,7 +241,7 @@ unlimited_int unlimited_int::power2_destroy_this()
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || answer.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::power2_destroy_this()\"");
+		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::power2_destroy_this()\"");
 #endif
 	return answer;
 }
@@ -252,17 +252,52 @@ unlimited_int unlimited_int::operator*(const unlimited_int& other) const
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || other.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"");
+		throw std::logic_error("The inconsistency was found in start of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"");
 #endif
+	unlimited_int answer;
+	unlimited_int this_positive(*this, false);
+	this_positive.self_abs();
+	unlimited_int other_positive(other, false);
+	other_positive.self_abs();
+	const bool this_fits_in_few_bits = this_positive.fits_in_few_bits();
+	const bool other_fits_in_few_bits = other_positive.fits_in_few_bits();
+	if (this_fits_in_few_bits || other_fits_in_few_bits)
+	{
+		few_bits this_as_few_bits = MAX_few_bits_NUM; //Initializing to turn off compiler warning.
+		few_bits other_as_few_bits = MAX_few_bits_NUM; //Initializing to turn off compiler warning.
+		if (this_fits_in_few_bits)
+			this_as_few_bits = this_positive.to_few_bits();
+		if (other_fits_in_few_bits)
+			other_as_few_bits = other_positive.to_few_bits();
+		if (this_fits_in_few_bits && other_fits_in_few_bits)
+		{
+			static_assert(sizeof(many_bits) >= sizeof(few_bits) * 2, "Assuming that many_bits is at least twice as large as few_bits");
+			answer = static_cast<many_bits>(this_as_few_bits) * static_cast<many_bits>(other_as_few_bits);
+		}
+		else if (this_fits_in_few_bits)
+			other_positive.multiply(this_as_few_bits, &answer);
+		else if (other_fits_in_few_bits)
+			this_positive.multiply(other_as_few_bits, &answer);
+		answer.self_abs();
+		if (this->is_negative() != other.is_negative())
+			answer.self_negative();
+#if DEBUG_MODE == 2
+		std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
+#endif
+#if DEBUG_MODE > 0
+		if (this->find_inconsistencies() || other.find_inconsistencies() || answer.find_inconsistencies())
+			throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"");
+#endif
+		return answer;
+	}
 	bool other_is_a_power_of_2, this_is_a_power_of_2;
 	//it's more efficient when either other or this is a power of 2 because then bit shifting can be used instead of the Karatsuba multiplication algorithm.
 	const size_t other_log2 = other.find_exact_log_2(&other_is_a_power_of_2);
 	const size_t this_log2 = this->find_exact_log_2(&this_is_a_power_of_2);
-	unlimited_int answer;
 	if (other_is_a_power_of_2)
-		answer = (*this) << other_log2;
+		answer = this_positive << other_log2;
 	else if (this_is_a_power_of_2)
-		answer = other << this_log2;
+		answer = other_positive << this_log2;
 	else //neither numbers are powers of 2.
 	{
 		bool both_multiplicants_are_same = false;
@@ -279,12 +314,14 @@ unlimited_int unlimited_int::operator*(const unlimited_int& other) const
 		answer._is_negative = false;
 	else if (this->_is_negative != other._is_negative)
 		answer._is_negative = true;
+	else
+		answer._is_negative = false;
 #if DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || other.find_inconsistencies() || answer.find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"");
+		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"");
 #endif
 	return answer;
 }

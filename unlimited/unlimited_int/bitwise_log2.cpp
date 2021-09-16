@@ -11,7 +11,7 @@ size_t unlimited_int::find_exact_log_2(bool *const is_power_2) const
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function: \"size_t unlimited_int::find_exact_log_2(bool* is_power_2) const\"");
+		throw std::logic_error("The inconsistency was found in start of function: \"size_t unlimited_int::find_exact_log_2(bool* is_power_2) const\"");
 #endif
 	if (this->num_of_used_ints == (size_t)0)
 	{

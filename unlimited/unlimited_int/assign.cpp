@@ -72,7 +72,7 @@ void unlimited_int::assign(const uint32_t *const arr, const size_t len)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, size_t len)\"");
+		throw std::logic_error("The inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, size_t len)\"");
 #endif
 }
 void unlimited_int::assign(const uint64_t *const arr, const size_t len)
@@ -154,7 +154,7 @@ void unlimited_int::assign(const uint64_t *const arr, const size_t len)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"");
+		throw std::logic_error("The inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"");
 #endif
 }
 void unlimited_int::assign(const few_bits value_to_assign)
@@ -181,7 +181,7 @@ void unlimited_int::assign(const few_bits value_to_assign)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::assign(const few_bits value_to_assign)\"");
+		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::assign(const few_bits value_to_assign)\"");
 #endif
 }
 void unlimited_int::assign(const many_bits value_to_assign)
@@ -233,7 +233,7 @@ void unlimited_int::assign(const many_bits value_to_assign)
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::assign(const many_bits value_to_assign)\"");
+		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::assign(const many_bits value_to_assign)\"");
 #endif
 }
 void unlimited_int::assign(const few_bits_signed value_to_assign)

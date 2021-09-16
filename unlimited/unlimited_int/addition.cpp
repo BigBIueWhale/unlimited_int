@@ -5,16 +5,17 @@ using namespace unlimited;
 #endif
 void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const
 {
+	static_assert(sizeof(few_bits) * 2 == sizeof(many_bits), "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
 #if DEBUG_MODE == 2
 	std::cout << "\nStart of add:";
 #endif
 #if DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_add->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in start of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"");
 #endif
 	if (num_to_add == this)
 	{
-		this->multiply(static_cast<few_bits>(2), answer);
+		*answer = (*this) << 1;
 		return;
 	}
 	if (this->num_of_intarrays_used == (size_t)0)
@@ -72,6 +73,13 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 	{
 		smaller_num = &this_copy;
 		larger_num = &num_to_add_copy;
+	}
+	if (smaller_num->fits_in_few_bits() && larger_num->fits_in_few_bits())
+	{
+		*answer = static_cast<many_bits>(smaller_num->to_few_bits()) + static_cast<many_bits>(larger_num->to_few_bits());
+		if (set_answer_to_negative)
+			answer->self_negative();
+		return;
 	}
 	const size_t bigger_num_used_ints = larger_num->num_of_used_ints;
 	const size_t max_num_of_ints_needed_for_answer = bigger_num_used_ints + (size_t)1;
@@ -326,6 +334,6 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 #endif
 #if DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
-		throw std::logic_error("\nThe inconsistency was found in end of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"");
+		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"");
 #endif
 }
