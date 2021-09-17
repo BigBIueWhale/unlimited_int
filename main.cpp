@@ -11,16 +11,16 @@ int main(int argc, char* argv[])
 {
 	for (int i = 0; i < 80000; ++i)
 	{
-		//try
-		//{
+		try
+		{
 			test_unlimited_int();
-		//}
-		//catch (std::exception& e)
-		//{
-		//	std::cout << "\nCaught exception: " << e.what() << "\nPress ENTER to continue" << std::endl;
-		//	std::cout.flush();
-		//	std::cin.get();
-		//}
+		}
+		catch (std::exception& e)
+		{
+			std::cout << "\nCaught exception: " << e.what() << "\nPress ENTER to continue" << std::endl;
+			std::cout.flush();
+			std::cin.get();
+		}
 	}
 	//const auto start_time = std::chrono::steady_clock::now();
 	//for (int counter = 0; counter < 40; ++counter)
