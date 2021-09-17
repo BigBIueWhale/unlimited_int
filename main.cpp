@@ -8,7 +8,7 @@
 static void test_unlimited_int();
 int main(int argc, char* argv[])
 {
-	for (int i = 0; i < 1000; ++i)
+	for (int i = 0; i < 80000; ++i)
 	{
 		try
 		{

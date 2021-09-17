@@ -21,7 +21,7 @@
 #endif
 
 //0 for no debugging at all, 1 for all debugging except verbose print, 2 for all debugging with (super-)verbose print, -2 for only memory counting (check for memory leaks)
-#define UNLIMITED_INT_LIBRARY_DEBUG_MODE 1
+#define UNLIMITED_INT_LIBRARY_DEBUG_MODE -2
 #if (UNLIMITED_INT_LIBRARY_DEBUG_MODE <= -3) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE == -1) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE >= 3) //Invalid options
 #error "FATAL COMPILATION ERROR of \"unlimited\" library. The DEBUG_MODE macro is set to an invalid option. Try manually editing the valud of DEBUG_MODE in file: \"unlimited/unlimited_int/structures/settings.h\""
 #endif
