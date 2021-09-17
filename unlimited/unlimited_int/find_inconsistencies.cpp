@@ -1,6 +1,6 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 #include <iostream>
 void unlimited_int::print_properties() const
 {

@@ -45,7 +45,7 @@ namespace unlimited
 		{
 			list_of_int_arrays::bank_storage.clear();
 		}
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 #endif
 	};
 }

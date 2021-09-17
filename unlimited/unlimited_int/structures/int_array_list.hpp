@@ -26,7 +26,7 @@ namespace unlimited
 		list_location find_num_of_int_from_insignificant(size_t num_int_to_find);
 		void clear();
 		virtual ~int_array_list();
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		size_t double_check_length();
 #endif
 	};

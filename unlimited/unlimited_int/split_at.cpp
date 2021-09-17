@@ -1,15 +1,15 @@
 //in use in Karatsuba algorithm
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_int* low) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"split_at(size_t index, unlimited_int* low, unlimited_int* high)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_int* low) const\"");
 #endif
@@ -159,20 +159,20 @@ void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_
 	}
 	high->num_of_intarrays_used = num_of_used_int_arrays_high;
 	current_high_int_array->num_of_used_ints = high_index;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"split_at(size_t index, unlimited_int* low, unlimited_int* high)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (high->find_inconsistencies() || low->find_inconsistencies() || this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_int* low) const\"");
 #endif
 }
 void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int* high, unlimited_int* low)
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"split_at_and_use_original(size_t index, unlimited_int* high, unlimited_int* low)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int* high, unlimited_int* low)\"");
 #endif
@@ -293,10 +293,10 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 	high->num_of_used_ints = size_to_make_high;
 	low->cutoff_leading_zeros(low->intarrays->last());
 	this->flush();
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"split_at_and_use_original(size_t index, unlimited_int* high, unlimited_int* low)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (high->find_inconsistencies() || low->find_inconsistencies())
 		throw std::logic_error("The inconsistencies were found at the end of split_at_and_use_original.");
 #endif

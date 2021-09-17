@@ -1,9 +1,9 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
-#define MAXIMUM_NUMERATOR_SIZE_FOR_WHICH_TO_USE_REPEATED_ADDITION 16
+static constexpr size_t MAXIMUM_NUMERATOR_SIZE_FOR_WHICH_TO_USE_REPEATED_ADDITION = 16;
 unlimited_int unlimited_int::operator/(const unlimited_int& denominator) const
 {
 	if (denominator.is_zero())

@@ -1,14 +1,14 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"multiply(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
@@ -93,7 +93,7 @@ void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) 
 		}
 		carry += (many_bits)(*current_intarray_for_this_intarr) * num_to_mult_many;
 		*current_intarray_for_answer_intarr = (few_bits)carry;
-		carry >>= NUM_OF_BITS_few_bits;
+		carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
 		++current_intarray_for_this_intarr;
 		++current_intarray_for_answer_intarr;
 		++num_int;
@@ -121,20 +121,20 @@ void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) 
 		current_intarray_for_answer->num_of_used_ints = index_answer + (size_t)1;
 		answer->num_of_intarrays_used = num_of_intarrays_used_for_answer;
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"multiply(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
 }
 void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"multiply_both_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
@@ -149,13 +149,13 @@ void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unl
 	{
 		carry += (many_bits)(*this_intarr) * num_to_mult_many;
 		*answer_intarr = (few_bits)carry;
-		carry >>= NUM_OF_BITS_few_bits;
+		carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
 		++this_intarr;
 		++answer_intarr;
 	}
 	carry += (many_bits)(*this_intarr) * num_to_mult_many;
 	*answer_intarr = (few_bits)carry;
-	carry >>= NUM_OF_BITS_few_bits;
+	carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
 	++this_intarr;
 	++answer_intarr;
 	size_t num_of_used_ints_answer;
@@ -169,20 +169,20 @@ void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unl
 	answer_int_array->num_of_used_ints = num_of_used_ints_answer;
 	answer->num_of_used_ints = num_of_used_ints_answer;
 	answer->num_of_intarrays_used = (size_t)1;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"multiply_both_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
 }
 void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"multiply_this_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
@@ -227,7 +227,7 @@ void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unl
 		}
 		carry += (many_bits)(*current_intarray_for_this_intarr) * num_to_mult_many;
 		*current_intarray_for_answer_intarr = (few_bits)carry;
-		carry >>= NUM_OF_BITS_few_bits;
+		carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
 		++current_intarray_for_this_intarr;
 		++current_intarray_for_answer_intarr;
 		++num_int;
@@ -255,20 +255,20 @@ void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unl
 		current_intarray_for_answer->num_of_used_ints = index_answer + (size_t)1;
 		answer->num_of_intarrays_used = num_of_intarrays_used_for_answer;
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"multiply_this_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
 }
 void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"multiply_answer_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif
@@ -310,7 +310,7 @@ void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, u
 		}
 		carry += (many_bits)(*current_intarray_for_this_intarr) * num_to_mult_many;
 		*first_intarray_for_answer_intarr = (few_bits)carry;
-		carry >>= NUM_OF_BITS_few_bits;
+		carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
 		++current_intarray_for_this_intarr;
 		++first_intarray_for_answer_intarr;
 		++num_int;
@@ -327,10 +327,10 @@ void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, u
 		answer_first_int_array->num_of_used_ints = this_used_ints + (size_t)1;
 	}
 	answer->num_of_intarrays_used = (size_t)1;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"multiply_answer_only_one_array(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\"");
 #endif

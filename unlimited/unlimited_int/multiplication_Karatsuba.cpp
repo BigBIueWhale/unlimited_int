@@ -1,6 +1,6 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 //Python example code to show how Karatsuba multiplication works:
@@ -33,7 +33,7 @@ def karatsuba(num1, num2):
 
 	return (z2 * (10 ** (m2 * 2))) + ((z1 - z2 - z0) * (10 ** m2)) + z0
 */
-#define MIN_KARATSUBA 80
+static constexpr size_t MIN_KARATSUBA = 80;
 unlimited_int unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const
 {
 	const size_t num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
@@ -69,10 +69,10 @@ unlimited_int unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult
 	z1.flush();
 	z2.add(&z0, &z2); //z2 now holds the final answer to return
 	z0.flush();
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in recursive function \"multiply karatuba\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (z2.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const\"");
 #endif
@@ -115,10 +115,10 @@ unlimited_int unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unl
 	z1.flush();
 	z2.add(&z0, &z2); //z2 now holds the final answer to return
 	z0.flush();
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in recursive function \"multiply karatuba\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (z2.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unlimited_int* num_to_mult)\"");
 #endif
@@ -160,23 +160,23 @@ unlimited_int unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int
 	z1.flush();
 	z2.add(&z0, &z2); //z2 now holds the final answer to return
 	z0.flush();
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in recursive function \"multiply karatuba\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (z2.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult)\"");
 #endif
 	return z2;
 }
-#define MIN_KARATSUBA_SQUARING 80
+static constexpr size_t MIN_KARATSUBA_SQUARING = 80;
 //More efficient Karatsuba multiplication for the special case of multiplying a number by itself.
 unlimited_int unlimited_int::power2() const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of recursive function \"power2\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	this->find_inconsistencies();
 #endif
 	if (this->num_of_used_ints <= (size_t)MIN_KARATSUBA_SQUARING)
@@ -195,13 +195,13 @@ unlimited_int unlimited_int::power2() const
 	square_of_high.flush();
 	square_of_low.flush();
 	unlimited_int high_times_low = high.multiply_karatsuba_destroy_this_and_num_to_mult(&low);
-	high_times_low <<= (size_t)1 + m2 * (size_t)NUM_OF_BITS_few_bits;
+	high_times_low <<= (size_t)1 + m2 * (size_t)UNLIMITED_INT_NUM_OF_BITS_few_bits;
 	answer += high_times_low;
 	high_times_low.flush();
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of recursive function \"power2\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (answer.find_inconsistencies() || this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::power2() const\"");
 #endif
@@ -209,10 +209,10 @@ unlimited_int unlimited_int::power2() const
 }
 unlimited_int unlimited_int::power2_destroy_this()
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of recursive function \"power2_destroy_this\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"unlimited_int* unlimited_int::power2_destroy_this()\"");
 #endif
@@ -233,13 +233,13 @@ unlimited_int unlimited_int::power2_destroy_this()
 	square_of_high.flush();
 	square_of_low.flush();
 	unlimited_int high_times_low = high.multiply_karatsuba_destroy_this_and_num_to_mult(&low);
-	high_times_low <<= (size_t)1 + m2 * (size_t)NUM_OF_BITS_few_bits;
+	high_times_low <<= (size_t)1 + m2 * (size_t)UNLIMITED_INT_NUM_OF_BITS_few_bits;
 	answer += high_times_low;
 	high_times_low.flush();
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of recursive function \"power2_destroy_this\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || answer.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::power2_destroy_this()\"");
 #endif
@@ -247,10 +247,10 @@ unlimited_int unlimited_int::power2_destroy_this()
 }
 unlimited_int unlimited_int::operator*(const unlimited_int& other) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || other.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"");
 #endif
@@ -281,10 +281,10 @@ unlimited_int unlimited_int::operator*(const unlimited_int& other) const
 		answer.self_abs();
 		if (this->is_negative() != other.is_negative())
 			answer.self_negative();
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (this->find_inconsistencies() || other.find_inconsistencies() || answer.find_inconsistencies())
 			throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"");
 #endif
@@ -316,10 +316,10 @@ unlimited_int unlimited_int::operator*(const unlimited_int& other) const
 		answer._is_negative = true;
 	else
 		answer._is_negative = false;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || other.find_inconsistencies() || answer.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int* unlimited_int::operator*(const unlimited_int& other) const\"");
 #endif

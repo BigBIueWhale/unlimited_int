@@ -1,14 +1,14 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nStart of subtract:";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_subtract->find_inconsistencies())
 		throw std::logic_error("The error was found in start of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
 #endif
@@ -59,10 +59,10 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 		}
 		else
 			this_copy.add(&num_to_subtract_copy, answer);
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 		std::cout << "\nEnd of subtract:";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (answer->find_inconsistencies())
 			throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
 #endif
@@ -72,10 +72,10 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 	if (compare_result == 'E')
 	{
 		answer->set_to_zero();
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 		std::cout << "\nEnd of subtract:";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (answer->find_inconsistencies())
 		{
 			if (answer->find_inconsistencies())
@@ -358,10 +358,10 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 	answer->num_of_intarrays_used = num_of_int_arrays_used_in_answer;
 	answer_current_int_array->num_of_used_ints = index_answer;
 	answer->cutoff_leading_zeros(it_answer);
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nEnd of subtract:";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
 #endif

@@ -1,15 +1,15 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 //Division without binary search, similar approach to the pow(base, power) algorithm. Returns positive number (or zero) whether or not the answer was supposed to be negative.
 unlimited_int unlimited_int::divide_by_repeated_addition(const unlimited_int& num_to_divide_by) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"divide_by_repeated_addition(unlimited_int& num_to_divide_by)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if ((this->find_inconsistencies()) || (num_to_divide_by.find_inconsistencies()))
 		throw std::logic_error("The inconsistency was found in start of function \"divide_by_repeated_addition(unlimited_int& num_to_divide_by)\"");
 #endif
@@ -85,10 +85,10 @@ unlimited_int unlimited_int::divide_by_repeated_addition(const unlimited_int& nu
 			current_addition_amount >>= (size_t)1;
 		}
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"divide_by_repeated_addition(unlimited_int& num_to_divide_by)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (sum_magnitudes.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"divide_by_repeated_addition(unlimited_int& num_to_divide_by)\"");
 	unlimited_int multiplication_check(sum_magnitudes * num_to_divide_by);
@@ -103,10 +103,10 @@ unlimited_int unlimited_int::divide_by_repeated_addition(const unlimited_int& nu
 //Long division, some binary search. Returns positive number (or zero) whether or not the answer was supposed to be negative.
 unlimited_int unlimited_int::divide_by(const unlimited_int& num_to_divide_by) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"divide_by(unlimited_int& num_to_divide_by)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if ((this->find_inconsistencies()) || (num_to_divide_by.find_inconsistencies()))
 		throw std::logic_error("The inconsistency was found in start of function \"divide_by(unlimited_int& num_to_divide_by)\"");
 #endif
@@ -189,10 +189,10 @@ unlimited_int unlimited_int::divide_by(const unlimited_int& num_to_divide_by) co
 		if (index_this-- == (size_t)0)
 			reached_beginning_this = true;
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"divide_by(unlimited_int& num_to_divide_by)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (answer.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"divide_by(unlimited_int& num_to_divide_by)\"");
 	unlimited_int multiplication_check(answer * num_to_divide_by);
@@ -216,10 +216,10 @@ unlimited_int unlimited_int::divide_by_respect_sign(const few_bits num_to_divide
 //Long division, some binary search. Returns positive number (or zero) whether or not the answer was supposed to be negative.
 unlimited_int unlimited_int::divide_by(const few_bits num_to_divide_by) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"divide_by(const few_bits num_to_divide_by)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"divide_by(const few_bits num_to_divide_by)\"");
 #endif
@@ -303,10 +303,10 @@ unlimited_int unlimited_int::divide_by(const few_bits num_to_divide_by) const
 		if (index_this-- == (size_t)0)
 			reached_beginning_this = true;
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"divide_by(const few_bits num_to_divide_by)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (answer.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"divide_by(const few_bits num_to_divide_by)\"");
 	unlimited_int multiplication_check;
@@ -319,10 +319,10 @@ unlimited_int unlimited_int::divide_by(const few_bits num_to_divide_by) const
 }
 void unlimited_int::push_to_insignificant(const few_bits num_to_push)
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"push_to_insignificant(few_bits num_to_push)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"");
 #endif
@@ -342,10 +342,10 @@ void unlimited_int::push_to_insignificant(const few_bits num_to_push)
 	}
 	int_array_first->push_to_insignificant(num_to_push);
 	++this->num_of_used_ints;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"unlimited_int::push_to_insignificant(few_bits num_to_push)\"");
 #endif
@@ -354,10 +354,10 @@ void unlimited_int::push_to_insignificant(const few_bits num_to_push)
 few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_by) const
 {
 	static_assert(sizeof(few_bits) * 2 == sizeof(many_bits), "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in function \"few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_by) const\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if ((this->find_inconsistencies()) || (num_to_divide_by.find_inconsistencies()))
 		throw std::logic_error("The inconsistency was found in function \"few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_by) const\"");
 #endif
@@ -389,10 +389,10 @@ few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_
 few_bits unlimited_int::binary_search_divide(const few_bits num_to_divide_by) const
 {
 	static_assert(sizeof(few_bits) * 2 == sizeof(many_bits), "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in function \"few_bits unlimited_int::binary_search_divide(const few_bits num_to_divide_by) const\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in function \"few_bits unlimited_int::binary_search_divide(const few_bits num_to_divide_by) const\"");
 #endif
@@ -519,7 +519,7 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 		}
 		const many_bits result_multiplication = (many_bits)current_int_array_multiplicand.intarr[index_multiplicand] * multiplier_many_bits;
 		const few_bits multiplication_remainder = (few_bits)result_multiplication;
-		few_bits carry = (few_bits)(result_multiplication >> NUM_OF_BITS_few_bits);
+		few_bits carry = (few_bits)(result_multiplication >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
 		current_int_array_result.intarr[index_result] = multiplication_remainder;
 		//Now iterating through in reverse (from insignificant to significant) for the purpose of "scattering" the carry throughout the result.
 		const size_t num_of_ints_filled_in_result = int_counter + (size_t)2;
@@ -546,7 +546,7 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 			}
 			const many_bits result_addition = (many_bits)current_int_array_result_reverse.intarr[index_result_reverse] + (many_bits)carry;
 			const few_bits addition_remainder_reverse = (few_bits)result_addition;
-			carry = (few_bits)(result_addition >> NUM_OF_BITS_few_bits);
+			carry = (few_bits)(result_addition >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
 			current_int_array_result_reverse.intarr[index_result_reverse] = addition_remainder_reverse;
 			++int_counter_reverse;
 			++index_result_reverse;
@@ -608,7 +608,7 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 				continue;
 			}
 			const few_bits current_value_result = current_int_array_result_reverse.intarr[index_result_reverse];
-			max_hypothetical_carry = (few_bits)(((many_bits)current_value_result + (many_bits)max_hypothetical_carry) >> NUM_OF_BITS_few_bits);
+			max_hypothetical_carry = (few_bits)(((many_bits)current_value_result + (many_bits)max_hypothetical_carry) >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
 			if (max_hypothetical_carry == (few_bits)0)
 				break;
 			++int_counter_reverse;

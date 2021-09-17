@@ -1,14 +1,14 @@
 #ifndef UNLIMITED_INT_ARRAY_H
 #define UNLIMITED_INT_ARRAY_H true
 #include "settings.hpp" //int_array.hpp is the basic structure of the entire unlimited library. Therefore, settings.hpp must be included here, and doesn't need to be included anywhere else.
-#if (DEBUG_MODE > 0) || (DEBUG_MODE == -2) //The atomic is only needed for num_of_ints_created and num_of_ints_destroyed which are debugging variables.
+#if (UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE == -2) //The atomic is only needed for num_of_ints_created and num_of_ints_destroyed which are debugging variables.
 #include <atomic>
 #endif
 namespace unlimited
 {
 	struct int_array
 	{
-#if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
+#if (UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE == -2)
 		static std::atomic<uint64_t> num_of_ints_created;
 		static std::atomic<uint64_t> num_of_ints_destroyed;
 		class find_memory_leaks
@@ -58,7 +58,7 @@ namespace unlimited
 		void destroy();
 		//Sets num_of_used_ints to the length of the array.
 		void set_num_of_used_ints_to_maximum() { this->num_of_used_ints = this->intarr_len; }
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		bool find_inconsistencies();
 #endif
 		//Starts from the most significant used int in the array ("used" is determined by num_of_used_ints),

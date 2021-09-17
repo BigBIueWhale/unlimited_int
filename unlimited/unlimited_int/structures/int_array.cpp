@@ -1,11 +1,11 @@
 #include "int_array.hpp"
 using namespace unlimited;
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #endif
-#if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
+#if (UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE == -2)
 #include <iostream>
 #include <sstream>
 void int_array::find_memory_leaks::assert_no_memory_leak() noexcept(false)
@@ -44,7 +44,7 @@ void int_array::fillzero_until(size_t num_of_ints_to_zero)
 			*this_intarr = 0;
 	}
 }
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 bool int_array::find_inconsistencies()
 {
 	if (this->intarr == nullptr)
@@ -159,7 +159,7 @@ void int_array::resize_and_fillzero(const size_t size_to_make)
 	{
 		this->intarr = new few_bits[size_to_make];
 		this->intarr_len = size_to_make;
-#if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
+#if (UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE == -2)
 		int_array::num_of_ints_created += (uint64_t)size_to_make;
 #endif
 		this->fillzero();
@@ -173,14 +173,14 @@ void int_array::resize(const size_t size_to_make)
 	{
 		this->intarr = new few_bits[size_to_make];
 		this->intarr_len = size_to_make;
-#if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
+#if (UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE == -2)
 		int_array::num_of_ints_created += (uint64_t)size_to_make;
 #endif
 	}
 }
 void int_array::destroy()
 {
-#if (DEBUG_MODE > 0) || (DEBUG_MODE == -2)
+#if (UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE == -2)
 	int_array::num_of_ints_destroyed += (uint64_t)this->intarr_len;
 #endif
 	delete[] intarr;

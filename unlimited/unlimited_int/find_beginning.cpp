@@ -1,6 +1,6 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 int_array_list::list_location unlimited_int::find_num_used_int_from_significant(const size_t num_int_to_find) const
@@ -13,7 +13,7 @@ int_array_list::list_location unlimited_int::find_num_used_int_from_significant(
 	size_t num_array = this->num_of_intarrays_used + (size_t)1;
 	while (true)
 	{
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (num_array-- == 0)
 		{
 			num_array = (size_t)0;
@@ -26,7 +26,7 @@ int_array_list::list_location unlimited_int::find_num_used_int_from_significant(
 		else
 			it = it->previous;
 	}
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (num_array == (size_t)0)
 		throw std::logic_error("Error in function: \"__list_location__ unlimited_int::find_num_used_int_from_significant(const many_bits num_int_to_find) const\". \"this->num_of_intarrays_used\" is wrong.");
 #endif

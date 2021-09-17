@@ -1,16 +1,16 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 //basically multiply by (0x10000000000000000 ^ shift_by) (if you're in 64 bits mode)
 //Works by simply attaching more zeroed-out int arrays to the lest significant side of the number.
 void unlimited_int::shift_left(const size_t shift_by)
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"shift_left(const size_t shift_by)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::shift_left(const size_t shift_by)\"");
 #endif
@@ -22,20 +22,20 @@ void unlimited_int::shift_left(const size_t shift_by)
 	this->num_of_intarrays_used += list_to_prepend.size();
 	this->intarrays->prepend(list_to_prepend);
 	this->num_of_used_ints += shift_by;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"shift_left(const size_t shift_by)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::shift_left(const size_t shift_by)\"");
 #endif
 }
 void unlimited_int::shift_left_by_bits(const size_t num_of_bits_to_shift_by)
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"shift_left_by_bits()\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The error was found in start of function \"void unlimited_int::shift_left_by_bits(const many_bits num_of_bits_to_shift_by)\"");
 #endif
@@ -43,13 +43,13 @@ void unlimited_int::shift_left_by_bits(const size_t num_of_bits_to_shift_by)
 		throw std::invalid_argument("Can\'t do bitwise operation on negative number");
 	if (this->num_of_used_ints == (size_t)0 || num_of_bits_to_shift_by == (size_t)0)
 		return;
-	this->shift_left(num_of_bits_to_shift_by / (size_t)NUM_OF_BITS_few_bits); //macro shift (as opposed to micro)
-	const int micro_shift = num_of_bits_to_shift_by % (size_t)NUM_OF_BITS_few_bits;
+	this->shift_left(num_of_bits_to_shift_by / (size_t)UNLIMITED_INT_NUM_OF_BITS_few_bits); //macro shift (as opposed to micro)
+	const int micro_shift = num_of_bits_to_shift_by % (size_t)UNLIMITED_INT_NUM_OF_BITS_few_bits;
 	if (micro_shift != 0)
 	{
-		const int amount_to_shift_remainder = NUM_OF_BITS_few_bits - micro_shift;
+		const int amount_to_shift_remainder = UNLIMITED_INT_NUM_OF_BITS_few_bits - micro_shift;
 		few_bits mask_of_shift_builder = 0;
-		for (int bit_counter = NUM_OF_BITS_few_bits - 1; bit_counter >= amount_to_shift_remainder; --bit_counter)
+		for (int bit_counter = UNLIMITED_INT_NUM_OF_BITS_few_bits - 1; bit_counter >= amount_to_shift_remainder; --bit_counter)
 			mask_of_shift_builder += 1 << bit_counter;
 		const few_bits mask_of_shift = mask_of_shift_builder;
 		few_bits remainder = (size_t)0;
@@ -85,10 +85,10 @@ void unlimited_int::shift_left_by_bits(const size_t num_of_bits_to_shift_by)
 			++last_int_array->num_of_used_ints;
 		}
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"shift_left_by_bits()\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The error was found in end of function \"void unlimited_int::shift_left_by_bits(const many_bits num_of_bits_to_shift_by)\"");
 #endif

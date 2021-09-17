@@ -3,7 +3,7 @@ using namespace unlimited;
 //Settings AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL to at least 1 is necessary to generate the correct result in calculate_reciprocal_floor when dealing with small numbers.
 //The Newton Raphson iterations require that the initial conditions are precise enough, otherwise it will produce the wrong result (and in my implementation, throw an exception).
 //That's why in the case of small numbers, we need AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL to be at least 1, to get that initial precision needed for the Newton Raphson iterations.
-#define AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL 1
+static constexpr size_t AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL = 1;
 //Like binary search but faster. Also the reciprocal can be saved for later to greatly improve the speed of recurrent division.
 //tau[i + 1] = tau[i] * (2 - N * tau[i])
 reciprocal_information unlimited_int::calculate_reciprocal_floor(size_t length_dividend_to_support) const
@@ -100,7 +100,7 @@ unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& divide
 		*remainder = dividend_positive - result_multiplication;
 		remainder->_is_negative = dividend._is_negative; //because this is remainder of division, not modulo
 	}
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	unlimited_int long_division_check = dividend / divisor;
 	if (answer != long_division_check)
 		throw std::logic_error("Error in function: divide_using_reciprocal. The result of division conflicts with the other division method.");
@@ -115,7 +115,7 @@ unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& divide
 }
 //You can change this to a higher (or lower) value. The higher the value, the more RAM it'll take.
 //Setting to 1 should be enough for efficiently generating prime numbers.
-#define MAX_NUM_OF_DIVISORS_TO_KEEP_TRACK_OF 3
+static constexpr size_t MAX_NUM_OF_DIVISORS_TO_KEEP_TRACK_OF = 3;
 unlimited_int unlimited_int::recurring_division(const unlimited_int& dividend, const unlimited_int& divisor, unlimited_int* remainder)
 {
 	if (divisor.is_zero())

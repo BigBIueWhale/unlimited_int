@@ -157,7 +157,7 @@ static void generate_random_prime_single_thread(const unlimited_int& min, const 
 		std::rethrow_exception(std::current_exception());
 	}
 }
-#define NUM_OF_BITS_IN_PRIME_NUMBER_TO_STOP_MULTITHREADING 256
+static constexpr size_t NUM_OF_BITS_IN_PRIME_NUMBER_TO_STOP_MULTITHREADING = 256;
 //uses std::async for multithreading
 unlimited_int unlimited_int::generate_random_prime_multithreaded(const unlimited_int& min, const unlimited_int& max, const unsigned num_threads)
 {

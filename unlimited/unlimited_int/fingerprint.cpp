@@ -6,14 +6,14 @@ using namespace unlimited;
 //There's nothing special about them, don't scratch your head about it.
 size_t unlimited_int::fingerprint() const
 {
-#if IS_64_BIT_SYSTEM
-	static_assert(sizeof(size_t) * 8 == 64);
+#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
+	static_assert(sizeof(size_t) * 8 == 64, "On a 64 bit system we expect that size_t will be 64 bits");
 #else
-	static_assert(sizeof(size_t) * 8 == 32);
+	static_assert(sizeof(size_t) * 8 == 32, "On a 32 bit system we expect that size_t will be 32 bits");
 #endif
 	if (this->num_of_used_ints == (size_t)0)
 	{
-#if IS_64_BIT_SYSTEM
+#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
 		return (size_t)6507803568836410511; //arbitrary number
 #else
 		return (size_t)568218086; //arbitrary number
@@ -24,13 +24,13 @@ size_t unlimited_int::fingerprint() const
 	if (this->num_of_used_ints == (size_t)1)
 	{
 		const few_bits only_num = (few_bits)this->get_least_significant_few_bits();
-#if IS_64_BIT_SYSTEM
+#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
 		return (size_t)6507803568836410511 ^ ((size_t)only_num ^ length_in_bits);
 #else
 		return (size_t)568218086 ^ ((size_t)only_num ^ length_in_bits);
 #endif
 	}
-#if IS_64_BIT_SYSTEM
+#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
 	size_t result_hash = (size_t)9180187563408628080;
 #else
 	size_t result_hash = (size_t)412785383;

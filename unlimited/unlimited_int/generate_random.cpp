@@ -10,22 +10,16 @@
 #endif
 using namespace unlimited;
 many_bits ceiling_division(many_bits, many_bits);
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 static void insert_long_long_into_uint32_t(long long origin, uint32_t* destination_arr, size_t* counter_in_uint32_t)
 {
-#if IS_64_BIT_SYSTEM == false
-	static_assert(sizeof(long long) == sizeof(uint32_t), "Size of long long int must be 32 bits.");
-	destination_arr[*counter_in_uint32_t] = (uint32_t)origin;
-	++(*counter_in_uint32_t);
-#else
 	static_assert(sizeof(long long) == sizeof(uint32_t) * 2, "Size of long long int must be 64 bits.");
 	destination_arr[*counter_in_uint32_t] = (uint32_t)((uint64_t)origin >> 32);
 	++(*counter_in_uint32_t);
 	destination_arr[*counter_in_uint32_t] = (uint32_t)((uint64_t)origin & (uint64_t)MASK_LOW_BITS);
 	++(*counter_in_uint32_t);
-#endif
 }
 //useful for clearing up the memory in the end of the program. Not actually necessary because unlimited_int::current_random will flush itself anyways at the end...
 void unlimited_int::flush_current_random()
@@ -36,7 +30,7 @@ void unlimited_int::flush_current_random()
 //BTW this is not truly random, because it relies on time and memory address management, and if it can, the thread ID. But for most intents and purposes it's truly random.
 unlimited_int unlimited_int::generate_truly_random()
 {
-	static_assert(sizeof(long long) <= sizeof(void*), "\nPointer size must fit in long long in order to do reinterpret_cast<long long>.");
+	static_assert(sizeof(size_t) <= sizeof(void*), "\nPointer size must fit in size_t in order to do reinterpret_cast<long long>.");
 	static_assert(sizeof(size_t) <= sizeof(void*), "\nPointer size must fit in size_t in order to do reinterpret_cast<size_t>.");
 	//don't let this confuse you. There aren't actually 4096 * sizeof(int) bytes of randomness.
 	//I don't have a camera pointing at a lava lamp in real time.
@@ -46,9 +40,9 @@ unlimited_int unlimited_int::generate_truly_random()
 	std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 	long long time_in_ms_passed_since_1970 = ms.count();
 	insert_long_long_into_uint32_t(time_in_ms_passed_since_1970, nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<long long>(&uint32_t_index), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(&uint32_t_index), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(nums_to_generate_seed[reinterpret_cast<size_t>(&nums_to_generate_seed) % SIZE_OF_SEED_ARR]), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<long long>(&nums_to_generate_seed), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(&nums_to_generate_seed), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(sizeof(void*)), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(sizeof(short int)), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(sizeof(int)), nums_to_generate_seed.data(), &uint32_t_index);
@@ -64,7 +58,7 @@ unlimited_int unlimited_int::generate_truly_random()
 	insert_long_long_into_uint32_t(static_cast<long long>(num_logical_processors), nums_to_generate_seed.data(), &uint32_t_index);
 #endif
 	unlimited_int num_to_return = unlimited_int(nums_to_generate_seed.data(), SIZE_OF_SEED_ARR).calculate_efficient_cryptographic_hash();
-	const long long extra_randomness_from_memory = reinterpret_cast<long long>(&num_to_return);
+	const long long extra_randomness_from_memory = reinterpret_cast<size_t>(&num_to_return);
 	//using floating-point rounding errors to increase randomness
 	for (int counter = 0; counter < 20; ++counter)
 	{
@@ -89,18 +83,18 @@ unlimited_int unlimited_int::generate_truly_random()
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.num_of_intarrays_used), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->num_of_ints), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->size()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<long long>(num_to_return.intarrays->first()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<long long>(num_to_return.intarrays->last()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<long long>(num_to_return.intarrays), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->first()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->last()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays), nums_to_generate_seed.data(), &uint32_t_index);
 	num_to_return = unlimited_int(nums_to_generate_seed.data(), SIZE_OF_SEED_ARR).calculate_efficient_cryptographic_hash();
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_length_in_bits()), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_least_significant_few_bits()), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.num_of_intarrays_used), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->num_of_ints), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->size()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<long long>(num_to_return.intarrays->first()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<long long>(num_to_return.intarrays->last()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<long long>(num_to_return.intarrays), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->first()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->last()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays), nums_to_generate_seed.data(), &uint32_t_index);
 	//All the rest of these lines in this function are extremely important.
 	ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 	time_in_ms_passed_since_1970 = ms.count();
@@ -138,7 +132,7 @@ many_bits unlimited_int::get_least_significant_many_bits() const
 		second_least_significant_many_bits = static_cast<many_bits>(*this_intarrays_first->next->value->intarr);
 	else
 		second_least_significant_many_bits = static_cast<many_bits>(*(this_intarrays_first->value->intarr + (size_t)1));
-	return (second_least_significant_many_bits << NUM_OF_BITS_few_bits) + least_significant_many_bits;
+	return (second_least_significant_many_bits << UNLIMITED_INT_NUM_OF_BITS_few_bits) + least_significant_many_bits;
 }
 size_t ceiling_division(size_t numerator, size_t denominator)
 {
@@ -150,7 +144,7 @@ size_t ceiling_division(size_t numerator, size_t denominator)
 unlimited_int unlimited_int::generate_random_that_is_at_least(const size_t min_num_of_bits)
 {
 	unlimited_int result_random;
-#if IS_64_BIT_SYSTEM
+#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
 	const size_t num_of_sha512_hashes_needed = ceiling_division(min_num_of_bits, (size_t)512);
 	size_t num_hash;
 	for (num_hash = (size_t)0; num_hash < num_of_sha512_hashes_needed; ++num_hash)
@@ -183,10 +177,10 @@ unlimited_int unlimited_int::generate_random_that_is_at_least(const size_t min_n
 		++num_hash;
 	}
 #endif
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int* unlimited_int::generate_random_that_is_at_least(size_t min_num_of_bits)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (result_random.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function: \"unlimited_int* unlimited_int::generate_random_that_is_at_least(size_t min_num_of_bits)\"");
 #endif
@@ -209,10 +203,10 @@ unlimited_int unlimited_int::generate_random(const unlimited_int& min, const unl
 	unlimited_int large_enough_random_num = unlimited_int::generate_random_that_is_at_least(result_of_sub.get_length_in_bits() + (size_t)256);
 	unlimited_int answer = large_enough_random_num % result_of_sub;
 	answer += min;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (answer.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int* unlimited_int::generate_random(const unlimited_int& min, const unlimited_int& max)\"");
 	if (answer < min || answer > max)

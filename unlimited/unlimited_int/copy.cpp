@@ -1,15 +1,15 @@
 #include "unlimited_int.hpp"
 #include <algorithm>
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"copy_to\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("inconsistency found in the beginning of \"void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const\"");
 #endif
@@ -86,10 +86,10 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 	num_to_paste_into.num_of_intarrays_used = num_of_used_arrays_in_paste;
 	current_int_array_paste->num_of_used_ints = index_paste;
 	num_to_paste_into.flush_unused();
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"copy_to\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_paste_into.find_inconsistencies())
 		throw std::logic_error("Inconsistency was found in the end of \"void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const\"");
 #endif
@@ -97,10 +97,10 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const size_t num_of_ints_to_copy) const
 {
 	size_t num_of_ints_to_copy_cpy = num_of_ints_to_copy;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"copy_most_significant_to\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("Inconsistency was found in start of function \"void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const size_t num_of_ints_to_copy) const\"");
 #endif
@@ -178,20 +178,20 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, c
 		--current_intarr_this;
 		++num_int;
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"copy_most_significant_to\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_paste_into.find_inconsistencies())
 		throw std::logic_error("Inconsistency was found in the end of function \"void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const size_t num_of_ints_to_copy) const\"");
 #endif
 }
 void unlimited_int::swap(unlimited_int& num_to_swap_with)
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"swap\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_swap_with.find_inconsistencies())
 		throw std::logic_error("Inconsistency was found in start of function \"void unlimited_int::swap(unlimited_int& num_to_swap_with)\"");
 #endif
@@ -200,10 +200,10 @@ void unlimited_int::swap(unlimited_int& num_to_swap_with)
 	std::swap(this->num_of_intarrays_used, num_to_swap_with.num_of_intarrays_used);
 	std::swap(this->num_of_used_ints, num_to_swap_with.num_of_used_ints);
 	std::swap(this->intarrays, num_to_swap_with.intarrays);
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"swap\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_swap_with.find_inconsistencies())
 		throw std::logic_error("Inconsistency was found in end of function \"void unlimited_int::swap(unlimited_int& num_to_swap_with)\"");
 #endif

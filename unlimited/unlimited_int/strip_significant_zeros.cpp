@@ -1,6 +1,6 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 void unlimited_int::cutoff_leading_zeros(custom_linked_list_node<int_array> *const int_array_to_start_at)
@@ -35,10 +35,10 @@ void unlimited_int::cutoff_leading_zeros(custom_linked_list_node<int_array> *con
 	this->num_of_intarrays_used -= num_of_int_arrays_went_through;
 	this->num_of_used_ints -= num_of_ints_went_through;
 	this->flush_unused();
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"cutoff_leading_zeros(Node* int_array_to_start_at)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The error was found in end of function \"cutoff_leading_zeros(Node* int_array_to_start_at)\"");
 #endif

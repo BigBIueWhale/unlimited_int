@@ -1,14 +1,14 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 unlimited_int unlimited_int::operator~() const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in beginning of function \"unlimited_int* unlimited_int::operator~() const\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in beginning of function: \"unlimited_int* unlimited_int::operator~() const\"");
 #endif
@@ -82,10 +82,10 @@ unlimited_int unlimited_int::operator~() const
 	result.num_of_used_ints = len_of_result;
 	result.num_of_intarrays_used = num_of_intarrays_in_result;
 	result.cutoff_leading_zeros(current_int_array_Node_result);
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int* unlimited_int::operator~() const\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (result.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int* unlimited_int::operator~() const\"");
 #endif
@@ -93,10 +93,10 @@ unlimited_int unlimited_int::operator~() const
 }
 void unlimited_int::invert_bits()
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in beginning of function \"void unlimited_int::invert_bits()\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in beginning of function: \"void unlimited_int::invert_bits()\"");
 #endif
@@ -140,10 +140,10 @@ void unlimited_int::invert_bits()
 	const few_bits inverted_most_significant_int_in_this = static_cast<few_bits>(~(most_significant_int_in_this << num_preceding_zeros)) >> num_preceding_zeros;
 	current_int_array_this.intarr[index_this] = inverted_most_significant_int_in_this;
 	this->cutoff_leading_zeros(current_int_array_Node_this);
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::invert_bits()\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function: \"void unlimited_int::invert_bits()\"");
 #endif

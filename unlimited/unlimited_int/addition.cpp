@@ -1,15 +1,15 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const
 {
 	static_assert(sizeof(few_bits) * 2 == sizeof(many_bits), "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nStart of add:";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_add->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"");
 #endif
@@ -160,7 +160,7 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		}
 		carry += static_cast<many_bits>(*current_intarr_for_bigger) + static_cast<many_bits>(*current_intarr_for_smaller);
 		*current_intarr_for_answer = static_cast<few_bits>(carry);
-		carry >>= NUM_OF_BITS_few_bits;
+		carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
 		++current_intarr_for_bigger;
 		++current_intarr_for_smaller;
 		++current_intarr_for_answer;
@@ -231,7 +231,7 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 			}
 			carry += static_cast<many_bits>(*current_intarr_for_bigger);
 			*current_intarr_for_answer = static_cast<few_bits>(carry);
-			carry >>= NUM_OF_BITS_few_bits;
+			carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
 			++current_intarr_for_bigger;
 			++current_intarr_for_answer;
 			++num_int;
@@ -329,10 +329,10 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		answer->num_of_intarrays_used = num_of_intarrays_used_for_answer;
 	}
 	answer->_is_negative = set_answer_to_negative;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nEnd of add:";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"");
 #endif

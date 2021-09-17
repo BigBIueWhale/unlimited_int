@@ -1,6 +1,6 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 void unlimited_int::fill_0_until_num_of_ints(const size_t fill_0_until)
@@ -31,20 +31,20 @@ void unlimited_int::fill_0_until_num_of_ints(const size_t fill_0_until)
 		}
 		it = it->next;
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in function \"fill_0_until_num_of_ints(many_bits fill_0_until)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("inconsistency found in the end of \"void unlimited_int::fill_0_until_num_of_ints(const many_bits fill_0_until)\"");
 #endif
 }
 void unlimited_int::fill_0_until_num_of_ints_and_set_used_ints_to_maximum(const size_t fill_0_until)
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"fill_0_until_num_of_ints_and_set_used_ints_to_maximum(many_bits fill_0_until)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("inconsistency found in the beginning of \"void unlimited_int::fill_0_until_num_of_ints_and_set_used_ints_to_maximum(many_bits fill_0_until)\"");
 #endif

@@ -1,15 +1,15 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimited_int* answer) const
 {
 	static_assert(sizeof(few_bits) * 2 == sizeof(many_bits), "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"multiply_basecase(unlimited_int* num_to_mult, unlimited_int* answer)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_mult->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimited_int* answer) const\"");
 #endif
@@ -171,7 +171,7 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 				}
 				carry += (many_bits)(*current_intarray_for_bigger_intarr) * num_to_mult_many + (many_bits)(*current_intarray_for_answer_intarr);
 				*current_intarray_for_answer_intarr = (few_bits)carry;
-				carry >>= NUM_OF_BITS_few_bits;
+				carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
 				++current_intarray_for_bigger_intarr;
 				++current_intarray_for_answer_intarr;
 				++num_int;
@@ -210,10 +210,10 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 	else
 		answer->num_of_used_ints = num_of_ints_needed_for_answer;
 	current_intarray_for_answer->num_of_used_ints = num_of_used_ints_in_most_significant_int_array;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"multiply_basecase(unlimited_int* num_to_mult, unlimited_int* answer)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (answer->find_inconsistencies())
 		throw std::logic_error("The inconsistencies were found at the end of multiply_basecase with answer.");
 #endif

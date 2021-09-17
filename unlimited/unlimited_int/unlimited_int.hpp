@@ -56,7 +56,7 @@ namespace unlimited
 		size_t num_of_intarrays_used; //number of "Node"s used inside of the list_of_int_arrays function
 		bool _is_negative; //By default the various constructors will set is_negative to false. Some functions (like SHA256 and the various bitwise operations) ignore is_negative.
 		bool auto_destroy = true;
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 //Debugging Functions
 		bool find_inconsistencies() const;
 		void print_properties() const;
@@ -570,7 +570,7 @@ namespace unlimited
 		//uses sha512 when compiling in 64bit mode, and sha256 when compiling in 32bit mode
 		unlimited_int calculate_efficient_cryptographic_hash() const
 		{
-#if IS_64_BIT_SYSTEM
+#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
 			return this->calculate_sha512_hash();
 #else
 			return this->calculate_sha256_hash();

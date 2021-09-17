@@ -1,6 +1,6 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 void unlimited_int::assign(const uint32_t *const arr, const size_t len)
@@ -14,9 +14,9 @@ void unlimited_int::assign(const uint32_t *const arr, const size_t len)
 	}
 	if (len == (size_t)0)
 		return;
-#if NUM_OF_BITS_few_bits == 16
+#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
 	const size_t num_of_ints = len * (size_t)2;
-#elif NUM_OF_BITS_few_bits == 32
+#elif UNLIMITED_INT_NUM_OF_BITS_few_bits == 32
 	const size_t num_of_ints = len;
 #endif
 	this->increase_until_num_of_ints(num_of_ints);
@@ -25,7 +25,7 @@ void unlimited_int::assign(const uint32_t *const arr, const size_t len)
 	current_int_array_Node->value->set_num_of_used_ints_to_maximum();
 	size_t index_in_current_int_array = (size_t)0;
 	size_t int_array_counter = (size_t)0;
-#if NUM_OF_BITS_few_bits == 16
+#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
 	bool using_significant_part = false;
 	uint32_t previous_num = 0U;
 #endif
@@ -33,7 +33,7 @@ void unlimited_int::assign(const uint32_t *const arr, const size_t len)
 	bool stop_now = false;
 	while (true)
 	{
-#if NUM_OF_BITS_few_bits == 16
+#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
 		if (using_significant_part)
 		{
 			current_int_array.intarr[index_in_current_int_array++] = (few_bits)(previous_num >> NUM_OF_BITS_few_bits);
@@ -67,10 +67,10 @@ void unlimited_int::assign(const uint32_t *const arr, const size_t len)
 	this->num_of_used_ints = num_of_ints;
 	this->num_of_intarrays_used = int_array_counter + (size_t)1;
 	this->cutoff_leading_zeros(current_int_array_Node);
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::assign(uint32_t* arr, size_t len)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, size_t len)\"");
 #endif
@@ -86,9 +86,9 @@ void unlimited_int::assign(const uint64_t *const arr, const size_t len)
 	}
 	if (len == (size_t)0)
 		return;
-#if NUM_OF_BITS_few_bits == 16
+#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
 	const size_t num_of_ints = len * (size_t)4;
-#elif NUM_OF_BITS_few_bits == 32
+#elif UNLIMITED_INT_NUM_OF_BITS_few_bits == 32
 	const size_t num_of_ints = len * (size_t)2;
 #endif
 	this->increase_until_num_of_ints(num_of_ints);
@@ -97,10 +97,10 @@ void unlimited_int::assign(const uint64_t *const arr, const size_t len)
 	current_int_array_Node->value->set_num_of_used_ints_to_maximum();
 	size_t index_in_current_int_array = (size_t)0;
 	size_t int_array_counter = (size_t)0;
-#if NUM_OF_BITS_few_bits == 32
+#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 32
 	bool using_significant_part = false;
 	uint64_t previous_num = 0U;
-#elif NUM_OF_BITS_few_bits == 16
+#elif UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
 	uint64_t previous_num = 0;
 	int num_of_bits_used_from_previous_num = 0;
 #endif
@@ -108,7 +108,7 @@ void unlimited_int::assign(const uint64_t *const arr, const size_t len)
 	bool stop_now = false;
 	while (true)
 	{
-#if NUM_OF_BITS_few_bits == 16
+#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
 		if (num_of_bits_used_from_previous_num == 0)
 			previous_num = arr[counter_ints];
 		current_int_array.intarr[index_in_current_int_array++] = (few_bits)((previous_num >> num_of_bits_used_from_previous_num) & (uint64_t)MASK_LOW_BITS);
@@ -119,7 +119,7 @@ void unlimited_int::assign(const uint64_t *const arr, const size_t len)
 				stop_now = true;
 			num_of_bits_used_from_previous_num = 0;
 		}
-#elif NUM_OF_BITS_few_bits == 32
+#elif UNLIMITED_INT_NUM_OF_BITS_few_bits == 32
 		if (using_significant_part)
 		{
 			current_int_array.intarr[index_in_current_int_array++] = (few_bits)(previous_num >> 32);
@@ -149,10 +149,10 @@ void unlimited_int::assign(const uint64_t *const arr, const size_t len)
 	this->num_of_used_ints = num_of_ints;
 	this->num_of_intarrays_used = int_array_counter + (size_t)1;
 	this->cutoff_leading_zeros(current_int_array_Node);
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function: \"void unlimited_int::assign(uint32_t* arr, many_bits len)\"");
 #endif
@@ -176,10 +176,10 @@ void unlimited_int::assign(const few_bits value_to_assign)
 		this->num_of_used_ints = (size_t)1;
 		this->intarrays->first()->value->assign(value_to_assign);
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"assign(few_ints value_to_assign)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::assign(const few_bits value_to_assign)\"");
 #endif
@@ -199,7 +199,7 @@ void unlimited_int::assign(const many_bits value_to_assign)
 	{
 		this->_is_negative = false;
 		const few_bits remainder = (few_bits)value_to_assign;
-		const few_bits carry = (few_bits)(value_to_assign >> NUM_OF_BITS_few_bits);
+		const few_bits carry = (few_bits)(value_to_assign >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
 		if (carry != (few_bits)0)
 		{
 			this->num_of_used_ints = (size_t)2;
@@ -228,10 +228,10 @@ void unlimited_int::assign(const many_bits value_to_assign)
 			this->intarrays->first()->value->assign(remainder);
 		}
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"assign(many_bits value_to_assign)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::assign(const many_bits value_to_assign)\"");
 #endif

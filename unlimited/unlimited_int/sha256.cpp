@@ -32,7 +32,7 @@ unlimited_int unlimited_int::calculate_sha256_hash() const
 		const few_bits most_significant_used_few_bits_in_number = current_int_array.intarr[current_index_in_int_array];
 		size_t length_of_preimage_in_bits = this->num_of_used_ints * (size_t)(sizeof(few_bits)) * (size_t)8;
 		int index_in_block = 0;
-#if NUM_OF_BITS_few_bits == 16
+#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
 		static_assert(sizeof(few_bits) * 2 == sizeof(uint32_t), "Assuming that few_bits is half the size of uint32_t");
 		few_bits previous_few_bits;
 		bool have_beginning_of_number;
@@ -68,7 +68,7 @@ unlimited_int unlimited_int::calculate_sha256_hash() const
 			while (true)
 			{
 				const few_bits current_few_bits = current_int_array.intarr[current_index_in_int_array];
-#if NUM_OF_BITS_few_bits == 16
+#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
 				if (have_beginning_of_number)
 				{
 					current_block[index_in_block] = ((uint32_t)previous_few_bits << 16) + (uint32_t)current_few_bits;
@@ -120,7 +120,8 @@ unlimited_int unlimited_int::calculate_sha256_hash() const
 				current_block[word_index] = (uint32_t)0;
 		}
 		current_block[15] = (uint32_t)(length_of_preimage_in_bits & (size_t)MASK_LOW_BITS);
-		current_block[14] = (uint32_t)(length_of_preimage_in_bits >> NUM_OF_BITS_few_bits);
+		static_assert(sizeof(unsigned long long) * 8 > static_cast<int>(UNLIMITED_INT_NUM_OF_BITS_few_bits), "Undefined behavior, shift count will be too long.");
+		current_block[14] = (uint32_t)(static_cast<unsigned long long>(length_of_preimage_in_bits) >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
 		SHA256_compress_message_block(current_block, current_hash_values);
 	}
 	return unlimited_int(current_hash_values, (size_t)8);

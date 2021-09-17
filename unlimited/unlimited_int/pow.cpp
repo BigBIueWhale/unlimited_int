@@ -1,15 +1,15 @@
 ﻿#include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 //makes use if the identity (a ⋅ b) mod m = [(a mod m) ⋅ (b mod m)] mod m
 unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod, const volatile bool *const terminator)
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (base.find_inconsistencies() || power.find_inconsistencies() || mod.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"");
 #endif
@@ -67,10 +67,10 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 				return unlimited_int();
 		power_cpy >>= (size_t)1;
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (base.find_inconsistencies() || power.find_inconsistencies() || mod.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"");
 	if (answer.find_inconsistencies())
@@ -80,10 +80,10 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 }
 unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const volatile bool *const terminator)
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (base.find_inconsistencies() || power.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"");
 #endif
@@ -130,10 +130,10 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		power_cpy >>= (size_t)1;
 	}
 	answer._is_negative = base.is_negative() && power.modulo_2() == 1;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (base.find_inconsistencies() || power.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"");
 	if (answer.find_inconsistencies())

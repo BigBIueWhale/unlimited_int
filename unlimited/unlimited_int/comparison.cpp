@@ -1,23 +1,23 @@
 #include "unlimited_int.hpp"
 using namespace unlimited;
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 		throw std::logic_error("Inconsistencies found in start of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
 	if (this->is_zero() && num_to_compare_to.is_zero())
 	{
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
@@ -25,10 +25,10 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 	}
 	if ((this->_is_negative) && (num_to_compare_to._is_negative == false))
 	{
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
@@ -36,10 +36,10 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 	}
 	if ((this->_is_negative == false) && (num_to_compare_to._is_negative))
 	{
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
@@ -52,10 +52,10 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 	}
 	if (this->num_of_used_ints > num_to_compare_to.num_of_used_ints)
 	{
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
@@ -70,10 +70,10 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 	}
 	else if (num_to_compare_to.num_of_used_ints > this->num_of_used_ints)
 	{
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
@@ -86,10 +86,10 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 			return 'S';
 		}
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 		throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
@@ -97,19 +97,19 @@ char unlimited_int::estimate_compare_to(const unlimited_int& num_to_compare_to) 
 }
 char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 		throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"");
 #endif
 	if (this->num_of_used_ints > num_to_compare_to.num_of_used_ints)
 	{
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"");
 #endif
@@ -117,19 +117,19 @@ char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_
 	}
 	else if (num_to_compare_to.num_of_used_ints > this->num_of_used_ints)
 	{
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 		std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 			throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"");
 #endif
 		return 'S';
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 		throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_compare_to) const\"");
 #endif
@@ -137,10 +137,10 @@ char unlimited_int::estimate_compare_to_ignore_sign(const unlimited_int& num_to_
 }
 char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const
 {
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"compare_to(unlimited_int* num_to_compare_to)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 		throw std::logic_error("Inconsistencies found in start of function \"char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const\"");
@@ -229,10 +229,10 @@ char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const
 		--current_int_array_this_intarr;
 		--current_int_array_compare_intarr;
 	}
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"compare_to(unlimited_int* num_to_compare_to)\":";
 #endif
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies() || num_to_compare_to.find_inconsistencies())
 		throw std::logic_error("Inconsistencies found in end of function \"char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const\"");
 #endif
@@ -263,7 +263,7 @@ char unlimited_int::compare_to_ignore_sign(const many_bits other_num) const
 {
 	static_assert(sizeof(few_bits) * 2 == sizeof(many_bits), "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
 	const few_bits low_part = (few_bits)other_num;
-	const few_bits high_part = (few_bits)(other_num >> NUM_OF_BITS_few_bits);
+	const few_bits high_part = (few_bits)(other_num >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
 	size_t num_of_few_bits = (high_part == 0) ? (size_t)0 : (size_t)2;
 	if (num_of_few_bits == (size_t)0 && low_part != (few_bits)0)
 		num_of_few_bits = (size_t)1;

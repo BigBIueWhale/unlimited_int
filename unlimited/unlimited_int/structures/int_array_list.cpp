@@ -75,7 +75,7 @@ void int_array_list::clear()
 	}
 	this->custom_linked_list::clear();
 }
-#if DEBUG_MODE > 0
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 size_t int_array_list::double_check_length()
 {
 	custom_linked_list_node<int_array>* it = this->first();

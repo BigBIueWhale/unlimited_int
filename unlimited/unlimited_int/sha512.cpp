@@ -33,7 +33,7 @@ unlimited_int unlimited_int::calculate_sha512_hash() const
 		const few_bits most_significant_used_few_bits_in_number = current_int_array.intarr[current_index_in_int_array];
 		size_t length_of_preimage_in_bits = this->num_of_used_ints * (size_t)(sizeof(few_bits)) * (size_t)8U;
 		int index_in_block = 0;
-#if NUM_OF_BITS_few_bits == 16
+#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
 		static_assert(sizeof(few_bits) * 4 == sizeof(uint64_t), "Assuming that few_bits is a quarter of the size of uint64_t");
 		int progress_to_reach_64_bits = 0;
 		uint64_t number_builder = (uint64_t)0;
@@ -50,7 +50,7 @@ unlimited_int unlimited_int::calculate_sha512_hash() const
 			number_builder = (uint64_t)0;
 			progress_to_reach_64_bits = 0;
 		}
-#elif NUM_OF_BITS_few_bits == 32
+#elif UNLIMITED_INT_NUM_OF_BITS_few_bits == 32
 		static_assert(sizeof(few_bits) * 2 == sizeof(uint64_t), "Assuming that few_bits is half the size of uint64_t");
 		few_bits previous_few_bits;
 		bool have_beginning_of_number;
@@ -82,7 +82,7 @@ unlimited_int unlimited_int::calculate_sha512_hash() const
 			while (true)
 			{
 				const few_bits current_few_bits = current_int_array.intarr[current_index_in_int_array];
-#if NUM_OF_BITS_few_bits == 16
+#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
 				const uint64_t current_num = (uint64_t)current_few_bits;
 				progress_to_reach_64_bits += 16;
 				const int amount_to_shift = 64 - progress_to_reach_64_bits;
@@ -94,7 +94,7 @@ unlimited_int unlimited_int::calculate_sha512_hash() const
 					number_builder = (uint64_t)0;
 					progress_to_reach_64_bits = 0;
 				}
-#elif NUM_OF_BITS_few_bits == 32
+#elif UNLIMITED_INT_NUM_OF_BITS_few_bits == 32
 				if (have_beginning_of_number)
 				{
 					current_block[index_in_block] = ((uint64_t)previous_few_bits << 32) + (uint64_t)current_few_bits;

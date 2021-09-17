@@ -1,5 +1,5 @@
 #include "unlimited_int.hpp"
-#if DEBUG_MODE == 2
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
 using namespace unlimited;
