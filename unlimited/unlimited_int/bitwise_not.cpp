@@ -100,6 +100,8 @@ void unlimited_int::invert_bits()
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in beginning of function: \"void unlimited_int::invert_bits()\"");
 #endif
+	if (this->is_zero())
+		return;
 	if (this->is_negative())
 		throw std::invalid_argument("Can\'t do bitwise operation on negative number");
 	const size_t len_of_this = this->num_of_used_ints;
