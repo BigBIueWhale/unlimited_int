@@ -14,7 +14,7 @@ char unlimited_int::number_to_char(const unsigned int num, const unsigned int ba
 }
 std::string unlimited_int::to_string(const unsigned int base) const
 {
-	static_assert(std::numeric_limits<unsigned int>::max() >= MAX_BASE_FOR_UNLIMITED_INT);
+	static_assert(std::numeric_limits<unsigned int>::max() >= MAX_BASE_FOR_UNLIMITED_INT, "MAX_BASE_FOR_UNLIMITED_INT should only be 36, because the numbers and english alphabet letters");
 	if (base > MAX_BASE_FOR_UNLIMITED_INT || base <= 0U)
 		throw std::invalid_argument("Error in function unlimited_int::to_string(unsigned): The maximum base is 36.");
 	if (this->num_of_used_ints == (size_t)0)
