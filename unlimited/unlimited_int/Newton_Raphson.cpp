@@ -98,7 +98,10 @@ unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& divide
 		unlimited_int dividend_positive(dividend, false);
 		dividend_positive.self_abs();
 		*remainder = dividend_positive - result_multiplication;
-		remainder->_is_negative = dividend._is_negative; //because this is remainder of division, not modulo
+		if (dividend._is_negative)
+			remainder->self_negative(); //because this is remainder of division, not modulo
+		else
+			remainder->self_abs();
 	}
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	unlimited_int long_division_check = dividend / divisor;
@@ -193,7 +196,7 @@ unlimited_int unlimited_int::recurring_division(const unlimited_int& dividend, c
 				unlimited_int::Newton_Raphson_lookup.reciprocals_map.erase(*unlimited_int::Newton_Raphson_lookup.most_recent.last()->value);
 				unlimited_int::Newton_Raphson_lookup.most_recent.pop_back();
 			}
-			item_in_list = unlimited_int::Newton_Raphson_lookup.most_recent.push_back(new size_t(fingerprint_divisor));
+			item_in_list = unlimited_int::Newton_Raphson_lookup.most_recent.push_front(new size_t(fingerprint_divisor));
 		}
 		unlimited_int::Newton_Raphson_lookup.reciprocals_map.emplace(fingerprint_divisor, reciprocal_information_for_database(divisor.calculate_reciprocal_floor(dividend.num_of_used_ints), std::make_unique<unlimited_int>(divisor.calculate_efficient_cryptographic_hash()), item_in_list));
 		reciprocal_iterator_in_map = unlimited_int::Newton_Raphson_lookup.reciprocals_map.find(fingerprint_divisor);

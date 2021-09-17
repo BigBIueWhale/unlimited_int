@@ -11,16 +11,16 @@ int main(int argc, char* argv[])
 {
 	for (int i = 0; i < 80000; ++i)
 	{
-		try
-		{
+		//try
+		//{
 			test_unlimited_int();
-		}
-		catch (std::exception& e)
-		{
-			std::cout << "\nCaught exception: " << e.what() << "\nPress ENTER to continue" << std::endl;
-			std::cout.flush();
-			std::cin.get();
-		}
+		//}
+		//catch (std::exception& e)
+		//{
+		//	std::cout << "\nCaught exception: " << e.what() << "\nPress ENTER to continue" << std::endl;
+		//	std::cout.flush();
+		//	std::cin.get();
+		//}
 	}
 	//const auto start_time = std::chrono::steady_clock::now();
 	//for (int counter = 0; counter < 40; ++counter)
@@ -135,8 +135,12 @@ static void test_unlimited_int()
 				num = (unsigned long long int)unlimited_int::generate_random(unlimited_int(std::numeric_limits<unsigned long long int>::min()), unlimited_int(std::numeric_limits<unsigned long long int>::max()));
 				break;
 			case number_types::unlimited_int:
-				num = unlimited_int::generate_random(unlimited_int("-10000000000000000000000000000000000000000000", 16), unlimited_int("10000000000000000000000000000000000000000000", 16));
+			{
+				const int random_power_of_bits = generate_random_int(184);
+				const unlimited_int limit_positive = unlimited_int(1) << random_power_of_bits;
+				num = unlimited_int::generate_random(-limit_positive, limit_positive);
 				break;
+			}
 			default:
 				throw std::logic_error("This isn't supposed to happen.");
 			}
@@ -150,6 +154,28 @@ static void test_unlimited_int()
 			unlimited_int num2;
 			assign_num(static_cast<number_types>(num1_type), num1);
 			assign_num(static_cast<number_types>(num2_type), num2);
+			const int random_chooser = generate_random_int(400);
+			if (random_chooser == 0)
+				num1 = 0;
+			else if (random_chooser == 1)
+				num1 = 1;
+			else if (random_chooser == 2)
+				num1 = -1;
+			else if (random_chooser == 3)
+				num1 = 2;
+			else if (random_chooser == 4)
+				num1 = -2;
+			const int random_chooser2 = generate_random_int(400);
+			if (random_chooser2 == 0)
+				num2 = 0;
+			else if (random_chooser2 == 1)
+				num2 = 1;
+			else if (random_chooser2 == 2)
+				num2 = -1;
+			else if (random_chooser2 == 3)
+				num2 = 2;
+			else if (random_chooser2 == 4)
+				num2 = -2;
 			operator_types_binary operator_type = static_cast<operator_types_binary>(generate_random_int(static_cast<int>(operator_types_binary::end_enum) - 1));
 			switch (operator_type)
 			{
@@ -266,11 +292,11 @@ static void test_unlimited_int()
 					unlimited_int num2_cpy = num2;
 					num2_cpy %= num1;
 					const unlimited_int result = num2 % num1;
-					unlimited_int recurring_division_result;
-					unlimited_int::recurring_division(num2, num1, &recurring_division_result);
-					if (result != num2_cpy || result != recurring_division_result)
+					unlimited_int recurring_division_remainder_result;
+					unlimited_int::recurring_division(num2, num1, &recurring_division_remainder_result);
+					if (result != num2_cpy || result != recurring_division_remainder_result)
 					{
-						std::cout << "\nRemainder result num1 != 0:\nresult: " << result << "\nnum2_cpy: " << num2_cpy << "\nrecurring_division_result: " << recurring_division_result
+						std::cout << "\nRemainder result num1 != 0:\nresult: " << result << "\nnum2_cpy: " << num2_cpy << "\nrecurring_division_result: " << recurring_division_remainder_result
 							 << "\nnum1: " << num1 << "\nnum2: " << num2;
 						throw std::logic_error("Remainder failed");
 					}
@@ -415,6 +441,17 @@ static void test_unlimited_int()
 			int num_type = generate_random_int(static_cast<int>(number_types::end_enum) - 1);
 			unlimited_int num;
 			assign_num(static_cast<number_types>(num_type), num);
+			const int random_chooser = generate_random_int(400);
+			if (random_chooser == 0)
+				num = 0;
+			else if (random_chooser == 1)
+				num = 1;
+			else if (random_chooser == 2)
+				num = -1;
+			else if (random_chooser == 3)
+				num = 2;
+			else if (random_chooser == 4)
+				num = -2;
 			operator_types_unary operator_type = static_cast<operator_types_unary>(generate_random_int(static_cast<int>(operator_types_unary::end_enum) - 1));
 			switch (operator_type)
 			{
