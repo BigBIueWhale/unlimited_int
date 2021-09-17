@@ -132,7 +132,7 @@ many_bits unlimited_int::get_least_significant_many_bits() const
 		second_least_significant_many_bits = static_cast<many_bits>(*this_intarrays_first->next->value->intarr);
 	else
 		second_least_significant_many_bits = static_cast<many_bits>(*(this_intarrays_first->value->intarr + (size_t)1));
-	return (second_least_significant_many_bits << UNLIMITED_INT_NUM_OF_BITS_few_bits) + least_significant_many_bits;
+	return (second_least_significant_many_bits << NUM_OF_BITS_few_bits) + least_significant_many_bits;
 }
 size_t ceiling_division(size_t numerator, size_t denominator)
 {
@@ -144,39 +144,42 @@ size_t ceiling_division(size_t numerator, size_t denominator)
 unlimited_int unlimited_int::generate_random_that_is_at_least(const size_t min_num_of_bits)
 {
 	unlimited_int result_random;
-#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
-	const size_t num_of_sha512_hashes_needed = ceiling_division(min_num_of_bits, (size_t)512);
-	size_t num_hash;
-	for (num_hash = (size_t)0; num_hash < num_of_sha512_hashes_needed; ++num_hash)
+	if (UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM)
 	{
-		unlimited_int current_hash = generate_next_random();
-		current_hash <<= num_hash * (size_t)512;
-		result_random |= current_hash;
+		const size_t num_of_sha512_hashes_needed = ceiling_division(min_num_of_bits, (size_t)512);
+		size_t num_hash;
+		for (num_hash = (size_t)0; num_hash < num_of_sha512_hashes_needed; ++num_hash)
+		{
+			unlimited_int current_hash = generate_next_random();
+			current_hash <<= num_hash * (size_t)512;
+			result_random |= current_hash;
+		}
+		while (result_random.get_length_in_bits() < min_num_of_bits) //for the 1 in 1024 chance that result_random is still smaller than min_num_of_bits
+		{
+			unlimited_int current_hash = generate_next_random();
+			current_hash <<= num_hash * (size_t)512;
+			result_random |= current_hash;
+			++num_hash;
+		}
 	}
-	while (result_random.get_length_in_bits() < min_num_of_bits) //for the 1 in 1024 chance that result_random is still smaller than min_num_of_bits
+	else
 	{
-		unlimited_int current_hash = generate_next_random();
-		current_hash <<= num_hash * (size_t)512;
-		result_random |= current_hash;
-		++num_hash;
+		const size_t num_of_sha256_hashes_needed = ceiling_division(min_num_of_bits, (size_t)256);
+		size_t num_hash;
+		for (num_hash = (size_t)0; num_hash < num_of_sha256_hashes_needed; ++num_hash)
+		{
+			unlimited_int current_hash = generate_next_random();
+			current_hash <<= num_hash * (size_t)256;
+			result_random |= current_hash;
+		}
+		while (result_random.get_length_in_bits() < min_num_of_bits) //for the 1 in 512 chance that result_random is still smaller than min_num_of_bits
+		{
+			unlimited_int current_hash = generate_next_random();
+			current_hash <<= num_hash * (size_t)256;
+			result_random |= current_hash;
+			++num_hash;
+		}
 	}
-#else
-	const size_t num_of_sha256_hashes_needed = ceiling_division(min_num_of_bits, (size_t)256);
-	size_t num_hash;
-	for (num_hash = (size_t)0; num_hash < num_of_sha256_hashes_needed; ++num_hash)
-	{
-		unlimited_int current_hash = generate_next_random();
-		current_hash <<= num_hash * (size_t)256;
-		result_random |= current_hash;
-	}
-	while (result_random.get_length_in_bits() < min_num_of_bits) //for the 1 in 512 chance that result_random is still smaller than min_num_of_bits
-	{
-		unlimited_int current_hash = generate_next_random();
-		current_hash <<= num_hash * (size_t)256;
-		result_random |= current_hash;
-		++num_hash;
-	}
-#endif
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int* unlimited_int::generate_random_that_is_at_least(size_t min_num_of_bits)\"";
 #endif

@@ -1,25 +1,6 @@
 #ifndef SETTINGS_HPP_UNLIMITED_INT
 #define SETTINGS_HPP_UNLIMITED_INT
 
-// Check windows
-#if _WIN32 || _WIN64
-#if _WIN64
-#define UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM true
-#else
-#define UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM false
-#endif
-
-// Check GCC
-#elif __GNUC__
-#if __x86_64__ || __ppc64__
-#define UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM true
-#else
-#define UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM false
-#endif
-#else
-#error "FATAL COMPILATION ERROR of \"unlimited\" library. Compiler is not GCC and not Microsoft. Try manually editing \"unlimited/unlimited_int/structures/settings.h\" to specify whether the compiler is 64 bits or 32 bits"
-#endif
-
 //0 for no debugging at all, 1 for all debugging except verbose print, 2 for all debugging with (super-)verbose print, -2 for only memory counting (check for memory leaks)
 #define UNLIMITED_INT_LIBRARY_DEBUG_MODE -2
 #if (UNLIMITED_INT_LIBRARY_DEBUG_MODE <= -3) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE == -1) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE >= 3) //Invalid options
@@ -33,10 +14,12 @@ namespace unlimited //Macros that are inside of the namespace, aren't affected b
 {
 	typedef uint32_t few_bits;
 	typedef uint64_t many_bits;
-#define UNLIMITED_INT_NUM_OF_BITS_few_bits 32
-#define UNLIMITED_INT_NUM_OF_BITS_many_bits 64
+	static constexpr int NUM_OF_BITS_few_bits = sizeof(few_bits) * 8;
+	static constexpr int NUM_OF_BITS_many_bits = sizeof(many_bits) * 8;
 	typedef int32_t few_bits_signed;
+	static_assert(sizeof(few_bits) == sizeof(few_bits_signed), "Wrong assumption that few_bits and few_bits_signed have the same number of bytes.");
 	typedef int64_t many_bits_signed;
+	static_assert(sizeof(many_bits) == sizeof(many_bits_signed), "Wrong assumption that many_bits and many_bits_signed have the same number of bytes.");
 	static constexpr few_bits MAX_few_bits_NUM(std::numeric_limits<few_bits>::max());
 	static constexpr few_bits MASK_LOW_BITS = MAX_few_bits_NUM;
 	static constexpr many_bits MAX_few_bits_NUM_PLUS_ONE = ((many_bits)MAX_few_bits_NUM + (many_bits)1);
@@ -54,6 +37,26 @@ namespace unlimited //Macros that are inside of the namespace, aren't affected b
 	static_assert(unlimited::PIGGY_BANK_MAXIMUM >= 0, "Error in unlimited_int library in the file settings.h: PIGGY_BANK_MAXIMUM can\'t be a negative value.");
 	static constexpr size_t MAX_ALLOC = 256;
 	static constexpr size_t MIN_ALLOC = 128;
+
+	// Check windows
+#if _WIN32 || _WIN64
+#if _WIN64
+	static constexpr bool UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM = true;
+#else
+	static constexpr bool UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM = false;
+#endif
+
+// Check GCC Linux
+#elif __GNUC__
+#if __x86_64__ || __ppc64__
+	static constexpr bool UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM = true;
+#else
+	static constexpr bool UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM = false;
+#endif
+#else
+#error "FATAL COMPILATION ERROR of \"unlimited\" library. Compiler is not GCC and not Microsoft. Try manually editing \"unlimited/unlimited_int/structures/settings.hpp\" to specify whether the library is compiling on 64 bits or 32 bits"
+#endif
+
 }
 //set the multithreading macro to false if you want to compile for Linux using g++ with -static flag because that causes issues with multithreading
 //Even if it's set to false, this library will still be thread-safe, it just won't open any threads of its own: unlimited::unlimited_int::generate_random_prime_multithreaded()

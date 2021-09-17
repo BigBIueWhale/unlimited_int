@@ -160,7 +160,7 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		}
 		carry += static_cast<many_bits>(*current_intarr_for_bigger) + static_cast<many_bits>(*current_intarr_for_smaller);
 		*current_intarr_for_answer = static_cast<few_bits>(carry);
-		carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
+		carry >>= NUM_OF_BITS_few_bits;
 		++current_intarr_for_bigger;
 		++current_intarr_for_smaller;
 		++current_intarr_for_answer;
@@ -231,7 +231,7 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 			}
 			carry += static_cast<many_bits>(*current_intarr_for_bigger);
 			*current_intarr_for_answer = static_cast<few_bits>(carry);
-			carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
+			carry >>= NUM_OF_BITS_few_bits;
 			++current_intarr_for_bigger;
 			++current_intarr_for_answer;
 			++num_int;

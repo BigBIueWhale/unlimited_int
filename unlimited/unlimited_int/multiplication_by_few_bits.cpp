@@ -93,7 +93,7 @@ void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) 
 		}
 		carry += (many_bits)(*current_intarray_for_this_intarr) * num_to_mult_many;
 		*current_intarray_for_answer_intarr = (few_bits)carry;
-		carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
+		carry >>= NUM_OF_BITS_few_bits;
 		++current_intarray_for_this_intarr;
 		++current_intarray_for_answer_intarr;
 		++num_int;
@@ -149,13 +149,13 @@ void unlimited_int::multiply_both_only_one_array(const few_bits num_to_mult, unl
 	{
 		carry += (many_bits)(*this_intarr) * num_to_mult_many;
 		*answer_intarr = (few_bits)carry;
-		carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
+		carry >>= NUM_OF_BITS_few_bits;
 		++this_intarr;
 		++answer_intarr;
 	}
 	carry += (many_bits)(*this_intarr) * num_to_mult_many;
 	*answer_intarr = (few_bits)carry;
-	carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
+	carry >>= NUM_OF_BITS_few_bits;
 	++this_intarr;
 	++answer_intarr;
 	size_t num_of_used_ints_answer;
@@ -227,7 +227,7 @@ void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unl
 		}
 		carry += (many_bits)(*current_intarray_for_this_intarr) * num_to_mult_many;
 		*current_intarray_for_answer_intarr = (few_bits)carry;
-		carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
+		carry >>= NUM_OF_BITS_few_bits;
 		++current_intarray_for_this_intarr;
 		++current_intarray_for_answer_intarr;
 		++num_int;
@@ -310,7 +310,7 @@ void unlimited_int::multiply_answer_only_one_array(const few_bits num_to_mult, u
 		}
 		carry += (many_bits)(*current_intarray_for_this_intarr) * num_to_mult_many;
 		*first_intarray_for_answer_intarr = (few_bits)carry;
-		carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
+		carry >>= NUM_OF_BITS_few_bits;
 		++current_intarray_for_this_intarr;
 		++first_intarray_for_answer_intarr;
 		++num_int;

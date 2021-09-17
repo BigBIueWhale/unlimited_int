@@ -32,28 +32,10 @@ unlimited_int unlimited_int::calculate_sha256_hash() const
 		const few_bits most_significant_used_few_bits_in_number = current_int_array.intarr[current_index_in_int_array];
 		size_t length_of_preimage_in_bits = this->num_of_used_ints * (size_t)(sizeof(few_bits)) * (size_t)8;
 		int index_in_block = 0;
-#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
-		static_assert(sizeof(few_bits) * 2 == sizeof(uint32_t), "Assuming that few_bits is half the size of uint32_t");
-		few_bits previous_few_bits;
-		bool have_beginning_of_number;
-		if (this->num_of_used_ints % (size_t)2 == 1)
-		{
-			length_of_preimage_in_bits += 16;
-			previous_few_bits = (few_bits)0;
-			current_block[index_in_block] = (uint32_t)most_significant_used_few_bits_in_number;
-			++index_in_block;
-			have_beginning_of_number = false;
-		}
-		else
-		{
-			previous_few_bits = most_significant_used_few_bits_in_number;
-			have_beginning_of_number = true;
-		}
-#else
+		static_assert(NUM_OF_BITS_few_bits == 32, "Assertion error. Wrong assumption that UNLIMITED_INT_NUM_OF_BITS_few_bits is 32 bits.");
 		static_assert(sizeof(few_bits) == sizeof(uint32_t), "Assuming that few_bits is the same size as uint32_t");
 		current_block[index_in_block] = most_significant_used_few_bits_in_number;
 		++index_in_block;
-#endif
 		if (current_index_in_int_array-- == (size_t)0)
 		{
 			current_int_array_Node = current_int_array_Node->previous;
@@ -68,22 +50,9 @@ unlimited_int unlimited_int::calculate_sha256_hash() const
 			while (true)
 			{
 				const few_bits current_few_bits = current_int_array.intarr[current_index_in_int_array];
-#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
-				if (have_beginning_of_number)
-				{
-					current_block[index_in_block] = ((uint32_t)previous_few_bits << 16) + (uint32_t)current_few_bits;
-					have_beginning_of_number = false;
-					++index_in_block;
-				}
-				else
-				{
-					previous_few_bits = current_few_bits;
-					have_beginning_of_number = true;
-				}
-#else
+				static_assert(NUM_OF_BITS_few_bits == 32, "Assertion error. Wrong assumption that UNLIMITED_INT_NUM_OF_BITS_few_bits is 32 bits.");
 				current_block[index_in_block] = current_few_bits;
 				++index_in_block;
-#endif
 				if (index_in_block >= 16)
 				{
 					index_in_block = 0;
@@ -120,8 +89,8 @@ unlimited_int unlimited_int::calculate_sha256_hash() const
 				current_block[word_index] = (uint32_t)0;
 		}
 		current_block[15] = (uint32_t)(length_of_preimage_in_bits & (size_t)MASK_LOW_BITS);
-		static_assert(sizeof(unsigned long long) * 8 > static_cast<int>(UNLIMITED_INT_NUM_OF_BITS_few_bits), "Undefined behavior, shift count will be too long.");
-		current_block[14] = (uint32_t)(static_cast<unsigned long long>(length_of_preimage_in_bits) >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
+		static_assert(sizeof(unsigned long long) * 8 > static_cast<int>(NUM_OF_BITS_few_bits), "Undefined behavior, shift count will be too long.");
+		current_block[14] = (uint32_t)(static_cast<unsigned long long>(length_of_preimage_in_bits) >> NUM_OF_BITS_few_bits);
 		SHA256_compress_message_block(current_block, current_hash_values);
 	}
 	return unlimited_int(current_hash_values, (size_t)8);

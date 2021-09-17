@@ -171,7 +171,7 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 				}
 				carry += (many_bits)(*current_intarray_for_bigger_intarr) * num_to_mult_many + (many_bits)(*current_intarray_for_answer_intarr);
 				*current_intarray_for_answer_intarr = (few_bits)carry;
-				carry >>= UNLIMITED_INT_NUM_OF_BITS_few_bits;
+				carry >>= NUM_OF_BITS_few_bits;
 				++current_intarray_for_bigger_intarr;
 				++current_intarray_for_answer_intarr;
 				++num_int;

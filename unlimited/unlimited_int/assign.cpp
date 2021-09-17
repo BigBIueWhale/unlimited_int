@@ -14,44 +14,21 @@ void unlimited_int::assign(const uint32_t *const arr, const size_t len)
 	}
 	if (len == (size_t)0)
 		return;
-#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
-	const size_t num_of_ints = len * (size_t)2;
-#elif UNLIMITED_INT_NUM_OF_BITS_few_bits == 32
+	static_assert(NUM_OF_BITS_few_bits == 32, "Assertion error. Wrong assumption that UNLIMITED_INT_NUM_OF_BITS_few_bits is 32 bits.");
 	const size_t num_of_ints = len;
-#endif
 	this->increase_until_num_of_ints(num_of_ints);
 	custom_linked_list_node<int_array>* current_int_array_Node = this->intarrays->first();
 	int_array current_int_array = *current_int_array_Node->value;
 	current_int_array_Node->value->set_num_of_used_ints_to_maximum();
 	size_t index_in_current_int_array = (size_t)0;
 	size_t int_array_counter = (size_t)0;
-#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
-	bool using_significant_part = false;
-	uint32_t previous_num = 0U;
-#endif
 	size_t counter_ints = len - (size_t)1;
 	bool stop_now = false;
 	while (true)
 	{
-#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
-		if (using_significant_part)
-		{
-			current_int_array.intarr[index_in_current_int_array++] = (few_bits)(previous_num >> NUM_OF_BITS_few_bits);
-			using_significant_part = false;
-			if (counter_ints-- == (size_t)0)
-				stop_now = true;
-		}
-		else
-		{
-			previous_num = arr[counter_ints];
-			current_int_array.intarr[index_in_current_int_array++] = (few_bits)(previous_num & MASK_LOW_BITS);
-			using_significant_part = true;
-		}
-#else
 		current_int_array.intarr[index_in_current_int_array++] = (few_bits)arr[counter_ints];
 		if (counter_ints-- == (size_t)0)
 			stop_now = true;
-#endif
 		if (stop_now)
 			break;
 		if (index_in_current_int_array >= current_int_array.intarr_len)
@@ -86,40 +63,20 @@ void unlimited_int::assign(const uint64_t *const arr, const size_t len)
 	}
 	if (len == (size_t)0)
 		return;
-#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
-	const size_t num_of_ints = len * (size_t)4;
-#elif UNLIMITED_INT_NUM_OF_BITS_few_bits == 32
+	static_assert(NUM_OF_BITS_few_bits == 32, "Assertion error. Wrong assumption that UNLIMITED_INT_NUM_OF_BITS_few_bits is 32 bits.");
 	const size_t num_of_ints = len * (size_t)2;
-#endif
 	this->increase_until_num_of_ints(num_of_ints);
 	custom_linked_list_node<int_array>* current_int_array_Node = this->intarrays->first();
 	int_array current_int_array = *current_int_array_Node->value;
 	current_int_array_Node->value->set_num_of_used_ints_to_maximum();
 	size_t index_in_current_int_array = (size_t)0;
 	size_t int_array_counter = (size_t)0;
-#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 32
 	bool using_significant_part = false;
 	uint64_t previous_num = 0U;
-#elif UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
-	uint64_t previous_num = 0;
-	int num_of_bits_used_from_previous_num = 0;
-#endif
 	size_t counter_ints = len - (size_t)1;
 	bool stop_now = false;
 	while (true)
 	{
-#if UNLIMITED_INT_NUM_OF_BITS_few_bits == 16
-		if (num_of_bits_used_from_previous_num == 0)
-			previous_num = arr[counter_ints];
-		current_int_array.intarr[index_in_current_int_array++] = (few_bits)((previous_num >> num_of_bits_used_from_previous_num) & (uint64_t)MASK_LOW_BITS);
-		num_of_bits_used_from_previous_num += 16;
-		if (num_of_bits_used_from_previous_num == 64)
-		{
-			if (counter_ints-- == (size_t)0)
-				stop_now = true;
-			num_of_bits_used_from_previous_num = 0;
-		}
-#elif UNLIMITED_INT_NUM_OF_BITS_few_bits == 32
 		if (using_significant_part)
 		{
 			current_int_array.intarr[index_in_current_int_array++] = (few_bits)(previous_num >> 32);
@@ -133,7 +90,6 @@ void unlimited_int::assign(const uint64_t *const arr, const size_t len)
 			current_int_array.intarr[index_in_current_int_array++] = (few_bits)(previous_num & (uint64_t)MASK_LOW_BITS);
 			using_significant_part = true;
 		}
-#endif
 		if (stop_now)
 			break;
 		if (index_in_current_int_array >= current_int_array.intarr_len)
@@ -199,7 +155,7 @@ void unlimited_int::assign(const many_bits value_to_assign)
 	{
 		this->_is_negative = false;
 		const few_bits remainder = (few_bits)value_to_assign;
-		const few_bits carry = (few_bits)(value_to_assign >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
+		const few_bits carry = (few_bits)(value_to_assign >> NUM_OF_BITS_few_bits);
 		if (carry != (few_bits)0)
 		{
 			this->num_of_used_ints = (size_t)2;

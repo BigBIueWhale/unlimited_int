@@ -6,35 +6,30 @@ using namespace unlimited;
 //There's nothing special about them, don't scratch your head about it.
 size_t unlimited_int::fingerprint() const
 {
-#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
-	static_assert(sizeof(size_t) * 8 == 64, "On a 64 bit system we expect that size_t will be 64 bits");
-#else
-	static_assert(sizeof(size_t) * 8 == 32, "On a 32 bit system we expect that size_t will be 32 bits");
-#endif
+	static_assert(sizeof(size_t) * 8 == 64 || !UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM, "On a 64 bit system we expect that size_t will be 64 bits");
+	static_assert(sizeof(size_t) * 8 == 32 || UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM, "On a 32 bit system we expect that size_t will be 32 bits");
 	if (this->num_of_used_ints == (size_t)0)
 	{
-#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
-		return (size_t)6507803568836410511; //arbitrary number
-#else
-		return (size_t)568218086; //arbitrary number
-#endif
+		if (UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM)
+			return (size_t)6507803568836410511; //arbitrary number
+		else
+			return (size_t)568218086; //arbitrary number
 	}
 	constexpr int half_sizeof_size_t = (sizeof(size_t) * (size_t)8) / (size_t)2;
 	const size_t length_in_bits = this->get_length_in_bits();
 	if (this->num_of_used_ints == (size_t)1)
 	{
 		const few_bits only_num = (few_bits)this->get_least_significant_few_bits();
-#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
-		return (size_t)6507803568836410511 ^ ((size_t)only_num ^ length_in_bits);
-#else
-		return (size_t)568218086 ^ ((size_t)only_num ^ length_in_bits);
-#endif
+		if (UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM)
+			return (size_t)6507803568836410511 ^ ((size_t)only_num ^ length_in_bits);
+		else
+			return (size_t)568218086 ^ ((size_t)only_num ^ length_in_bits);
 	}
-#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
-	size_t result_hash = (size_t)9180187563408628080;
-#else
-	size_t result_hash = (size_t)412785383;
-#endif
+	size_t result_hash;
+	if (UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM)
+		result_hash = (size_t)9180187563408628080;
+	else
+		result_hash = (size_t)412785383;
 	custom_linked_list_node<int_array>* it = this->intarrays->first();
 	int_array current_int_array = *it->value;
 	size_t index_in_array = (size_t)0;

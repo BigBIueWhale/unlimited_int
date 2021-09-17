@@ -263,7 +263,7 @@ char unlimited_int::compare_to_ignore_sign(const many_bits other_num) const
 {
 	static_assert(sizeof(few_bits) * 2 == sizeof(many_bits), "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
 	const few_bits low_part = (few_bits)other_num;
-	const few_bits high_part = (few_bits)(other_num >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
+	const few_bits high_part = (few_bits)(other_num >> NUM_OF_BITS_few_bits);
 	size_t num_of_few_bits = (high_part == 0) ? (size_t)0 : (size_t)2;
 	if (num_of_few_bits == (size_t)0 && low_part != (few_bits)0)
 		num_of_few_bits = (size_t)1;

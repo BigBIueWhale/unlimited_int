@@ -195,7 +195,7 @@ unlimited_int unlimited_int::power2() const
 	square_of_high.flush();
 	square_of_low.flush();
 	unlimited_int high_times_low = high.multiply_karatsuba_destroy_this_and_num_to_mult(&low);
-	high_times_low <<= (size_t)1 + m2 * (size_t)UNLIMITED_INT_NUM_OF_BITS_few_bits;
+	high_times_low <<= (size_t)1 + m2 * (size_t)NUM_OF_BITS_few_bits;
 	answer += high_times_low;
 	high_times_low.flush();
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
@@ -233,7 +233,7 @@ unlimited_int unlimited_int::power2_destroy_this()
 	square_of_high.flush();
 	square_of_low.flush();
 	unlimited_int high_times_low = high.multiply_karatsuba_destroy_this_and_num_to_mult(&low);
-	high_times_low <<= (size_t)1 + m2 * (size_t)UNLIMITED_INT_NUM_OF_BITS_few_bits;
+	high_times_low <<= (size_t)1 + m2 * (size_t)NUM_OF_BITS_few_bits;
 	answer += high_times_low;
 	high_times_low.flush();
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2

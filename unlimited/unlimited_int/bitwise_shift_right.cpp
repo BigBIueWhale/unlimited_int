@@ -56,13 +56,13 @@ void unlimited_int::shift_right_by_bits(const size_t num_of_bits_to_shift_by)
 		throw std::invalid_argument("Can\'t do bitwise operation on negative number");
 	if (this->num_of_used_ints == (size_t)0 || num_of_bits_to_shift_by == (size_t)0)
 		return;
-	this->shift_right(num_of_bits_to_shift_by / (size_t)UNLIMITED_INT_NUM_OF_BITS_few_bits); //macro shift
+	this->shift_right(num_of_bits_to_shift_by / (size_t)NUM_OF_BITS_few_bits); //macro shift
 	if (this->num_of_used_ints == (size_t)0)
 		return;
-	const int micro_shift = static_cast<int>(num_of_bits_to_shift_by % (size_t)UNLIMITED_INT_NUM_OF_BITS_few_bits);
+	const int micro_shift = static_cast<int>(num_of_bits_to_shift_by % (size_t)NUM_OF_BITS_few_bits);
 	if (micro_shift != 0)
 	{
-		const int amount_to_shift_remainder = UNLIMITED_INT_NUM_OF_BITS_few_bits - micro_shift;
+		const int amount_to_shift_remainder = NUM_OF_BITS_few_bits - micro_shift;
 		few_bits remainder = (few_bits)0;
 		this->flush_unused();
 		custom_linked_list_node<int_array>* it_this = this->intarrays->last();

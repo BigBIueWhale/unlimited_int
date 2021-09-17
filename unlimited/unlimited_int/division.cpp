@@ -519,7 +519,7 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 		}
 		const many_bits result_multiplication = (many_bits)current_int_array_multiplicand.intarr[index_multiplicand] * multiplier_many_bits;
 		const few_bits multiplication_remainder = (few_bits)result_multiplication;
-		few_bits carry = (few_bits)(result_multiplication >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
+		few_bits carry = (few_bits)(result_multiplication >> NUM_OF_BITS_few_bits);
 		current_int_array_result.intarr[index_result] = multiplication_remainder;
 		//Now iterating through in reverse (from insignificant to significant) for the purpose of "scattering" the carry throughout the result.
 		const size_t num_of_ints_filled_in_result = int_counter + (size_t)2;
@@ -546,7 +546,7 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 			}
 			const many_bits result_addition = (many_bits)current_int_array_result_reverse.intarr[index_result_reverse] + (many_bits)carry;
 			const few_bits addition_remainder_reverse = (few_bits)result_addition;
-			carry = (few_bits)(result_addition >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
+			carry = (few_bits)(result_addition >> NUM_OF_BITS_few_bits);
 			current_int_array_result_reverse.intarr[index_result_reverse] = addition_remainder_reverse;
 			++int_counter_reverse;
 			++index_result_reverse;
@@ -608,7 +608,7 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 				continue;
 			}
 			const few_bits current_value_result = current_int_array_result_reverse.intarr[index_result_reverse];
-			max_hypothetical_carry = (few_bits)(((many_bits)current_value_result + (many_bits)max_hypothetical_carry) >> UNLIMITED_INT_NUM_OF_BITS_few_bits);
+			max_hypothetical_carry = (few_bits)(((many_bits)current_value_result + (many_bits)max_hypothetical_carry) >> NUM_OF_BITS_few_bits);
 			if (max_hypothetical_carry == (few_bits)0)
 				break;
 			++int_counter_reverse;

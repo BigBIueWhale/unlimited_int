@@ -570,11 +570,10 @@ namespace unlimited
 		//uses sha512 when compiling in 64bit mode, and sha256 when compiling in 32bit mode
 		unlimited_int calculate_efficient_cryptographic_hash() const
 		{
-#if UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM
-			return this->calculate_sha512_hash();
-#else
-			return this->calculate_sha256_hash();
-#endif
+			if (UNLIMITED_INT_COMPILING_ON_64_BIT_SYSTEM)
+				return this->calculate_sha512_hash();
+			else
+				return this->calculate_sha256_hash();
 		}
 		//Very quick not cryptographic hash function.
 		//Ignores sign.

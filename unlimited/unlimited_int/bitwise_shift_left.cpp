@@ -43,13 +43,13 @@ void unlimited_int::shift_left_by_bits(const size_t num_of_bits_to_shift_by)
 		throw std::invalid_argument("Can\'t do bitwise operation on negative number");
 	if (this->num_of_used_ints == (size_t)0 || num_of_bits_to_shift_by == (size_t)0)
 		return;
-	this->shift_left(num_of_bits_to_shift_by / (size_t)UNLIMITED_INT_NUM_OF_BITS_few_bits); //macro shift (as opposed to micro)
-	const int micro_shift = num_of_bits_to_shift_by % (size_t)UNLIMITED_INT_NUM_OF_BITS_few_bits;
+	this->shift_left(num_of_bits_to_shift_by / (size_t)NUM_OF_BITS_few_bits); //macro shift (as opposed to micro)
+	const int micro_shift = num_of_bits_to_shift_by % (size_t)NUM_OF_BITS_few_bits;
 	if (micro_shift != 0)
 	{
-		const int amount_to_shift_remainder = UNLIMITED_INT_NUM_OF_BITS_few_bits - micro_shift;
+		const int amount_to_shift_remainder = NUM_OF_BITS_few_bits - micro_shift;
 		few_bits mask_of_shift_builder = 0;
-		for (int bit_counter = UNLIMITED_INT_NUM_OF_BITS_few_bits - 1; bit_counter >= amount_to_shift_remainder; --bit_counter)
+		for (int bit_counter = NUM_OF_BITS_few_bits - 1; bit_counter >= amount_to_shift_remainder; --bit_counter)
 			mask_of_shift_builder += 1 << bit_counter;
 		const few_bits mask_of_shift = mask_of_shift_builder;
 		few_bits remainder = (size_t)0;
