@@ -11,17 +11,26 @@ int main(int argc, char* argv[])
 {
 	for (int i = 0; i < 80000; ++i)
 	{
-		try
-		{
+		//try
+		//{
 			test_unlimited_int();
-		}
-		catch (std::exception& e)
-		{
-			std::cout << "\nCaught exception: " << e.what() << "\nPress ENTER to continue" << std::endl;
-			std::cout.flush();
-			std::cin.get();
-		}
+		//}
+		//catch (std::exception& e)
+		//{
+		//	std::cout << "\nCaught exception: " << e.what() << "\nPress ENTER to continue" << std::endl;
+		//	std::cout.flush();
+		//	std::cin.get();
+		//}
 	}
+	//const auto start_time = std::chrono::steady_clock::now();
+	//for (int counter = 0; counter < 40; ++counter)
+	//{
+	//	if (counter % 1 == 0)
+	//		std::cout << "  " << counter + 1;
+	//	unlimited_int result = unlimited_int::generate_random_prime(unlimited_int(), unlimited_int("100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"));
+	//}
+	//const long double time_took_seconds = static_cast<long double>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start_time).count()) / static_cast<long double>(1000000000);
+	//std::cout << "\nTime took seconds: " << time_took_seconds;
 	try
 	{
 		unlimited::assert_no_memory_leak();
@@ -380,7 +389,7 @@ static void test_unlimited_int()
 			}
 			case operator_types_binary::comparison:
 			{
-				if ((num1 == num2) != (num1.calculate_efficient_cryptographic_hash() == num2.calculate_efficient_cryptographic_hash()))
+				if ((num1 == num2) != (num1.calculate_efficient_cryptographic_hash() == num2.calculate_efficient_cryptographic_hash()) && (num1 >= 0) == (num2 >= 0) /*hash ignores the sign. operator== doesn't*/)
 				{
 					std::cout << "\nBasic comparison failed.";
 					throw std::logic_error("Failed comparison or hashing.");

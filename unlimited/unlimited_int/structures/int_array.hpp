@@ -69,6 +69,9 @@ namespace unlimited
 		//Copies over the used ints to the less significant part of the array, and sets num_of_used_ints accordingly.
 		//If the used tries to shift right too much, then the function throws an exception.
 		void shift_right(const size_t num_of_ints_to_shift_right_by);
+		//Copies over the used ints to the most significant part of the array, and fills the least significant part of the array with zeros, and sets num_of_used_ints accordingly.
+		//If the used tries to shift left too much, then the function throws an exception.
+		void shift_left(const size_t amount_to_shift);
 		bool is_full() const { return this->intarr_len == this->num_of_used_ints; }
 		//Copies over the ints towards the significant part of the array (the end of the array).
 		//Employs to check to see whether the array is long enough, or even whether the array exists.

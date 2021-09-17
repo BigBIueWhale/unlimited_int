@@ -92,6 +92,7 @@ bool unlimited_int::find_inconsistencies() const
 						if (current_int_array->num_of_used_ints == 0)
 						{
 							std::cerr << "\nError found by function \"find_inconsistencies\": One of the \"current_int_array\" objects that is labeled as used by \"this->num_of_intarrays_used\" contains zero used ints \"based on \"num_of_used_ints\" inside the \"int_array\" object\"";
+							to_return_true = true;
 						}
 						else
 						{

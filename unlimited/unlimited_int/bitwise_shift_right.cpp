@@ -24,11 +24,14 @@ void unlimited_int::shift_right(const size_t shift_by)
 	while (true)
 	{
 		const size_t sum = num_of_ints_went_through + it_this->value->num_of_used_ints;
-		if (sum > shift_by) break;
+		if (sum > shift_by)
+			break;
 		num_of_ints_went_through = sum;
 		++num_of_intarrays_went_through;
-		if (sum == shift_by) break;
-		else it_this = it_this->next;
+		if (sum == shift_by)
+			break;
+		else
+			it_this = it_this->next;
 	}
 	this->intarrays->flush_insignificant_to_piggy_bank(num_of_intarrays_went_through);
 	this->intarrays->first()->value->shift_right(shift_by - num_of_ints_went_through);

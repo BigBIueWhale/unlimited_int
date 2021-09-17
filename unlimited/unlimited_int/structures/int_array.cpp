@@ -36,12 +36,13 @@ void int_array::fillzero()
 }
 void int_array::fillzero_until(size_t num_of_ints_to_zero)
 {
-	if (num_of_ints_to_zero > this->intarr_len) { num_of_ints_to_zero = this->intarr_len; }
+	if (num_of_ints_to_zero > this->intarr_len)
+		num_of_ints_to_zero = this->intarr_len;
 	if (num_of_ints_to_zero > (size_t)0)
 	{
 		few_bits* this_intarr = this->intarr;
 		for (const few_bits *const stop_ptr = this_intarr + (num_of_ints_to_zero - (size_t)1); this_intarr <= stop_ptr; ++this_intarr)
-			*this_intarr = 0;
+			*this_intarr = static_cast<few_bits>(0);
 	}
 }
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
@@ -120,6 +121,34 @@ void int_array::shift_right(const size_t num_of_ints_to_shift_right_by)
 				++it_write;
 			}
 			this->num_of_used_ints = num_of_ints_in_new_int_array;
+		}
+	}
+}
+void int_array::shift_left(const size_t amount_to_shift)
+{
+	if (amount_to_shift > (size_t)0)
+	{
+		const size_t room_left_on_the_left = this->intarr_len - this->num_of_used_ints;
+		if (amount_to_shift > room_left_on_the_left)
+			throw std::logic_error("Error in function int_array::shift_left, can\'t shift left in a way that\'ll cause us to lose data.");
+		else
+		{
+			few_bits* it_read = this->intarr + this->num_of_used_ints - (size_t)1;
+			few_bits* it_write = it_read + amount_to_shift;
+			const few_bits *const stop_ptr = this->intarr + amount_to_shift;
+			while (it_write >= stop_ptr)
+			{
+				*it_write = *it_read;
+				--it_read;
+				--it_write;
+			}
+			const few_bits *const stop_filling_zeros = this->intarr;
+			while (it_write >= stop_filling_zeros)
+			{
+				*it_write = static_cast<few_bits>(0);
+				--it_write;
+			}
+			this->num_of_used_ints += amount_to_shift;
 		}
 	}
 }

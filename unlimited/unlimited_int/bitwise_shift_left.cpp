@@ -16,11 +16,44 @@ void unlimited_int::shift_left(const size_t shift_by)
 #endif
 	if (this->num_of_intarrays_used == (size_t)0 || shift_by == (size_t)0)
 		return;
-	list_of_int_arrays list_to_prepend;
-	list_to_prepend.increase_until_num_of_ints(shift_by);
-	list_to_prepend.fill_0_until_num_of_ints_and_set_variables_for_used_accordingly(shift_by);
-	this->num_of_intarrays_used += list_to_prepend.size();
-	this->intarrays->prepend(list_to_prepend);
+	int_array *const least_significant_int_array = this->intarrays->first()->value;
+	const size_t room_available_to_shift_left = least_significant_int_array->intarr_len - least_significant_int_array->num_of_used_ints;
+	size_t amount_to_shift_least_significant_arr = (size_t)0;
+	if (room_available_to_shift_left > (size_t)0)
+	{
+		amount_to_shift_least_significant_arr = room_available_to_shift_left;
+		if (shift_by < amount_to_shift_least_significant_arr)
+			amount_to_shift_least_significant_arr = shift_by;
+		least_significant_int_array->shift_left(amount_to_shift_least_significant_arr);
+	}
+	const size_t amount_needed_to_shift = shift_by - amount_to_shift_least_significant_arr;
+	if (amount_needed_to_shift > (size_t)0)
+	{
+		list_of_int_arrays list_to_prepend;
+		list_to_prepend.increase_until_num_of_ints(amount_needed_to_shift);
+		const custom_linked_list_node<int_array>* const list_to_prepend_end = list_to_prepend.end();
+	//The list to prepend will be completely full except for the least significant int_array which might not be completely full. That's purposeful.
+		custom_linked_list_node<int_array>* int_array_in_list_to_prepend = list_to_prepend.first();
+		size_t num_of_extra_ints_in_list = list_to_prepend.num_of_ints - amount_needed_to_shift;
+		size_t current_intarr_len = int_array_in_list_to_prepend->value->intarr_len;
+		while (num_of_extra_ints_in_list >= current_intarr_len)
+		{
+			list_to_prepend.num_of_ints -= current_intarr_len;
+			num_of_extra_ints_in_list -= current_intarr_len;
+			int_array_in_list_to_prepend = list_to_prepend.erase(int_array_in_list_to_prepend);
+			current_intarr_len = int_array_in_list_to_prepend->value->intarr_len;
+		}
+		const size_t amount_used_in_least_significant_int_array = current_intarr_len - num_of_extra_ints_in_list;
+		int_array_in_list_to_prepend->value->num_of_used_ints = amount_used_in_least_significant_int_array;
+		int_array_in_list_to_prepend->value->fillzero_until(amount_used_in_least_significant_int_array);
+		for (int_array_in_list_to_prepend = int_array_in_list_to_prepend->next; int_array_in_list_to_prepend != list_to_prepend_end; int_array_in_list_to_prepend = int_array_in_list_to_prepend->next)
+		{
+			int_array_in_list_to_prepend->value->set_num_of_used_ints_to_maximum();
+			int_array_in_list_to_prepend->value->fillzero();
+		}
+		this->num_of_intarrays_used += list_to_prepend.size();
+		this->intarrays->prepend(list_to_prepend);
+	}
 	this->num_of_used_ints += shift_by;
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"shift_left(const size_t shift_by)\"";

@@ -37,6 +37,8 @@ namespace unlimited //Macros that are inside of the namespace, aren't affected b
 	static_assert(unlimited::PIGGY_BANK_MAXIMUM >= 0, "Error in unlimited_int library in the file settings.h: PIGGY_BANK_MAXIMUM can\'t be a negative value.");
 	static constexpr size_t MAX_ALLOC = 256;
 	static constexpr size_t MIN_ALLOC = 128;
+	//static constexpr size_t MIN_ALLOC = 1;
+	//static constexpr size_t MAX_ALLOC = 20;
 
 	// Check windows
 #if _WIN32 || _WIN64
@@ -61,6 +63,4 @@ namespace unlimited //Macros that are inside of the namespace, aren't affected b
 //set the multithreading macro to false if you want to compile for Linux using g++ with -static flag because that causes issues with multithreading
 //Even if it's set to false, this library will still be thread-safe, it just won't open any threads of its own: unlimited::unlimited_int::generate_random_prime_multithreaded()
 #define UNLIMITED_INT_SUPPORT_MULTITHREADING true
-//#define MIN_ALLOC 1
-//#define MAX_ALLOC 20
 #endif
