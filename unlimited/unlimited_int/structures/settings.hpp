@@ -2,7 +2,7 @@
 #define SETTINGS_HPP_UNLIMITED_INT
 
 //0 for no debugging at all, 1 for all debugging except verbose print, 2 for all debugging with (super-)verbose print, -2 for only memory counting (check for memory leaks)
-#define UNLIMITED_INT_LIBRARY_DEBUG_MODE 1
+#define UNLIMITED_INT_LIBRARY_DEBUG_MODE -2
 #if (UNLIMITED_INT_LIBRARY_DEBUG_MODE <= -3) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE == -1) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE >= 3) //Invalid options
 #error "FATAL COMPILATION ERROR of \"unlimited\" library. The DEBUG_MODE macro is set to an invalid option. Try manually editing the valud of DEBUG_MODE in file: \"unlimited/unlimited_int/structures/settings.h\""
 #endif
@@ -35,10 +35,10 @@ namespace unlimited //Macros that are inside of the namespace, aren't affected b
 	//In general, the piggy bank offers minimal performance gains, so don't be afraid to set it to even 0.
 	static constexpr size_t PIGGY_BANK_MAXIMUM = 524288;
 	static_assert(unlimited::PIGGY_BANK_MAXIMUM >= 0, "Error in unlimited_int library in the file settings.h: PIGGY_BANK_MAXIMUM can\'t be a negative value.");
-	//static constexpr size_t MAX_ALLOC = 256;
-	//static constexpr size_t MIN_ALLOC = 128;
-	static constexpr size_t MIN_ALLOC = 1;
-	static constexpr size_t MAX_ALLOC = 20;
+	static constexpr size_t MAX_ALLOC = 256;
+	static constexpr size_t MIN_ALLOC = 128;
+	//static constexpr size_t MIN_ALLOC = 1;
+	//static constexpr size_t MAX_ALLOC = 20;
 
 	// Check windows
 #if _WIN32 || _WIN64
