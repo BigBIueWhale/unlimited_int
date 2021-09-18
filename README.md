@@ -34,7 +34,7 @@ Result is: 68787405743989542317\
 Result in hex: 3ba9df512a7294dad
 # Fibonacci example
 #include "unlimited.hpp"\
-using namespace unlimited;\
+using unlimited::unlimited_int;\
 #include \<utility\> //For std::move\
 int main()\
 {\
