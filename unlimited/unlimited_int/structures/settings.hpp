@@ -35,10 +35,10 @@ namespace unlimited //Macros that are inside of the namespace, aren't affected b
 	//In general, the piggy bank offers minimal performance gains, so don't be afraid to set it to even 0.
 	static constexpr size_t PIGGY_BANK_MAXIMUM = 524288;
 	static_assert(unlimited::PIGGY_BANK_MAXIMUM >= 0, "Error in unlimited_int library in the file settings.h: PIGGY_BANK_MAXIMUM can\'t be a negative value.");
-	static constexpr size_t MAX_ALLOC = 256;
-	static constexpr size_t MIN_ALLOC = 128;
-	//static constexpr size_t MIN_ALLOC = 1;
-	//static constexpr size_t MAX_ALLOC = 20;
+	//static constexpr size_t MAX_ALLOC = 256;
+	//static constexpr size_t MIN_ALLOC = 128;
+	static constexpr size_t MIN_ALLOC = 1;
+	static constexpr size_t MAX_ALLOC = 20;
 
 	// Check windows
 #if _WIN32 || _WIN64

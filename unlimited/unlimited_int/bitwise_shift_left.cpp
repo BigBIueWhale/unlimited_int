@@ -40,6 +40,7 @@ void unlimited_int::shift_left(const size_t shift_by)
 		{
 			list_to_prepend.num_of_ints -= current_intarr_len;
 			num_of_extra_ints_in_list -= current_intarr_len;
+			int_array_in_list_to_prepend->value->destroy();
 			int_array_in_list_to_prepend = list_to_prepend.erase(int_array_in_list_to_prepend);
 			current_intarr_len = int_array_in_list_to_prepend->value->intarr_len;
 		}
