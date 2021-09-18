@@ -31,6 +31,7 @@ int main(int argc, char* argv[])
 	//}
 	//const long double time_took_seconds = static_cast<long double>(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - start_time).count()) / static_cast<long double>(1000000000);
 	//std::cout << "\nTime took seconds: " << time_took_seconds;
+#if (UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE == -2)
 	try
 	{
 		unlimited::assert_no_memory_leak();
@@ -40,6 +41,7 @@ int main(int argc, char* argv[])
 		std::cout << "\nMemory leak: " << e.what();
 		std::cout.flush();
 	}
+#endif
 	std::cout << "\nDone test.\n";
 	std::cout.flush();
 	std::cin.get();

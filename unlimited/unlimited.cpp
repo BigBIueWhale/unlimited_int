@@ -18,11 +18,13 @@ void unlimited::delete_all_thread_local_memory()
 {
 	unlimited::unlimited_int::delete_all_thread_local_memory();
 }
+#if (UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0) || (UNLIMITED_INT_LIBRARY_DEBUG_MODE == -2)
 void unlimited::assert_no_memory_leak()
 {
 	unlimited::delete_all_static_memory();
 	unlimited::int_array::automatic_memory_leak_checker_on_program_end.assert_no_memory_leak();
 }
+#endif
 static_assert(unlimited::NUM_OF_BITS_few_bits == sizeof(unlimited::few_bits) * 8, "Assertion error: NUM_OF_BITS_few_bits is wrong.");
 static_assert(unlimited::NUM_OF_BITS_many_bits == sizeof(unlimited::many_bits) * 8, "Assertion error: NUM_OF_BITS_many_bits is wrong.");
 static_assert(unlimited::NUM_OF_BITS_few_bits * 2 == unlimited::NUM_OF_BITS_many_bits, "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
