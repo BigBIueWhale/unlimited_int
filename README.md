@@ -16,15 +16,16 @@ Also you can optionally change the macro in unlimited/unlimited_int/structures/s
 Changing the macro that way will cause the problematic function not to be available.\
 Even after the "fix", the unlimited library will still crash when used in a multithreaded environment, with those compilers (because of the thread_local bug in those compilers in Windows).
 # Reliability
-Untested, in prototype stage.
+Partially tested, still not quite ready for release yet (as of 18 Septemper 2021)
 # Basic use
 #include "unlimited.hpp"\
 using namespace unlimited;\
 int main()\
 {\
   unlimited_int small_num(5);\
-  unlimited_int big_num = unlimited_int::from_string("129312981629387124981620398712489112387461298346198234");\
-  unlimited_int big_num2 = unlimited_int::from_string("129012873823723432423");\
+  unlimited_int big_num("129312981629387124981620398712489112387461298346198234");\
+  unlimited_int big_num2("129012873823723432423");\
+  //pow with remainder can only be used with non-negative base and positive remainder, the other pow function that takes only two numbers can be used with negative numbers.\
   unlimited_int result_pow_with_remainder = unlimited_int::pow(small_num, big_num, big_num2);\
   std::cout << "\nResult is: " << result_pow_with_remainder << "\nResult in hex: " << std::hex << result_pow_with_remainder << std::dec;\
   return 0;\
@@ -41,7 +42,7 @@ int main()\
   unlimited_int a(1);\
   unlimited_int b(1);\
   bool turn_a = true;\
-  for (int c = 0; c < 20000; ++c)\
+  for (unlimited_int c(0); c < 20000; ++c)\
   {\
     if (turn_a)\
     {\
