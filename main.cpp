@@ -104,7 +104,7 @@ static void test_unlimited_int()
 	std::cout << "  " << testing_counter;
 	std::cout.flush();
 	enum class number_types { signed_short_int, signed_int, signed_long_int, signed_long_long_int, unsigned_short_int, unsigned_int, unsigned_long_int, unsigned_long_long_int, unlimited_int, end_enum };
-	enum class operator_types_binary { addition, subtraction, multiplication, division, remainder, bitwise_and, bitwise_or, bitwise_xor, swap, comparison, end_enum };
+	enum class operator_types_binary { addition, subtraction, multiplication, division, remainder, bitwise_and, bitwise_or, bitwise_xor, swap, comparison, pow, end_enum };
 	enum class operator_types_unary { bitwise_not_and_inversion, unary_plus_plus_and_minus_minus, change_or_flip_sign, get_length_in_bits, modulo_2, power2, bitwise_shift, end_enum};
 	for (int counter = 0; counter < 1000; ++counter)
 	{
@@ -432,6 +432,23 @@ static void test_unlimited_int()
 				comparison_works<signed long long int>((rand() % 2 == 0) ? num1 : num2);
 				break;
 			}
+			case operator_types_binary::pow:
+			{
+				const unlimited_int limit = unlimited_int(1) << 129;
+				const unlimited_int remainder = unlimited_int::generate_random(-limit, limit);
+
+				if (remainder != 0 && !(num1 == 0 && num2 == 0))
+				{
+					const unlimited_int result_pow = unlimited_int::pow(num1, num2, limit);
+					const bool result_is_supposed_to_be_negative = num1.is_negative() && num2.modulo_2() == 1;
+					if (result_is_supposed_to_be_negative != result_pow.is_negative() && !result_pow.is_zero())
+					{
+						std::cout << "\nFailed pow sign with\nnum1: " << num1 << "\nnum2: " << num2 << "\nlimit: " << limit << "\nresult_pow: " << result_pow;
+						throw std::logic_error("Failed pow sign.");
+					}
+				}
+				break;
+			}
 			default:
 			{
 				throw std::logic_error("It\'s not supposed to be possible to get here.");
@@ -501,17 +518,6 @@ static void test_unlimited_int()
 				{
 					std::cout << "\nFailed self decrement or self increment.\nnum: " << num;
 					throw std::logic_error("Failed unary decrement or increment.");
-				}
-				if (num_cpy-- != num)
-				{
-					std::cout << "\nFailed self post decrement.\nnum: " << num;
-					throw std::logic_error("Failed unary post decrement.");
-				}
-				++num_cpy;
-				if (num_cpy++ != num)
-				{
-					std::cout << "\nFailed self post increment.\nnum: " << num;
-					throw std::logic_error("Failed unary post increment.");
 				}
 				break;
 			}

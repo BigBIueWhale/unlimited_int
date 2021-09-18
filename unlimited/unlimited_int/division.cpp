@@ -19,7 +19,7 @@ unlimited_int unlimited_int::divide_by_repeated_addition(const unlimited_int& nu
 	if (this->is_zero() || dividend_comparison_to_divisor == 'S')
 		return unlimited_int();
 	if (dividend_comparison_to_divisor == 'E')
-		return unlimited_int((few_bits)1);
+		return unlimited_int(1);
 	bool was_exact_power_of_2;
 	const size_t exact_power_of_2 = num_to_divide_by.find_exact_log_2(&was_exact_power_of_2);
 	if (was_exact_power_of_2) //more efficient method of division when dividing by power of 2
@@ -116,7 +116,7 @@ unlimited_int unlimited_int::divide_by(const unlimited_int& num_to_divide_by) co
 	const size_t num_of_used_ints_this = this->num_of_used_ints;
 	const char result_compare = this->compare_to_ignore_sign(num_to_divide_by);
 	if (result_compare == 'E')
-		return unlimited_int((few_bits)1);
+		return unlimited_int(1);
 	if (result_compare == 'S')
 		return unlimited_int();
 	if (num_of_used_ints_this == (size_t)0)
@@ -228,7 +228,7 @@ unlimited_int unlimited_int::divide_by(const few_bits num_to_divide_by) const
 	const size_t num_of_used_ints_this = this->num_of_used_ints;
 	const char result_compare = this->compare_to_ignore_sign(num_to_divide_by);
 	if (result_compare == 'E')
-		return unlimited_int((few_bits)1);
+		return unlimited_int(1);
 	if (result_compare == 'S')
 		return unlimited_int();
 	if (num_of_used_ints_this == (size_t)0)

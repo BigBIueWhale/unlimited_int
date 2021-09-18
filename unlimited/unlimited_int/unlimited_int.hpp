@@ -369,14 +369,20 @@ namespace unlimited
 		void operator-=(const unlimited_int& other) { this->subtract(&other, this); }
 		unlimited_int operator-(const unlimited_int& other) const;
 //Unary Operations
+
+		//Note about pre-increment and post-increment functions:
+		//I decided that they should work best for this situation:
+		//for (unlimited_int i(0); i < 2000; i++) {}
+		//So that's why they all return void
+
 		//Pre increment- use this function instead of post increment
 		void operator++();
 		//Pre decrement- use this function instead of post decrement
 		void operator--();
-		//Post increment- don't use this oeprator because it's not efficient.
-		unlimited_int operator++(int);
-		//Post decrement- don't use this operator because it's not efficient.
-		unlimited_int operator--(int);
+		//Post increment- same as pre-increment
+		void operator++(int);
+		//Post decrement- same as pre-decrement
+		void operator--(int);
 		//Creates full copy with opposite sign, unless number is zero because then the sign stays positive.
 		unlimited_int operator-() const;
 		//O(1) operation to flip a numbers sign from positive to negative or from negative to positive. Doesn't do anything when the number is 0.
@@ -550,7 +556,7 @@ namespace unlimited
 		//efficient method for power (math function) with remainder as well. Receives boolean pointer used for early termination of calculation.
 		//Offers no support for negative numbers. If it receives a negative number it will throw an std::invalid_argument exception.
 		//Because of the lack of support for negative numbers, there is no difference between mod and remainder in this case.
-		static unlimited_int pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod, const volatile bool *const terminator = nullptr);
+		static unlimited_int pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder, const volatile bool *const terminator = nullptr);
 		//efficient method for power (math function)
 		//Works with negative numbers as well. If power is negative it will return 0.
 		static unlimited_int pow(const unlimited_int& base, const unlimited_int& power, const volatile bool *const terminator = nullptr);

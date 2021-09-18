@@ -75,7 +75,7 @@ bool unlimited_int::is_prime(const int num_of_iterations, const volatile bool *c
 		_k = (size_t)0;
 	for (int iteration_counter = 0; iteration_counter < num_of_iterations; ++iteration_counter)
 	{
-		unlimited_int _a = unlimited_int::generate_random(unlimited_int((few_bits)2), pMinusOne);
+		unlimited_int _a = unlimited_int::generate_random(unlimited_int(2), pMinusOne);
 		unlimited_int _x = unlimited_int::pow(_a, _m, *this, terminator);
 		if (!terminator_is_nullptr)
 			if (*terminator)

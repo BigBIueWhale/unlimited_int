@@ -104,18 +104,14 @@ void unlimited_int::operator--()
 	(*this) -= one;
 }
 //Post increment
-unlimited_int unlimited_int::operator++(int)
+void unlimited_int::operator++(int)
 {
-	unlimited_int this_cpy = *this;
 	++(*this);
-	return this_cpy;
 }
 //Post decrement
-unlimited_int unlimited_int::operator--(int)
+void unlimited_int::operator--(int)
 {
-	unlimited_int this_cpy = *this;
 	--(*this);
-	return this_cpy;
 }
 unlimited_int unlimited_int::operator-() const
 {

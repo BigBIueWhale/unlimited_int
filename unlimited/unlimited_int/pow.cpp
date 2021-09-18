@@ -4,30 +4,28 @@ using namespace unlimited;
 #include <iostream>
 #endif
 //makes use if the identity (a ⋅ b) mod m = [(a mod m) ⋅ (b mod m)] mod m
-unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod, const volatile bool *const terminator)
+unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder, const volatile bool *const terminator)
 {
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
+	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& remainder)\"";
 #endif
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (base.find_inconsistencies() || power.find_inconsistencies() || mod.find_inconsistencies())
-		throw std::logic_error("The inconsistency was found in start of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"");
+		throw std::logic_error("The inconsistency was found in start of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& remainder)\"");
 #endif
-	if (base.is_negative() || mod.is_negative())
-		throw std::invalid_argument("Invalid argument for function unlimited_int::pow(base, power, mod), doesn\'t support negative numbers because it\'s ambiguous (difference between mod and remainder).");
 	const bool terminator_is_nullptr = terminator == nullptr;
 	if (base.is_zero() && power.is_zero())
-		throw std::invalid_argument("Invalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod)\" pow(0, 0) is mathematically undefined");
-	if (mod.is_zero())
-		throw std::invalid_argument("Invalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& mod)\" division by zero is undefined");
-	if (power.num_of_used_ints == (size_t)0)
-		return unlimited_int((few_bits)1);
-	if (base.num_of_used_ints == (size_t)0 || power.is_negative())
+		throw std::invalid_argument("Invalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder)\" pow(0, 0) is mathematically undefined");
+	if (remainder.is_zero())
+		throw std::invalid_argument("Invalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder)\" division by zero is undefined");
+	if (power.is_zero())
+		return unlimited_int(1);
+	if (base.is_zero() || power.is_negative())
 		return unlimited_int();
-	if (mod == 1)
+	if (remainder == 1)
 		return unlimited_int();
 	unlimited_int current_power = base;
-	current_power = unlimited_int::remainder_recurring_divison(current_power, mod);
+	current_power = unlimited_int::remainder_recurring_divison(current_power, remainder);
 	if (current_power.is_zero())
 		return unlimited_int();
 	if (!terminator_is_nullptr)
@@ -38,7 +36,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 	if (power_cpy.modulo_2() == static_cast<unsigned short>(1))
 	{
 		answer *= current_power;
-		answer = unlimited_int::remainder_recurring_divison(answer, mod);
+		answer = unlimited_int::remainder_recurring_divison(answer, remainder);
 	}
 	power_cpy >>= (size_t)1;
 	while (!power_cpy.is_zero())
@@ -50,7 +48,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		if (!terminator_is_nullptr)
 			if (*terminator)
 				return unlimited_int();
-		current_power = unlimited_int::remainder_recurring_divison(current_power, mod);
+		current_power = unlimited_int::remainder_recurring_divison(current_power, remainder);
 		if (power_cpy.modulo_2() == static_cast <unsigned short int>(1))
 		{
 			if (!terminator_is_nullptr)
@@ -60,7 +58,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 			if (!terminator_is_nullptr)
 				if (*terminator)
 					return unlimited_int();
-			answer = unlimited_int::remainder_recurring_divison(answer, mod);
+			answer = unlimited_int::remainder_recurring_divison(answer, remainder);
 		}
 		if (!terminator_is_nullptr)
 			if (*terminator)
@@ -68,13 +66,13 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		power_cpy >>= (size_t)1;
 	}
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"";
+	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& remainder)\"";
 #endif
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (base.find_inconsistencies() || power.find_inconsistencies() || mod.find_inconsistencies())
-		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\"");
+		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& remainder)\"");
 	if (answer.find_inconsistencies())
-		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& mod)\" in answer");
+		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& remainder)\" in answer");
 #endif
 	return answer;
 }
@@ -129,7 +127,6 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 				return unlimited_int();
 		power_cpy >>= (size_t)1;
 	}
-	answer._is_negative = base.is_negative() && power.modulo_2() == 1;
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"";
 #endif
