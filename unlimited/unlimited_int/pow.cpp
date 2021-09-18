@@ -69,7 +69,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 	std::cout << "\nFinding inconsistencies in end of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& remainder)\"";
 #endif
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
-	if (base.find_inconsistencies() || power.find_inconsistencies() || mod.find_inconsistencies())
+	if (base.find_inconsistencies() || power.find_inconsistencies() || remainder.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& remainder)\"");
 	if (answer.find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in end of function: \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& remainder)\" in answer");

@@ -554,8 +554,7 @@ namespace unlimited
 		std::string to_string(const unsigned int base = 10) const;
 //Power (^)
 		//efficient method for power (math function) with remainder as well. Receives boolean pointer used for early termination of calculation.
-		//Offers no support for negative numbers. If it receives a negative number it will throw an std::invalid_argument exception.
-		//Because of the lack of support for negative numbers, there is no difference between mod and remainder in this case.
+		//With given negative numbers, it works the same as unlimited_int::operator% and the same as unlimited_int::pow(base, power).
 		static unlimited_int pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder, const volatile bool *const terminator = nullptr);
 		//efficient method for power (math function)
 		//Works with negative numbers as well. If power is negative it will return 0.
