@@ -19,7 +19,7 @@ Even after the "fix", the unlimited library will still crash when used in a mult
 Partially tested, still not quite ready for release yet (as of 18 Septemper 2021)
 # Basic use
 #include "unlimited.hpp"\
-using namespace unlimited;\
+using unlimited::unlimited_int;\
 int main()\
 {\
   unlimited_int small_num(5);\
