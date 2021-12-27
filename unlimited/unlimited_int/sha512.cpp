@@ -119,7 +119,7 @@ unlimited_int unlimited_int::calculate_sha512_hash() const
 void SHA512_compress_message_block(const uint64_t message_block[16], uint64_t parameter_hash_values[8])
 {
     uint64_t message_schedule[80];
-    for (size_t word_index = (size_t)0; word_index < (size_t)64; ++word_index)
+    for (size_t word_index = (size_t)0; word_index < (size_t)16; ++word_index)
         message_schedule[word_index] = message_block[word_index];
     for (size_t word_index = (size_t)16; word_index < (size_t)80; ++word_index)
         message_schedule[word_index] = LOWERCASE_SIGMA1(message_schedule[word_index - (size_t)2]) + message_schedule[word_index - (size_t)7] + LOWERCASE_SIGMA0(message_schedule[word_index - (size_t)15]) + message_schedule[word_index - (size_t)16];
