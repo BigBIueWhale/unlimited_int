@@ -7,6 +7,10 @@ namespace unlimited
 	{
 	public:
 		int_array_piggy_bank() {}
+		int_array_piggy_bank(const int_array_piggy_bank&) = delete;
+		int_array_piggy_bank(int_array_piggy_bank&&) = delete;
+		int_array_piggy_bank& operator=(const int_array_piggy_bank&) = delete;
+		int_array_piggy_bank& operator=(int_array_piggy_bank&&) = delete;
 		void withdraw(int_array_list& deposit_to, size_t amount_to_withdraw);
 		bool withdraw_one_Node_to_significant(int_array_list& deposit_to);
 		bool withdraw_one_Node_to_insignificant(int_array_list& deposit_to);

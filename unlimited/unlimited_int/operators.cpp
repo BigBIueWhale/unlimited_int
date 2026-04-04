@@ -35,6 +35,7 @@ unlimited_int unlimited_int::operator/(const unlimited_int& denominator) const
 void unlimited_int::operator*=(const unlimited_int& other)
 {
 	const bool this_was_negative = this->is_negative();
+	const bool other_was_negative = other.is_negative();
 	this->_is_negative = false;
 	unlimited_int other_positive(other, false);
 	other_positive.self_abs();
@@ -58,7 +59,7 @@ void unlimited_int::operator*=(const unlimited_int& other)
 		else if (other_fits_in_few_bits)
 			this->multiply(other_as_few_bits, this);
 		this->self_abs();
-		if (this_was_negative != other.is_negative())
+		if (this_was_negative != other_was_negative)
 			this->self_negative();
 		return;
 	}
@@ -74,7 +75,7 @@ void unlimited_int::operator*=(const unlimited_int& other)
 		*this = this->multiply_karatsuba_destroy_this(&other);
 	if (this->num_of_used_ints == (size_t)0)
 		this->_is_negative = false;
-	else if (this_was_negative != other.is_negative())
+	else if (this_was_negative != other_was_negative)
 		this->_is_negative = true;
 	else
 		this->_is_negative = false;

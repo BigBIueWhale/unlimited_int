@@ -172,14 +172,12 @@ unlimited_int unlimited_int::recurring_division(const unlimited_int& dividend, c
 		key_exists_in_list = true;
 		reciprocal_information_for_database& reciprocal = reciprocal_iterator_in_map->second;
 		item_in_list = reciprocal.link_to_list;
-		custom_linked_list_node<size_t>* next_in_the_list = unlimited_int::Newton_Raphson_lookup.most_recent.detach(item_in_list);
-		if (next_in_the_list != unlimited_int::Newton_Raphson_lookup.most_recent.end())
-			next_in_the_list = next_in_the_list->next;
-		//advance the "importance" of the current fingerprint by moving it 1 item closer to the head of the list
-		unlimited_int::Newton_Raphson_lookup.most_recent.insert(next_in_the_list, item_in_list);
-		const bool hashes_match = dividend.calculate_efficient_cryptographic_hash() == *reciprocal.hash_of_dividend;
+		unlimited_int::Newton_Raphson_lookup.most_recent.detach(item_in_list);
+		//promote the importance of the current fingerprint by moving it to the head of the list (most recently used)
+		unlimited_int::Newton_Raphson_lookup.most_recent.push_front(item_in_list);
+		const bool is_different_divisor = divisor.calculate_efficient_cryptographic_hash() != *reciprocal.hash_of_dividend;
 		if ((reciprocal.amount_shifted < (dividend.num_of_used_ints + (size_t)AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL)) //reciprocal exists but doesn't have enough precision
-			|| hashes_match) //or the fingerprint was matching just by chance, a hash colision (that's why we're checking with a cryptographic hash as well)
+			|| is_different_divisor) //or the fingerprint was matching just by chance, a hash collision (that's why we're checking with a cryptographic hash as well)
 		{
 			need_to_calculate_reciprocal = true;
 			unlimited_int::Newton_Raphson_lookup.reciprocals_map.erase(reciprocal_iterator_in_map);
@@ -191,14 +189,27 @@ unlimited_int unlimited_int::recurring_division(const unlimited_int& dividend, c
 	{
 		if (!key_exists_in_list)
 		{
-			if (unlimited_int::Newton_Raphson_lookup.most_recent.size() > (size_t)MAX_NUM_OF_DIVISORS_TO_KEEP_TRACK_OF)
+			if (unlimited_int::Newton_Raphson_lookup.most_recent.size() >= (size_t)MAX_NUM_OF_DIVISORS_TO_KEEP_TRACK_OF)
 			{
 				unlimited_int::Newton_Raphson_lookup.reciprocals_map.erase(*unlimited_int::Newton_Raphson_lookup.most_recent.last()->value);
 				unlimited_int::Newton_Raphson_lookup.most_recent.pop_back();
 			}
 			item_in_list = unlimited_int::Newton_Raphson_lookup.most_recent.push_front(new size_t(fingerprint_divisor));
 		}
-		unlimited_int::Newton_Raphson_lookup.reciprocals_map.emplace(fingerprint_divisor, reciprocal_information_for_database(divisor.calculate_reciprocal_floor(dividend.num_of_used_ints), std::make_unique<unlimited_int>(divisor.calculate_efficient_cryptographic_hash()), item_in_list));
+		try
+		{
+			unlimited_int::Newton_Raphson_lookup.reciprocals_map.emplace(fingerprint_divisor, reciprocal_information_for_database(divisor.calculate_reciprocal_floor(dividend.num_of_used_ints), std::make_unique<unlimited_int>(divisor.calculate_efficient_cryptographic_hash()), item_in_list));
+		}
+		catch (...)
+		{
+			//Emplace failed. Remove the LRU node unconditionally to keep the list
+			//and map consistent. In the !key_exists_in_list case, the node was just
+			//created by push_front above. In the key_exists_in_list case, the old
+			//map entry was already erased (line 183), so leaving the promoted node
+			//in the list would create an orphan that degrades cache effectiveness.
+			unlimited_int::Newton_Raphson_lookup.most_recent.erase(item_in_list);
+			throw;
+		}
 		reciprocal_iterator_in_map = unlimited_int::Newton_Raphson_lookup.reciprocals_map.find(fingerprint_divisor);
 	}
 	return unlimited_int::divide_using_reciprocal(dividend, reciprocal_iterator_in_map->second, divisor, remainder);

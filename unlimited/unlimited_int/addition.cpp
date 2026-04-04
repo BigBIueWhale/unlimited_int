@@ -13,11 +13,6 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 	if (this->find_inconsistencies() || num_to_add->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"");
 #endif
-	if (num_to_add == this)
-	{
-		*answer = (*this) << 1;
-		return;
-	}
 	if (this->num_of_intarrays_used == (size_t)0)
 	{
 		if (num_to_add != answer)
@@ -32,6 +27,24 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		{
 			this->copy_to(*answer);
 		}
+		return;
+	}
+	if (num_to_add == this)
+	{
+		//Self-addition: a + a == a << 1 regardless of sign.
+		//Use a non-owning view to access the magnitude without violating const.
+		const bool was_negative = this->_is_negative;
+		unlimited_int shifted;
+		{
+			unlimited_int this_abs(*this, false);
+			this_abs._is_negative = false;
+			this_abs.auto_destroy = false;
+			shifted = this_abs << (size_t)1;
+		}
+		//this_abs is now out of scope, so it's safe to assign to *answer
+		//(which may alias *this, invalidating any non-owning view's intarrays)
+		*answer = std::move(shifted);
+		answer->_is_negative = was_negative;
 		return;
 	}
 	int num_of_negatives = 0;

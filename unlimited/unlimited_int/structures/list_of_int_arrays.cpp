@@ -10,9 +10,13 @@ void list_of_int_arrays::increase_by_one_array_and_zero()
 		current_len_arr_to_add = (size_t)MIN_ALLOC;
 	if ((size_t)MAX_ALLOC < current_len_arr_to_add)
 		current_len_arr_to_add = (size_t)MAX_ALLOC;
-	int_array* new_int_array = new int_array;
-	this->push_back(new_int_array);
-	new_int_array->resize_and_fillzero(current_len_arr_to_add);
+	//Allocate the node and its backing array before linking into the list,
+	//so that if any allocation throws, no phantom node is left in the list.
+	std::unique_ptr<custom_linked_list_node<int_array>> node_guard = std::make_unique<custom_linked_list_node<int_array>>();
+	node_guard->value = new int_array;
+	node_guard->value->resize_and_fillzero(current_len_arr_to_add);
+	this->push_back(node_guard.get());
+	node_guard.release();
 	this->num_of_ints += current_len_arr_to_add;
 }
 void list_of_int_arrays::increase_by_one_array()
@@ -23,9 +27,13 @@ void list_of_int_arrays::increase_by_one_array()
 		current_len_arr_to_add = (size_t)MIN_ALLOC;
 	else if ((size_t)MAX_ALLOC < current_len_arr_to_add)
 		current_len_arr_to_add = (size_t)MAX_ALLOC;
-	int_array* new_int_array = new int_array;
-	this->push_back(new_int_array);
-	new_int_array->resize(current_len_arr_to_add);
+	//Allocate the node and its backing array before linking into the list,
+	//so that if any allocation throws, no phantom node is left in the list.
+	std::unique_ptr<custom_linked_list_node<int_array>> node_guard = std::make_unique<custom_linked_list_node<int_array>>();
+	node_guard->value = new int_array;
+	node_guard->value->resize(current_len_arr_to_add);
+	this->push_back(node_guard.get());
+	node_guard.release();
 	this->num_of_ints += current_len_arr_to_add;
 }
 void list_of_int_arrays::increase_until_num_of_ints(const size_t num_of_ints_to_increase_until)
@@ -75,8 +83,12 @@ void list_of_int_arrays::increase_by_one_array_to_insignificant()
 		current_len_arr_to_add = (size_t)MIN_ALLOC;
 	if ((size_t)MAX_ALLOC < current_len_arr_to_add)
 		current_len_arr_to_add = (size_t)MAX_ALLOC;
-	int_array* new_int_array = new int_array;
-	this->push_front(new_int_array);
-	new_int_array->resize(current_len_arr_to_add);
+	//Allocate the node and its backing array before linking into the list,
+	//so that if any allocation throws, no phantom node is left in the list.
+	std::unique_ptr<custom_linked_list_node<int_array>> node_guard = std::make_unique<custom_linked_list_node<int_array>>();
+	node_guard->value = new int_array;
+	node_guard->value->resize(current_len_arr_to_add);
+	this->push_front(node_guard.get());
+	node_guard.release();
 	this->num_of_ints += current_len_arr_to_add;
 }

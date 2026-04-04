@@ -34,14 +34,16 @@ size_t unlimited_int::fingerprint() const
 	int_array current_int_array = *it->value;
 	size_t index_in_array = (size_t)0;
 	bool xor_with_significant = true; //alternating
-	const custom_linked_list_node<int_array>* const this_intarrays_end = this->intarrays->end();
-	while (true)
+	size_t total_ints_processed = (size_t)0;
+	const size_t total_used_ints = this->num_of_used_ints;
+	//TODO: Per-element boundary check on index_in_array can be replaced with deferred index
+	//reconciliation using a stop_at threshold (see addition.cpp). The alternating xor_with_significant
+	//flag adds complexity but the batch-check pattern should still apply.
+	while (total_ints_processed < total_used_ints)
 	{
 		if (index_in_array >= current_int_array.num_of_used_ints)
 		{
 			it = it->next;
-			if (it == this_intarrays_end)
-				break;
 			current_int_array = *it->value;
 			index_in_array = (size_t)0;
 			continue;
@@ -58,6 +60,7 @@ size_t unlimited_int::fingerprint() const
 			result_hash ^= (size_t)current_num;
 		}
 		++index_in_array;
+		++total_ints_processed;
 	}
 	result_hash ^= length_in_bits;
 	return result_hash;

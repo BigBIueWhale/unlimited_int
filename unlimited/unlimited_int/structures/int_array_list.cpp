@@ -21,12 +21,17 @@ void int_array_list::prepend(int_array_list& list_to_prepend)
 }
 std::unique_ptr<int_array_list> int_array_list::sublist_int_array_list(custom_linked_list_node<int_array> *const start_sublist, custom_linked_list_node<int_array> *const end_sublist, const size_t sublist_len, const size_t sum_ints)
 {
+	//Pre-allocate the result before detaching any nodes from this list.
+	//If this allocation throws, the source list is completely untouched.
+	std::unique_ptr<int_array_list> result = std::make_unique<int_array_list>();
 	std::unique_ptr<custom_linked_list<int_array>> substr_base = this->custom_linked_list::sublist(start_sublist, end_sublist, sublist_len);
 	this->num_of_ints -= sum_ints;
-	std::unique_ptr<int_array_list> substr_derived = std::make_unique<int_array_list>(*substr_base);
-	substr_derived->num_of_ints = sum_ints;
-	substr_base->reset_without_deleting_nodes();
-	return substr_derived;
+	//Transfer nodes into the properly-typed result via the base-class append,
+	//which is pure pointer patching (cannot throw) and resets substr_base to
+	//empty so its destructor is a harmless no-op.
+	result->custom_linked_list<int_array>::append(*substr_base);
+	result->num_of_ints = sum_ints;
+	return result;
 }
 int_array_list::list_location int_array_list::find_num_of_int_from_insignificant(size_t num_int_to_find)
 {

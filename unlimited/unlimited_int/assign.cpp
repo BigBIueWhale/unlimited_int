@@ -24,6 +24,9 @@ void unlimited_int::assign(const uint32_t *const arr, const size_t len)
 	size_t int_array_counter = (size_t)0;
 	size_t counter_ints = len - (size_t)1;
 	bool stop_now = false;
+	//TODO: Per-element boundary check on index_in_current_int_array can be replaced with
+	//deferred index reconciliation using a stop_at threshold, as done in addition.cpp.
+	//Pre-calculate next_stop as min of remaining input elements and current intarr_len.
 	while (true)
 	{
 		current_int_array.intarr[index_in_current_int_array++] = (few_bits)arr[counter_ints];
@@ -75,6 +78,9 @@ void unlimited_int::assign(const uint64_t *const arr, const size_t len)
 	uint64_t previous_num = 0U;
 	size_t counter_ints = len - (size_t)1;
 	bool stop_now = false;
+	//TODO: Per-element boundary check on index_in_current_int_array can be replaced with
+	//deferred index reconciliation using a stop_at threshold, as done in addition.cpp.
+	//Pre-calculate next_stop as min of remaining input elements and current intarr_len.
 	while (true)
 	{
 		if (using_significant_part)
@@ -158,8 +164,8 @@ void unlimited_int::assign(const many_bits value_to_assign)
 		const few_bits carry = (few_bits)(value_to_assign >> NUM_OF_BITS_few_bits);
 		if (carry != (few_bits)0)
 		{
-			this->num_of_used_ints = (size_t)2;
 			this->increase_until_num_of_ints((size_t)2);
+			this->num_of_used_ints = (size_t)2;
 			custom_linked_list_node<int_array>* it = this->intarrays->first();
 			int_array* int_array_to_change = it->value;
 			int_array_to_change->assign(remainder);
@@ -178,9 +184,9 @@ void unlimited_int::assign(const many_bits value_to_assign)
 		}
 		else
 		{
+			this->increase_until_num_of_ints((size_t)1);
 			this->num_of_used_ints = (size_t)1;
 			this->num_of_intarrays_used = (size_t)1;
-			this->increase_until_num_of_ints((size_t)1);
 			this->intarrays->first()->value->assign(remainder);
 		}
 	}

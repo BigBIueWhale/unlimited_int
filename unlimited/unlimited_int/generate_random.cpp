@@ -13,9 +13,9 @@ many_bits ceiling_division(many_bits, many_bits);
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 #include <iostream>
 #endif
-static void insert_long_long_into_uint32_t(long long origin, uint32_t* destination_arr, size_t* counter_in_uint32_t)
+static void insert_64bit_into_uint32_t(unsigned long long origin, uint32_t* destination_arr, size_t* counter_in_uint32_t)
 {
-	static_assert(sizeof(long long) == sizeof(uint32_t) * 2, "Size of long long int must be 64 bits.");
+	static_assert(sizeof(unsigned long long) == sizeof(uint32_t) * 2, "Size of unsigned long long int must be 64 bits.");
 	destination_arr[*counter_in_uint32_t] = (uint32_t)((uint64_t)origin >> 32);
 	++(*counter_in_uint32_t);
 	destination_arr[*counter_in_uint32_t] = (uint32_t)((uint64_t)origin & (uint64_t)MASK_LOW_BITS);
@@ -39,23 +39,23 @@ unlimited_int unlimited_int::generate_truly_random()
 	size_t uint32_t_index = (size_t)0;
 	std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 	long long time_in_ms_passed_since_1970 = ms.count();
-	insert_long_long_into_uint32_t(time_in_ms_passed_since_1970, nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(&uint32_t_index), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(nums_to_generate_seed[reinterpret_cast<size_t>(&nums_to_generate_seed) % SIZE_OF_SEED_ARR]), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(&nums_to_generate_seed), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(sizeof(void*)), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(sizeof(short int)), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(sizeof(int)), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(sizeof(long int)), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(sizeof(long long int)), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(sizeof(float)), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(sizeof(double)), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(sizeof(long double)), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(time_in_ms_passed_since_1970, nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(reinterpret_cast<size_t>(&uint32_t_index), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(nums_to_generate_seed[reinterpret_cast<size_t>(&nums_to_generate_seed) % SIZE_OF_SEED_ARR]), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(reinterpret_cast<size_t>(&nums_to_generate_seed), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(sizeof(void*)), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(sizeof(short int)), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(sizeof(int)), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(sizeof(long int)), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(sizeof(long long int)), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(sizeof(float)), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(sizeof(double)), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(sizeof(long double)), nums_to_generate_seed.data(), &uint32_t_index);
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 	const size_t this_thread_id = std::hash<std::thread::id>()(std::this_thread::get_id());
-	insert_long_long_into_uint32_t(static_cast<long long>(this_thread_id), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(this_thread_id), nums_to_generate_seed.data(), &uint32_t_index);
 	const unsigned num_logical_processors = std::thread::hardware_concurrency();
-	insert_long_long_into_uint32_t(static_cast<long long>(num_logical_processors), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_logical_processors), nums_to_generate_seed.data(), &uint32_t_index);
 #endif
 	unlimited_int num_to_return = unlimited_int(nums_to_generate_seed.data(), SIZE_OF_SEED_ARR).calculate_efficient_cryptographic_hash();
 	const long long extra_randomness_from_memory = reinterpret_cast<size_t>(&num_to_return);
@@ -71,34 +71,34 @@ unlimited_int unlimited_int::generate_truly_random()
 			)
 		);
 		unsigned char* c = reinterpret_cast<unsigned char*>(&random_num); //Interpreting a long double as an array of unsigned char
-		long long int_from_double = 0LL;
-		constexpr int min_bytes = sizeof(long long) < sizeof(long double) ? sizeof(long long) : sizeof(long double);
+		unsigned long long int_from_double = 0ULL;
+		constexpr int min_bytes = sizeof(unsigned long long) < sizeof(long double) ? sizeof(unsigned long long) : sizeof(long double);
 		for (int ch_num = 0; ch_num < min_bytes; ++ch_num)
-			int_from_double |= (long long)c[ch_num] << (ch_num * 8);
-		insert_long_long_into_uint32_t(int_from_double, nums_to_generate_seed.data(), &uint32_t_index);
+			int_from_double |= (unsigned long long)c[ch_num] << (ch_num * 8);
+		insert_64bit_into_uint32_t(int_from_double, nums_to_generate_seed.data(), &uint32_t_index);
 	}
 	//using memory addresses and current structure of num_to_return to increase randomness
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_length_in_bits()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_least_significant_few_bits()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.num_of_intarrays_used), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->num_of_ints), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->size()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->first()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->last()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_to_return.get_length_in_bits()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_to_return.get_least_significant_few_bits()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_to_return.num_of_intarrays_used), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_to_return.intarrays->num_of_ints), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_to_return.intarrays->size()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->first()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->last()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays), nums_to_generate_seed.data(), &uint32_t_index);
 	num_to_return = unlimited_int(nums_to_generate_seed.data(), SIZE_OF_SEED_ARR).calculate_efficient_cryptographic_hash();
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_length_in_bits()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.get_least_significant_few_bits()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.num_of_intarrays_used), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->num_of_ints), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(static_cast<long long>(num_to_return.intarrays->size()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->first()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->last()), nums_to_generate_seed.data(), &uint32_t_index);
-	insert_long_long_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_to_return.get_length_in_bits()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_to_return.get_least_significant_few_bits()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_to_return.num_of_intarrays_used), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_to_return.intarrays->num_of_ints), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_to_return.intarrays->size()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->first()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays->last()), nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(reinterpret_cast<size_t>(num_to_return.intarrays), nums_to_generate_seed.data(), &uint32_t_index);
 	//All the rest of these lines in this function are extremely important.
 	ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 	time_in_ms_passed_since_1970 = ms.count();
-	insert_long_long_into_uint32_t(time_in_ms_passed_since_1970, nums_to_generate_seed.data(), &uint32_t_index);
+	insert_64bit_into_uint32_t(time_in_ms_passed_since_1970, nums_to_generate_seed.data(), &uint32_t_index);
 	num_to_return = unlimited_int(nums_to_generate_seed.data(), SIZE_OF_SEED_ARR).calculate_efficient_cryptographic_hash();
 	return num_to_return;
 }

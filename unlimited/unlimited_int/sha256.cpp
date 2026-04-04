@@ -47,6 +47,9 @@ unlimited_int unlimited_int::calculate_sha256_hash() const
 		}
 		if (current_int_array_Node != begin_node)
 		{
+			//TODO: Per-element boundary check on current_index_in_int_array can be replaced with
+			//deferred index reconciliation using a stop_at threshold (see addition.cpp). Backward
+			//iteration and the fixed-size 16-element block buffer make this more complex to retrofit.
 			while (true)
 			{
 				const few_bits current_few_bits = current_int_array.intarr[current_index_in_int_array];

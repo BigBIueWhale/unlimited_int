@@ -87,7 +87,7 @@ size_t int_array::find_first_used_not_zero(bool *const found) const
 	few_bits* current_address = this->intarr + (this->num_of_used_ints - (size_t)1);
 	const few_bits *const stop_at = this->intarr;
 	size_t index = this->num_of_used_ints - (size_t)1;
-	while (current_address >= stop_at)
+	while (current_address != stop_at)
 	{
 		if (*current_address != (few_bits)0)
 		{
@@ -96,6 +96,12 @@ size_t int_array::find_first_used_not_zero(bool *const found) const
 		}
 		--current_address;
 		--index;
+	}
+	//process element at index 0 separately
+	if (*current_address != (few_bits)0)
+	{
+		*found = true;
+		return index;
 	}
 	*found = false;
 	return static_cast<size_t>(MAX_size_t_NUM);
@@ -136,18 +142,22 @@ void int_array::shift_left(const size_t amount_to_shift)
 			few_bits* it_read = this->intarr + this->num_of_used_ints - (size_t)1;
 			few_bits* it_write = it_read + amount_to_shift;
 			const few_bits *const stop_ptr = this->intarr + amount_to_shift;
-			while (it_write >= stop_ptr)
+			while (it_write != stop_ptr)
 			{
 				*it_write = *it_read;
 				--it_read;
 				--it_write;
 			}
-			const few_bits *const stop_filling_zeros = this->intarr;
-			while (it_write >= stop_filling_zeros)
+			//process element at stop_ptr separately (it_read == intarr here)
+			*it_write = *it_read;
+			--it_write;
+			while (it_write != this->intarr)
 			{
 				*it_write = static_cast<few_bits>(0);
 				--it_write;
 			}
+			//process element at intarr[0] separately
+			*it_write = static_cast<few_bits>(0);
 			this->num_of_used_ints += amount_to_shift;
 		}
 	}
@@ -170,12 +180,14 @@ void int_array::shift_left_by_one()
 		few_bits* it_read = this->intarr + (this->num_of_used_ints - (size_t)1);
 		few_bits* it_write = this->intarr + this->num_of_used_ints;
 		const few_bits *const it_stop_read = this->intarr;
-		while (it_read >= it_stop_read)
+		while (it_read != it_stop_read)
 		{
 			*it_write = *it_read;
 			--it_write;
 			--it_read;
 		}
+		//process element at intarr[0] separately
+		*it_write = *it_read;
 		*this->intarr = (few_bits)0;
 		++this->num_of_used_ints;
 	}

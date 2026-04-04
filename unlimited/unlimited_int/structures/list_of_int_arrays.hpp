@@ -10,6 +10,9 @@ namespace unlimited
 		static thread_local int_array_piggy_bank bank_storage; //definition is in unlimited/unlimited.cpp
 	public:
 		list_of_int_arrays() {}
+		list_of_int_arrays(const list_of_int_arrays&) = delete;
+		list_of_int_arrays& operator=(const list_of_int_arrays&) = delete;
+		list_of_int_arrays& operator=(list_of_int_arrays&&) = delete;
 		void fill_0_until_num_of_ints_and_set_variables_for_used_accordingly(size_t fill_0_until);
 		void flush_to_piggy_bank()
 		{

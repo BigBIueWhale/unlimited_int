@@ -15,8 +15,10 @@ namespace unlimited
 		};
 		size_t num_of_ints;
 		int_array_list() : num_of_ints((size_t)0) {}
-		int_array_list(const custom_linked_list<int_array>& other) : custom_linked_list(other) { this->num_of_ints = (size_t)0; }
-		int_array_list(const int_array_list& other) : custom_linked_list(other) { this->num_of_ints = other.num_of_ints; }
+		int_array_list(const int_array_list&) = delete;
+		//Prevent compiler-generated assignment operators (same reasoning as deleted copy ctor).
+		int_array_list& operator=(const int_array_list&) = delete;
+		int_array_list& operator=(int_array_list&&) = delete;
 		void swap(int_array_list& int_array_list_to_swap_with);
 		void append(int_array_list&);
 		void prepend(int_array_list&);

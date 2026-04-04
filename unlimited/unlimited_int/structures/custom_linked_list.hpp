@@ -61,19 +61,37 @@ namespace unlimited
 			_last.previous = &_first;
 			this->_length = (size_t)0;
 		}
-		//Copy constructor. Don't forget to do .reset_without_deleting_nodes on one of the linked lists
-		custom_linked_list(const custom_linked_list<T>& other)
-		{
-			this->_first.next = other._first.next;
-			this->_last.previous = other._last.previous;
-			this->_length = other._length;
-		}
-		//Safely swaps between two lists
+		custom_linked_list(const custom_linked_list<T>&) = delete;
+		custom_linked_list(custom_linked_list<T>&&) = delete;
+		custom_linked_list<T>& operator=(const custom_linked_list<T>&) = delete;
+		custom_linked_list<T>& operator=(custom_linked_list<T>&&) = delete;
+		//Safely swaps between two lists. Patches the edge nodes' back-pointers after swapping.
 		void swap(custom_linked_list<T>& other)
 		{
 			other._first.swap(this->_first);
 			other._last.swap(this->_last);
 			std::swap(this->_length, other._length);
+			//After swapping, the edge nodes' prev/next still point to the other list's _first/_last. Fix that:
+			if (this->_length > (size_t)0)
+			{
+				this->_first.next->previous = &this->_first;
+				this->_last.previous->next = &this->_last;
+			}
+			else
+			{
+				this->_first.next = &this->_last;
+				this->_last.previous = &this->_first;
+			}
+			if (other._length > (size_t)0)
+			{
+				other._first.next->previous = &other._first;
+				other._last.previous->next = &other._last;
+			}
+			else
+			{
+				other._first.next = &other._last;
+				other._last.previous = &other._first;
+			}
 		}
 		//Add a value in the list just after "first". The argument must be a pointer to a dynamically allocated value
 		//and it will automatically be deleted by the list
@@ -81,10 +99,9 @@ namespace unlimited
 		custom_linked_list_node<T>* push_front(T* value)
 		{
 			std::unique_ptr<T> value_container(value);
-			std::unique_ptr<custom_linked_list_node<T>> node_to_prepend = std::make_unique<custom_linked_list_node<T>>(value);
+			std::unique_ptr<custom_linked_list_node<T>> node_to_prepend = std::make_unique<custom_linked_list_node<T>>(value_container.release());
 			custom_linked_list_node<T>* node_to_prepend_bare_ptr = node_to_prepend.get();
 			this->push_front(node_to_prepend.get());
-			value_container.release();
 			node_to_prepend.release();
 			return node_to_prepend_bare_ptr;
 		}
@@ -104,10 +121,9 @@ namespace unlimited
 		custom_linked_list_node<T>* push_back(T* value)
 		{
 			std::unique_ptr<T> value_container(value);
-			std::unique_ptr<custom_linked_list_node<T>> node_to_append = std::make_unique<custom_linked_list_node<T>>(value);
+			std::unique_ptr<custom_linked_list_node<T>> node_to_append = std::make_unique<custom_linked_list_node<T>>(value_container.release());
 			custom_linked_list_node<T>* node_to_append_bare_ptr = node_to_append.get();
 			this->push_back(node_to_append.get());
-			value_container.release();
 			node_to_append.release();
 			return node_to_append_bare_ptr;
 		}
@@ -190,9 +206,12 @@ namespace unlimited
 		//Returns a pointer to the node that was created
 		custom_linked_list_node<T>* insert(custom_linked_list_node<T>* insert_before, T* value_to_insert)
 		{
-			custom_linked_list_node<T>* const node_to_insert = new custom_linked_list_node<T>(value_to_insert);
-			this->insert(insert_before, node_to_insert);
-			return node_to_insert;
+			std::unique_ptr<T> value_container(value_to_insert);
+			std::unique_ptr<custom_linked_list_node<T>> node_to_insert = std::make_unique<custom_linked_list_node<T>>(value_container.release());
+			custom_linked_list_node<T>* node_to_insert_bare_ptr = node_to_insert.get();
+			this->insert(insert_before, node_to_insert.get());
+			node_to_insert.release();
+			return node_to_insert_bare_ptr;
 		}
 		//insert an element before a specific node in the list.
 		//The object that the pointer is pointing to will automatically be deleted.
