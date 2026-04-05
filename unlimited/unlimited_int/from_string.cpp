@@ -29,6 +29,8 @@ unlimited_int unlimited_int::from_string(const char* str, const unsigned int bas
 	{
 		set_is_negative_to_true = true;
 		++str;
+		if (*str == '\0')
+			throw std::invalid_argument("Can\'t convert \"-\" to unlimited_int, no digits after minus sign");
 	}
 	while (*str == '0')
 		++str;

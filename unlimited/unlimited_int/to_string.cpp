@@ -18,12 +18,7 @@ std::string unlimited_int::to_string(const unsigned int base) const
 	if (base > MAX_BASE_FOR_UNLIMITED_INT || base <= 0U)
 		throw std::invalid_argument("Error in function unlimited_int::to_string(unsigned): The maximum base is 36.");
 	if (this->num_of_used_ints == (size_t)0)
-	{
-		std::string string_to_return(2, '\0');
-		string_to_return[0] = '0';
-		string_to_return[1] = '\0';
-		return string_to_return;
-	}
+		return std::string(1, '0');
 	std::string string_intermediate;
 	unlimited_int numerator = *this;
 	numerator.self_abs();

@@ -32,6 +32,11 @@ bool unlimited_int::find_inconsistencies() const
 		std::cerr << "\nError found by function \"find_inconsistencies\": \"this->intarrays.intarrays.length\" == 0 and one of \"is_negative\", \"num_of_used_ints\", \"num_of_intarrays_used\" doesn\'t fit with that";
 		to_return_true = true;
 	}
+	if (this->num_of_used_ints == (size_t)0 && this->_is_negative)
+	{
+		std::cerr << "\nError found by function \"find_inconsistencies\": \"this->_is_negative\" is true even though \"this->num_of_used_ints\" is 0 (a zero number can\'t be negative)";
+		to_return_true = true;
+	}
 	if ((this->num_of_intarrays_used == 0) != (this->num_of_used_ints == 0))
 	{
 		std::cerr << "\nError found by function \"find_inconsistencies\": \"this->num_of_intarrays_used\" and \"this->num_of_used_ints\" disagree on whether the number equals zero";
@@ -82,6 +87,12 @@ bool unlimited_int::find_inconsistencies() const
 					else if (current_int_array->intarr == nullptr)
 					{
 						std::cerr << "\nError found by function \"find_inconsistencies\": the pointer to one of the actual integer arrays inside of an \"int_array\" object in list: \"this->intarrays.intarrays\" is nullptr\n";
+						this->print_properties();
+						return true;
+					}
+					if (current_int_array->find_inconsistencies())
+					{
+						std::cerr << "\nError found by function \"find_inconsistencies\": one of the \"int_array\" objects failed its own internal consistency check\n";
 						this->print_properties();
 						return true;
 					}

@@ -6,25 +6,20 @@ using namespace unlimited;
 int_array_list::list_location unlimited_int::find_num_used_int_from_significant(const size_t num_int_to_find) const
 {
 	int_array_list::list_location ll;
+	if (num_int_to_find == (size_t)0)
+		throw std::logic_error("Error in function find_num_used_int_from_significant: the num of int to find is 0. This function counts from 1.");
 	if (num_int_to_find > this->num_of_used_ints)
 		throw std::logic_error("Error in function find_num_used_int_from_significant: the number int in the argument is passed the end of the number.");
 	custom_linked_list_node<int_array>* it = this->get_most_significant_used_int_array();
 	size_t sum_used = (size_t)0;
-	size_t num_array = this->num_of_intarrays_used + (size_t)1;
+	size_t num_array = this->num_of_intarrays_used;
 	while (true)
 	{
-#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
-		if (num_array-- == 0)
-		{
-			num_array = (size_t)0;
-			break; //The exception will be called
-		}
-#endif
 		sum_used += it->value->num_of_used_ints;
 		if (sum_used >= num_int_to_find)
 			break;
-		else
-			it = it->previous;
+		it = it->previous;
+		--num_array;
 	}
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (num_array == (size_t)0)
