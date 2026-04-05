@@ -207,9 +207,9 @@ namespace unlimited
 		//grade school subtraction algorithm.
 		void subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const;
 //Helpers
-		//Uses known ASCII values. Base can be from 1 until 36 including. Works with both uppercase and lowercase English letters.
+		//Uses known ASCII values. Base can be from 2 until 36 including. Works with both uppercase and lowercase English letters.
 		static unsigned char_to_number(const char ch, const unsigned base = 10U);
-		//Uses known ASCII values. Base can be from 1 until 36 including. Creates lowercase letters.
+		//Uses known ASCII values. Base can be from 2 until 36 including. Creates lowercase letters.
 		static char number_to_char(const unsigned int num, const unsigned int base);
 		//get the number of consecutive bits that are zero in the most significant part of few_bits
 		static int num_of_zero_bits_preceding_number(const few_bits);
@@ -546,11 +546,11 @@ namespace unlimited
 			return answer;
 		}
 //String Conversions
-		//from base 1 until base 36 (including). Can recognize prepended minus symbol (-). Supports both uppercase and lowercase. Receives null-terminated string.
+		//from base 2 until base 36 (including). Can recognize prepended minus symbol (-). Supports both uppercase and lowercase. Receives null-terminated string.
 		static unlimited_int from_string(const char* str, const unsigned int base = 10);
 		//uses "static unlimited_int from_string(const char* str, const int base = 10)"
 		static unlimited_int from_string(const std::string& str, const unsigned int base = 10) { return unlimited_int::from_string(str.c_str(), base); }
-		//from base 1 until base 36 (including). Uses lowercase English letters. Faster in base 16.
+		//from base 2 until base 36 (including). Uses lowercase English letters. Faster in base 16.
 		std::string to_string(const unsigned int base = 10) const;
 //Power (^)
 		//efficient method for power (math function) with remainder as well. Receives boolean pointer used for early termination of calculation.

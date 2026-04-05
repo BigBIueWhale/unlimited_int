@@ -4,8 +4,8 @@ unsigned unlimited_int::char_to_number(const char ch, const unsigned base)
 {
 	if (!((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')))
 		throw std::out_of_range(std::string("Error in function \"char_to_number(char ch, int base)\". Invalid character: \'") + ch + "\'." + " with ASCII value of: " + std::to_string(ch));
-	if ((base <= 0) || (base > 36))
-		throw std::out_of_range(std::string("Error in function \"char_to_number(char ch, int base)\" Invalid Argument!\nbase is out of range \"1 <= base <= 36\". Base: ") + std::to_string(base));
+	if ((base < 2) || (base > 36))
+		throw std::out_of_range(std::string("Error in function \"char_to_number(char ch, int base)\" Invalid Argument!\nbase is out of range \"2 <= base <= 36\". Base: ") + std::to_string(base));
 	int value;
 	const int ch_int = static_cast<int>(ch);
 	if (ch_int >= static_cast<int>('0') && ch_int <= static_cast<int>('9')) //is a number
@@ -20,8 +20,8 @@ unsigned unlimited_int::char_to_number(const char ch, const unsigned base)
 }
 unlimited_int unlimited_int::from_string(const char* str, const unsigned int base)
 {
-	if (base <= 0 || base > 36)
-		throw std::out_of_range("Error in function \"from_c_string\" Invalid Argument!\nbase is out of range \"1 <= base <= 36\"");
+	if (base < 2 || base > 36)
+		throw std::out_of_range("Error in function \"from_c_string\" Invalid Argument!\nbase is out of range \"2 <= base <= 36\"");
 	if (*str == '\0')
 		throw std::invalid_argument("Can\'t convert empty string to unlimited_int");
 	bool set_is_negative_to_true = false;

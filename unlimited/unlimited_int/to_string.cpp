@@ -6,8 +6,8 @@ char unlimited_int::number_to_char(const unsigned int num, const unsigned int ba
 {
 	if (num >= base)
 		throw std::out_of_range("Error in function \"number_to_char\" num out of range.");
-	if (base > MAX_BASE_FOR_UNLIMITED_INT || base <= 0U)
-		throw std::out_of_range("Error in function \"number_to_char\" Invalid Argument!\nbase is out of range \"1 <= base <= 36\"");
+	if (base > MAX_BASE_FOR_UNLIMITED_INT || base < 2U)
+		throw std::out_of_range("Error in function \"number_to_char\" Invalid Argument!\nbase is out of range \"2 <= base <= 36\"");
 	if (num <= 9U)
 		return static_cast<char>(num + static_cast<unsigned int>('0'));
 	return static_cast<char>(num - 10U + static_cast<unsigned int>('A'));
@@ -15,8 +15,8 @@ char unlimited_int::number_to_char(const unsigned int num, const unsigned int ba
 std::string unlimited_int::to_string(const unsigned int base) const
 {
 	static_assert(std::numeric_limits<unsigned int>::max() >= MAX_BASE_FOR_UNLIMITED_INT, "MAX_BASE_FOR_UNLIMITED_INT should only be 36, because the numbers and english alphabet letters");
-	if (base > MAX_BASE_FOR_UNLIMITED_INT || base <= 0U)
-		throw std::invalid_argument("Error in function unlimited_int::to_string(unsigned): The maximum base is 36.");
+	if (base > MAX_BASE_FOR_UNLIMITED_INT || base < 2U)
+		throw std::invalid_argument("Error in function unlimited_int::to_string(unsigned): The minimum base is 2 and maximum base is 36.");
 	if (this->num_of_used_ints == (size_t)0)
 		return std::string(1, '0');
 	std::string string_intermediate;
