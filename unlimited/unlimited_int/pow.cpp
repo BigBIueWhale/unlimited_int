@@ -18,11 +18,11 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		throw std::invalid_argument("Invalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder)\" pow(0, 0) is mathematically undefined");
 	if (remainder.is_zero())
 		throw std::invalid_argument("Invalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder)\" division by zero is undefined");
+	if (remainder.compare_to_ignore_sign((few_bits)1) == 'E')
+		return unlimited_int();
 	if (power.is_zero())
 		return unlimited_int(1);
 	if (base.is_zero() || power.is_negative())
-		return unlimited_int();
-	if (remainder == 1)
 		return unlimited_int();
 	unlimited_int current_power = base;
 	current_power = unlimited_int::remainder_recurring_divison(current_power, remainder);
