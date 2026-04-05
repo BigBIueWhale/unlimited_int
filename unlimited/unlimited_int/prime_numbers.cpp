@@ -42,6 +42,10 @@ static void initialize_small_prime_numbers(std::vector<few_bits>* small_prime_nu
 //If a number fails one of the iterations, the number is certainly composite. A composite number has a chance of 25% to pass every iteration. That's why 64 iterations ensures 1/(2^128) probability of mistake.
 bool unlimited_int::is_prime(const int num_of_iterations, const volatile bool *const terminator) const
 {
+	//0 and 1 are not prime. The small-primes loop below assumes |this| >= 2;
+	//without this guard it would incorrectly return true for values less than the smallest prime (2).
+	if (this->compare_to_ignore_sign((few_bits)2) == 'S')
+		return false;
 	initialize_small_prime_numbers(&unlimited_int::small_prime_numbers);
 	const size_t size_small_prime_numbers = small_prime_numbers.size();
 	for (size_t index_primes = (size_t)0; index_primes < size_small_prime_numbers; ++index_primes)
