@@ -10,7 +10,7 @@ char unlimited_int::number_to_char(const unsigned int num, const unsigned int ba
 		throw std::out_of_range("Error in function \"number_to_char\" Invalid Argument!\nbase is out of range \"2 <= base <= 36\"");
 	if (num <= 9U)
 		return static_cast<char>(num + static_cast<unsigned int>('0'));
-	return static_cast<char>(num - 10U + static_cast<unsigned int>('A'));
+	return static_cast<char>(num - 10U + static_cast<unsigned int>('a'));
 }
 std::string unlimited_int::to_string(const unsigned int base) const
 {
