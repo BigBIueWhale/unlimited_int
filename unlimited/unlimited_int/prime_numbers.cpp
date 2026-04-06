@@ -8,35 +8,33 @@
 #include <sstream>
 #include <array>
 using namespace unlimited;
+//Uses std::call_once (requires C++11 or later) to avoid the data race that double-checked locking on a non-atomic std::vector has under the C++ memory model.
+//The fast path after initialization is a single atomic load of the once_flag, same performance as the old double-checked locking but without undefined behavior.
 static void initialize_small_prime_numbers(std::vector<few_bits>* small_prime_numbers)
 {
 	constexpr size_t PRIME_NUMBERS_UNTIL = (size_t)200; //Until and including, although in this case 200 isn't actually a prime number so it'll only be until 199.
 	static_assert(PRIME_NUMBERS_UNTIL < (size_t)MAX_few_bits_NUM, "static_assert failed in function \"initialize_small_prime_numbers\", can\'t calculate that many small prime numbers");
-	if (small_prime_numbers->empty())
+	static std::once_flag small_primes_initialized;
+	std::call_once(small_primes_initialized, [small_prime_numbers]()
 	{
-		static std::mutex safety_against_race;
-		std::lock_guard<std::mutex> locker(safety_against_race);
-		if (small_prime_numbers->empty())
+		std::array<bool, PRIME_NUMBERS_UNTIL + (size_t)1> is_prime;
+		is_prime[0] = false;
+		is_prime[1] = false;
+		for (size_t index = (size_t)2; index < is_prime.size(); ++index)
+			is_prime[index] = true;
+	//sieve of Eratosthenes
+		size_t num_of_primes = (size_t)0;
+		for (size_t index = (size_t)2; index < is_prime.size(); ++index)
 		{
-			std::array<bool, PRIME_NUMBERS_UNTIL + (size_t)1> is_prime;
-			is_prime[0] = false;
-			is_prime[1] = false;
-			for (size_t index = (size_t)2; index < is_prime.size(); ++index)
-				is_prime[index] = true;
-		//sieve of Eratosthenes
-			size_t num_of_primes = (size_t)0;
-			for (size_t index = (size_t)2; index < is_prime.size(); ++index)
+			if (is_prime[index])
 			{
-				if (is_prime[index])
-				{
-					small_prime_numbers->push_back((few_bits)index);
-					++num_of_primes;
-					for (size_t index_skipping = index * (size_t)2; index_skipping < is_prime.size(); index_skipping += index)
-						is_prime[index_skipping] = false;
-				}
+				small_prime_numbers->push_back((few_bits)index);
+				++num_of_primes;
+				for (size_t index_skipping = index * (size_t)2; index_skipping < is_prime.size(); index_skipping += index)
+					is_prime[index_skipping] = false;
 			}
 		}
-	}
+	});
 }
 //Miller-Rabin primality test algorithm.
 //If a number fails one of the iterations, the number is certainly composite. A composite number has a chance of 25% to pass every iteration. That's why 64 iterations ensures 1/(2^128) probability of mistake.
