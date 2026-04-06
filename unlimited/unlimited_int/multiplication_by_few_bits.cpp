@@ -98,24 +98,25 @@ void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) 
 		++current_intarray_for_answer_intarr;
 		++num_int;
 	}
-	if (index_answer >= current_intarray_for_answer_intarr_len)
-	{
-		++num_of_intarrays_used_for_answer;
-		it_answer = it_answer->next;
-		index_answer = (size_t)0;
-		current_intarray_for_answer = it_answer->value;
-	}
 	if (carry == (many_bits)0)
 	{
 		answer->num_of_used_ints = this_used_ints;
 		current_intarray_for_answer->num_of_used_ints = index_answer;
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (index_answer == (size_t)0)
-			answer->num_of_intarrays_used = num_of_intarrays_used_for_answer - (size_t)1;
-		else
-			answer->num_of_intarrays_used = num_of_intarrays_used_for_answer;
+			throw std::logic_error("The inconsistency was found in function \"void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) const\": index_answer should never be 0 when carry is 0");
+#endif
+		answer->num_of_intarrays_used = num_of_intarrays_used_for_answer;
 	}
 	else
 	{
+		if (index_answer >= current_intarray_for_answer_intarr_len)
+		{
+			++num_of_intarrays_used_for_answer;
+			it_answer = it_answer->next;
+			index_answer = (size_t)0;
+			current_intarray_for_answer = it_answer->value;
+		}
 		answer->num_of_used_ints = max_num_of_ints_needed_for_answer;
 		current_intarray_for_answer->intarr[index_answer] = (few_bits)carry;
 		current_intarray_for_answer->num_of_used_ints = index_answer + (size_t)1;
@@ -232,24 +233,25 @@ void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unl
 		++current_intarray_for_answer_intarr;
 		++num_int;
 	}
-	if (index_answer >= current_intarray_for_answer_intarr_len)
-	{
-		++num_of_intarrays_used_for_answer;
-		it_answer = it_answer->next;
-		index_answer = (size_t)0;
-		current_intarray_for_answer = it_answer->value;
-	}
 	if (carry == (many_bits)0)
 	{
 		answer->num_of_used_ints = this_used_ints;
 		current_intarray_for_answer->num_of_used_ints = index_answer;
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (index_answer == (size_t)0)
-			answer->num_of_intarrays_used = num_of_intarrays_used_for_answer - (size_t)1;
-		else
-			answer->num_of_intarrays_used = num_of_intarrays_used_for_answer;
+			throw std::logic_error("The inconsistency was found in function \"void unlimited_int::multiply_this_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const\": index_answer should never be 0 when carry is 0");
+#endif
+		answer->num_of_intarrays_used = num_of_intarrays_used_for_answer;
 	}
 	else
 	{
+		if (index_answer >= current_intarray_for_answer_intarr_len)
+		{
+			++num_of_intarrays_used_for_answer;
+			it_answer = it_answer->next;
+			index_answer = (size_t)0;
+			current_intarray_for_answer = it_answer->value;
+		}
 		answer->num_of_used_ints = this_used_ints + (size_t)1;
 		current_intarray_for_answer->intarr[index_answer] = (few_bits)carry;
 		current_intarray_for_answer->num_of_used_ints = index_answer + (size_t)1;
