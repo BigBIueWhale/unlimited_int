@@ -476,34 +476,28 @@ static void test_unlimited_int()
 			{
 			case operator_types_unary::bitwise_not_and_inversion:
 			{
-				if (num >= 0)
+				//~x = -(x + 1) for all x (positive, negative, and zero)
+				const unlimited_int result = ~num;
+				const unlimited_int expected = -(num + unlimited_int(1));
+				if (result != expected)
 				{
-					const unlimited_int result = ~num;
-					unlimited_int num_cpy = num;
-					auto are_all_bits_1 = [](const unlimited_int& num) -> bool
-					{
-						unlimited_int num_cpy = num;
-						while (num_cpy != 0)
-						{
-							if (num_cpy.modulo_2() == 0)
-								return false;
-							num_cpy >>= 1;
-						}
-						return true;
-					};
-					{
-						if (!are_all_bits_1(result ^ num) || !are_all_bits_1(result | num) || (result & num) != 0)
-						{
-							std::cout << "\nFailed bitwise not: num: " << num;
-							throw std::logic_error("Failed bitwise not.");
-						}
-					}
-					num_cpy.invert_bits();
-					if (result != num_cpy)
-					{
-						std::cout << "\nFailed bitwise not: different results when using invert_bits() and operator~().\nnum: " << num << "\nresult: 0b" << result.to_string(2U) << "\nnum_cpy:0b" << num_cpy.to_string(2);
-						throw std::logic_error("Failed bitwise not: different results when using invert_bits() and operator~()");
-					}
+					std::cout << "\nFailed bitwise not: ~x != -(x + 1).\nnum: " << num << "\nresult: " << result << "\nexpected: " << expected;
+					throw std::logic_error("Failed bitwise not: ~x != -(x + 1).");
+				}
+				//~~x == x (involution)
+				const unlimited_int result_double_not = ~result;
+				if (result_double_not != num)
+				{
+					std::cout << "\nFailed bitwise not involution: ~~x != x.\nnum: " << num << "\n~num: " << result << "\n~~num: " << result_double_not;
+					throw std::logic_error("Failed bitwise not: ~~x != x.");
+				}
+				//invert_bits() should agree with operator~
+				unlimited_int num_cpy = num;
+				num_cpy.invert_bits();
+				if (result != num_cpy)
+				{
+					std::cout << "\nFailed bitwise not: different results when using invert_bits() and operator~().\nnum: " << num << "\nresult: " << result << "\nnum_cpy: " << num_cpy;
+					throw std::logic_error("Failed bitwise not: different results when using invert_bits() and operator~()");
 				}
 				break;
 			}

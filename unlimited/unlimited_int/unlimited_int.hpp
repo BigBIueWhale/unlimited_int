@@ -518,14 +518,11 @@ namespace unlimited
 		unlimited_int operator|(const unlimited_int&) const;
 		//Bitwise operator XOR, the result will be as long as the longer number between the two. Throws exception std::invalid_argument when used on negative number(s)
 		unlimited_int operator^(const unlimited_int&) const;
-		//Bitwise operator NOT. Only inverses the used bits. For example:
-		//unlimited_int num(0b00001101);
-		//std::cout << unlimited_int(~num);
-		//That code will output the number 0b10 because it's ignoring all bits that are before the most significant 1 of the original number.
-		//Throws exception std::invalid_argument when used on a negative number
+		//Bitwise operator NOT using the two's complement identity: ~x = -(x + 1)
+		//Works on both positive and negative numbers. For example: ~0 == -1, ~5 == -6, ~(-1) == 0, ~(-6) == 5.
+		//This is the same definition used by GMP, Boost, Python, and Java. Guarantees ~~x == x (involution).
 		unlimited_int operator~() const;
-		//Just like operator~ except that it's more efficient because it directly changes the original number's bits. Just like &= compared to & (for example)
-		//Throws exception std::invalid_argument when used on a negative number
+		//In-place version of operator~. Computes ~x = -(x + 1) directly on this.
 		void invert_bits();
 		//Bitwise operator AND. Throws exception std::invalid_argument when used on a negative number
 		void operator&=(const unlimited_int& right) { *this = (*this) & right; }
