@@ -17,7 +17,6 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 	size_t this_num_of_used_ints = this->num_of_used_ints;
 	num_to_paste_into.increase_until_num_of_ints(this_num_of_used_ints);
 	num_to_paste_into.num_of_used_ints = this_num_of_used_ints;
-	num_to_paste_into._is_negative = this->_is_negative;
 	if (this->num_of_used_ints == (size_t)0)
 	{
 		num_to_paste_into.set_to_zero();
@@ -86,6 +85,7 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 	num_to_paste_into.num_of_intarrays_used = num_of_used_arrays_in_paste;
 	current_int_array_paste->num_of_used_ints = index_paste;
 	num_to_paste_into.flush_unused();
+	num_to_paste_into._is_negative = this->_is_negative;
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"copy_to\":";
 #endif

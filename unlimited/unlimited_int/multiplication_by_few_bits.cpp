@@ -32,7 +32,6 @@ void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) 
 		answer->_is_negative = this->_is_negative;
 		return;
 	}
-	answer->_is_negative = this->_is_negative;
 	const many_bits num_to_mult_many = (many_bits)num_to_mult;
 	custom_linked_list_node<int_array>* it_this = this->intarrays->first();
 	custom_linked_list_node<int_array>* it_answer = answer->intarrays->first();
@@ -122,6 +121,7 @@ void unlimited_int::multiply(const few_bits num_to_mult, unlimited_int* answer) 
 		current_intarray_for_answer->num_of_used_ints = index_answer + (size_t)1;
 		answer->num_of_intarrays_used = num_of_intarrays_used_for_answer;
 	}
+	answer->_is_negative = this->_is_negative;
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"multiply(few_bits num_to_mult, unlimited_int* answer)\":";
 #endif

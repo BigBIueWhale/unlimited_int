@@ -33,8 +33,6 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 		destructor_unlimited_int = std::make_unique<unlimited_int>(*num_to_mult);
 		num_to_mult_cpy = destructor_unlimited_int.get();
 	}
-	if (this_cpy->_is_negative != num_to_mult_cpy->_is_negative)
-		answer->_is_negative = true;
 	const unlimited_int *smaller_num, *bigger_num;
 	char value_of_comparison = this_cpy->estimate_compare_to_ignore_sign(*num_to_mult_cpy);
 	if (value_of_comparison == 'L')
@@ -211,6 +209,9 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 	else
 		answer->num_of_used_ints = num_of_ints_needed_for_answer;
 	current_intarray_for_answer->num_of_used_ints = num_of_used_ints_in_most_significant_int_array;
+	answer->_is_negative = (this_cpy->_is_negative != num_to_mult_cpy->_is_negative);
+	if (answer->num_of_used_ints == (size_t)0)
+		answer->_is_negative = false;
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"multiply_basecase(unlimited_int* num_to_mult, unlimited_int* answer)\":";
 #endif

@@ -98,7 +98,6 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 		answer->_is_negative = set_answer_to_negative;
 		return;
 	}
-	answer->_is_negative = set_answer_to_negative;
 	size_t num_of_used_ints_this = this_copy.num_of_used_ints;
 	answer->increase_until_num_of_ints(num_of_used_ints_this);
 	custom_linked_list_node<int_array>* it_this = this_copy.intarrays->first();
@@ -358,6 +357,10 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 	answer->num_of_intarrays_used = num_of_int_arrays_used_in_answer;
 	answer_current_int_array->num_of_used_ints = index_answer;
 	answer->cutoff_leading_zeros(it_answer);
+	if (answer->is_zero())
+		answer->_is_negative = false;
+	else
+		answer->_is_negative = set_answer_to_negative;
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nEnd of subtract:";
 #endif
