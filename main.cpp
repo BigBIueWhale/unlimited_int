@@ -439,11 +439,11 @@ static void test_unlimited_int()
 
 				if (remainder != 0 && !(num1 == 0 && num2 == 0))
 				{
-					const unlimited_int result_pow = unlimited_int::pow(num1, num2, limit);
+					const unlimited_int result_pow = unlimited_int::pow(num1, num2, remainder);
 					const bool result_is_supposed_to_be_negative = num1.is_negative() && num2.modulo_2() == 1;
 					if (result_is_supposed_to_be_negative != result_pow.is_negative() && !result_pow.is_zero())
 					{
-						std::cout << "\nFailed pow sign with\nnum1: " << num1 << "\nnum2: " << num2 << "\nlimit: " << limit << "\nresult_pow: " << result_pow;
+						std::cout << "\nFailed pow sign with\nnum1: " << num1 << "\nnum2: " << num2 << "\nremainder: " << remainder << "\nresult_pow: " << result_pow;
 						throw std::logic_error("Failed pow sign.");
 					}
 				}
