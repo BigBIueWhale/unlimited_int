@@ -613,7 +613,8 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 				break;
 			++int_counter_reverse;
 			++index_result_reverse;
-			++index_result_target_reverse;
+			if (current_int_array_Node_result_target_reverse != result_target_intarrays_end)
+				++index_result_target_reverse;
 		}
 		if (max_hypothetical_carry == (few_bits)0)
 		{
