@@ -93,7 +93,7 @@ namespace unlimited
 		//sets all variables to their default values without deleting anything that is dynamically allocated and without flushing into the piggy bank.
 		void forget_memory();
 		//copies the most significant part of an unlimited_int into another unlimited_int. Specifically the first num_of_ints_to_copy "few_bits"s. It pastes into the least significant portion of other.
-		//Other doesn't need to be prepared. It causes other to be non-negative
+		//Other doesn't need to be prepared. It causes other to be non-negative. other must not be the same object as this (use operator>>= instead).
 		void copy_most_significant_to(unlimited_int& other, const size_t num_of_ints_to_copy) const;
 //Compare
 		//returns 'L', 'S' or 'E' based on the length of the numbers, and the negativity. Not accurate when both numbers are the same length and the same sign (except that when both numbers are 0 it is accurate).
@@ -153,7 +153,8 @@ namespace unlimited
 		//shifts right by number of few_bits. Method is to prepend int_arrays to the number.  Keeps sign of number intact (a negative number will stay negative, unless it becomes 0).
 		void shift_left(const size_t shift_by);
 //Karatsuba
-		//grade school algorithm for multiplication. I need to design and write a squaring basecase multiplication algorithm to use in function "unlimited_int unlimited_int::power2() const" (for example) instead of using this function.
+		//grade school algorithm for multiplication. answer can safely point to the same object as this or num_to_mult (e.g. squaring in place).
+		//I need to design and write a squaring basecase multiplication algorithm to use in function "unlimited_int unlimited_int::power2() const" (for example) instead of using this function.
 		void multiply_basecase(const unlimited_int* num_to_mult, unlimited_int* answer) const;
 		//Karatsuba multiplication algorithm. Very efficient.
 		unlimited_int multiply_karatsuba(const unlimited_int* num_to_mult) const;
@@ -162,7 +163,8 @@ namespace unlimited
 		unlimited_int multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult);
 		//splits this into two different unlimited_ints, significant bits and insignificant bits. Based on size_t that specifies the number of ints to put in unlimited_int low.
 		void split_at(const size_t index, unlimited_int* high, unlimited_int* low) const;
-		//same as split_at except that it it's more efficient because it uses the original memory of this
+		//same as split_at except that it's more efficient because it uses the original memory of this.
+		//low or high can be the same object as this, but high and low must be different objects.
 		void split_at_and_use_original(const size_t index, unlimited_int* high, unlimited_int* low);
 //Multiplication By "few_bits"
 		//grade school multiplication algorithm

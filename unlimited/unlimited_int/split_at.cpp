@@ -176,6 +176,10 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int* high, unlimited_int* low)\"");
 #endif
+	//high and low can't be the same object.
+	//low or high can be the same object as this, which is handled below.
+	if (high == low)
+		throw std::invalid_argument("Error in function \"void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int* high, unlimited_int* low)\": high and low must be distinct objects.");
 	size_t size_of_this = this->num_of_used_ints;
 	if (size_of_this == (size_t)0)
 	{
@@ -186,6 +190,12 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 	}
 	else if (index == (size_t)0)
 	{
+		if (high == this)
+		{
+			//high is already this, so the data is already in the right place
+			low->set_to_zero();
+			return;
+		}
 		this->swap(*high);
 		this->flush();
 		low->set_to_zero();
@@ -193,9 +203,32 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 	}
 	else if (index >= size_of_this)
 	{
+		if (low == this)
+		{
+			//low is already this, so the data is already in the right place
+			high->set_to_zero();
+			return;
+		}
 		this->swap(*low);
 		this->flush();
 		high->set_to_zero();
+		return;
+	}
+	//When low or high is the same object as this, swap the data into a temporary and let the
+	//all-distinct path below handle it. After the swap *this is empty, so the three pointers
+	//are distinct and the existing logic works without modification.
+	if (low == this)
+	{
+		unlimited_int this_copy;
+		this_copy.swap(*this);
+		this_copy.split_at_and_use_original(index, high, this);
+		return;
+	}
+	if (high == this)
+	{
+		unlimited_int this_copy;
+		this_copy.swap(*this);
+		this_copy.split_at_and_use_original(index, this, low);
 		return;
 	}
 	high->flush();
@@ -295,6 +328,8 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 	}
 	high->num_of_intarrays_used = high->intarrays->size();
 	high->num_of_used_ints = size_to_make_high;
+	high->_is_negative = false;
+	low->_is_negative = false;
 	low->cutoff_leading_zeros(low->intarrays->last());
 	this->flush();
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2

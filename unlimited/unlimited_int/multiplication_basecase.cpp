@@ -18,20 +18,24 @@ void unlimited_int::multiply_basecase(const unlimited_int* num_to_mult, unlimite
 		answer->set_to_zero();
 		return;
 	}
-	std::unique_ptr<unlimited_int> destructor_unlimited_int;
+	//Two independent unique_ptrs are required because both checks below can fire at the same time
+	//(when this == num_to_mult == answer, e.g. squaring in place). A single shared unique_ptr
+	//would be reassigned by the second check, destroying the first copy and leaving this_cpy dangling.
+	std::unique_ptr<unlimited_int> this_destructor_unlimited_int;
+	std::unique_ptr<unlimited_int> num_to_mult_destructor_unlimited_int;
 	const unlimited_int* this_cpy = this;
 	const unlimited_int* num_to_mult_cpy = num_to_mult;
-	//If the pointers are equal
+	//If the pointers are equal, copy this before the multiplication overwrites answer
 	if (this == answer)
 	{
-		destructor_unlimited_int = std::make_unique<unlimited_int>(*this);
-		this_cpy = destructor_unlimited_int.get();
+		this_destructor_unlimited_int = std::make_unique<unlimited_int>(*this);
+		this_cpy = this_destructor_unlimited_int.get();
 	}
-	//If the pointers are equal
+	//If the pointers are equal, copy num_to_mult before the multiplication overwrites answer
 	if (answer == num_to_mult)
 	{
-		destructor_unlimited_int = std::make_unique<unlimited_int>(*num_to_mult);
-		num_to_mult_cpy = destructor_unlimited_int.get();
+		num_to_mult_destructor_unlimited_int = std::make_unique<unlimited_int>(*num_to_mult);
+		num_to_mult_cpy = num_to_mult_destructor_unlimited_int.get();
 	}
 	const unlimited_int *smaller_num, *bigger_num;
 	char value_of_comparison = this_cpy->estimate_compare_to_ignore_sign(*num_to_mult_cpy);

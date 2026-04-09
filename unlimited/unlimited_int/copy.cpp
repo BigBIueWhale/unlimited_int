@@ -104,6 +104,15 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, c
 	if (this->find_inconsistencies())
 		throw std::logic_error("Inconsistency was found in start of function \"void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const size_t num_of_ints_to_copy) const\"");
 #endif
+	//num_to_paste_into can't be the same object as *this. The copy walks both the source and the
+	//destination from most significant to least significant at the same time, with the source
+	//pointer offset (this->num_of_used_ints - num_of_ints_to_copy) ahead of the destination
+	//pointer. When copying to itself that offset means the read position lands on data that was
+	//already overwritten (e.g. copying the top 3 ints of [5,6,7,8,9] to itself would yield
+	//[9,8,9] instead of [7,8,9]). Walking in the opposite direction would fix this but the
+	//backward iteration is hard to reverse correctly. operator>>= can be used instead.
+	if (&num_to_paste_into == this)
+		throw std::invalid_argument("Error in function \"void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const size_t num_of_ints_to_copy) const\": num_to_paste_into must not be the same object as *this. Use operator>>= instead.");
 	num_to_paste_into._is_negative = false;
 	if (this->num_of_intarrays_used == (size_t)0)
 	{
