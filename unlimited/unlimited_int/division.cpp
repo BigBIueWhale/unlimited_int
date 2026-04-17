@@ -437,6 +437,7 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 	result.increase_until_num_of_ints(multiplicand.num_of_used_ints + (size_t)1);
 	custom_linked_list_node<int_array>* current_int_array_Node_multiplicand = multiplicand.get_most_significant_used_int_array();
 	custom_linked_list_node<int_array>* current_int_array_Node_result_target = result_target.get_most_significant_used_int_array();
+	const custom_linked_list_node<int_array> *const result_target_intarrays_end = current_int_array_Node_result_target->next;
 	custom_linked_list_node<int_array>* current_int_array_Node_result = result.intarrays->last();
 	int_array current_int_array_multiplicand = *current_int_array_Node_multiplicand->value;
 	int_array current_int_array_result_target = *current_int_array_Node_result_target->value;
@@ -482,7 +483,6 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 	int_array compare_from_int_array_result = current_int_array_result;
 	size_t compare_from_index_result_target = index_result_target;
 	size_t compare_from_index_result = index_result;
-	const custom_linked_list_node<int_array> *const result_target_intarrays_end = result_target.intarrays->end();
 	while (true)
 	{
 		if (int_counter >= stop_at)

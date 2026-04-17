@@ -187,6 +187,7 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, c
 		--current_intarr_this;
 		++num_int;
 	}
+	num_to_paste_into.flush_unused();
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"copy_most_significant_to\":";
 #endif
