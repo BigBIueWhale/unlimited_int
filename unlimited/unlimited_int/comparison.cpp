@@ -148,6 +148,10 @@ char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const
 	char value_compare_estimation = this->estimate_compare_to(num_to_compare_to);
 	if (value_compare_estimation != 'E')
 		return value_compare_estimation;
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (this->num_of_used_ints != num_to_compare_to.num_of_used_ints || this->_is_negative != num_to_compare_to._is_negative)
+		throw std::logic_error("The inconsistency was found after estimate_compare_to returned 'E' in function \"char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const\"");
+#endif
 	const bool both_are_negative = this->_is_negative;
 	if (this->num_of_intarrays_used == (size_t)0) //meaning they're both zero
 		return 'E';

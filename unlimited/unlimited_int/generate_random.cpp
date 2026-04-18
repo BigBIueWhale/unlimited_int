@@ -117,19 +117,41 @@ few_bits unlimited_int::get_least_significant_few_bits() const
 {
 	if (this->is_zero())
 		return (few_bits)0;
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (this->intarrays == nullptr)
+		throw std::logic_error("The inconsistency was found in function \"few_bits unlimited_int::get_least_significant_few_bits() const\": intarrays is nullptr despite is_zero() returning false");
+	if (this->intarrays->first() == this->intarrays->end())
+		throw std::logic_error("The inconsistency was found in function \"few_bits unlimited_int::get_least_significant_few_bits() const\": intarrays is empty despite is_zero() returning false");
+	if (this->intarrays->first()->value == nullptr || this->intarrays->first()->value->intarr == nullptr)
+		throw std::logic_error("The inconsistency was found in function \"few_bits unlimited_int::get_least_significant_few_bits() const\": first int_array is missing storage");
+#endif
 	return *this->intarrays->first()->value->intarr;
 }
 many_bits unlimited_int::get_least_significant_many_bits() const
 {
 	if (this->is_zero())
 		return (few_bits)0;
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (this->intarrays == nullptr)
+		throw std::logic_error("The inconsistency was found in function \"many_bits unlimited_int::get_least_significant_many_bits() const\": intarrays is nullptr despite is_zero() returning false");
+	if (this->intarrays->first() == this->intarrays->end())
+		throw std::logic_error("The inconsistency was found in function \"many_bits unlimited_int::get_least_significant_many_bits() const\": intarrays is empty despite is_zero() returning false");
+	if (this->intarrays->first()->value == nullptr || this->intarrays->first()->value->intarr == nullptr)
+		throw std::logic_error("The inconsistency was found in function \"many_bits unlimited_int::get_least_significant_many_bits() const\": first int_array is missing storage");
+#endif
 	const custom_linked_list_node<int_array> *const this_intarrays_first = this->intarrays->first();
 	const many_bits least_significant_many_bits = static_cast<many_bits>(*this_intarrays_first->value->intarr);
 	if (this->num_of_used_ints == (size_t)1)
 		return least_significant_many_bits;
 	many_bits second_least_significant_many_bits;
 	if (this_intarrays_first->value->num_of_used_ints == (size_t)1)
+	{
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+		if (this_intarrays_first->next == this->intarrays->end() || this_intarrays_first->next->value == nullptr || this_intarrays_first->next->value->intarr == nullptr)
+			throw std::logic_error("The inconsistency was found in function \"many_bits unlimited_int::get_least_significant_many_bits() const\": num_of_used_ints is at least 2 but the second used int_array is missing");
+#endif
 		second_least_significant_many_bits = static_cast<many_bits>(*this_intarrays_first->next->value->intarr);
+	}
 	else
 		second_least_significant_many_bits = static_cast<many_bits>(*(this_intarrays_first->value->intarr + (size_t)1));
 	return (second_least_significant_many_bits << NUM_OF_BITS_few_bits) + least_significant_many_bits;

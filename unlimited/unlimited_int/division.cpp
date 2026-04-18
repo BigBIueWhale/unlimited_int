@@ -386,11 +386,11 @@ few_bits unlimited_int::find_single_int_quotient(const unlimited_int& num_to_div
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if ((this->find_inconsistencies()) || (num_to_divide_by.find_inconsistencies()))
 		throw std::logic_error("The inconsistency was found in function \"few_bits unlimited_int::find_single_int_quotient(const unlimited_int& num_to_divide_by) const\"");
+#endif
 	if (num_to_divide_by.num_of_used_ints == (size_t)0)
 		throw std::invalid_argument("Error in function \"few_bits unlimited_int::find_single_int_quotient(const unlimited_int& num_to_divide_by) const\": num_to_divide_by must not be zero");
 	if (this->num_of_used_ints > num_to_divide_by.num_of_used_ints + (size_t)1)
 		throw std::invalid_argument("Error in function \"few_bits unlimited_int::find_single_int_quotient(const unlimited_int& num_to_divide_by) const\": *this must have at most one more int used than num_to_divide_by so that the result fits in a few_bits");
-#endif
 	//Fast path: Knuth's Algorithm D quotient estimation. Requires the top int of num_to_divide_by to have its high bit set. When that holds, Knuth proves the estimate is at most 2 too big; without it the number of corrections needed is not bounded by a small constant.
 	custom_linked_list_node<int_array>* v_top_node = num_to_divide_by.get_most_significant_used_int_array();
 	const few_bits v_top = v_top_node->value->intarr[v_top_node->value->num_of_used_ints - (size_t)1];
@@ -469,11 +469,11 @@ few_bits unlimited_int::find_single_int_quotient(const few_bits num_to_divide_by
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in function \"few_bits unlimited_int::find_single_int_quotient(const few_bits num_to_divide_by) const\"");
+#endif
 	if (num_to_divide_by == (few_bits)0)
 		throw std::invalid_argument("Error in function \"few_bits unlimited_int::find_single_int_quotient(const few_bits num_to_divide_by) const\": num_to_divide_by must not be zero");
 	if (this->num_of_used_ints > (size_t)2)
 		throw std::invalid_argument("Error in function \"few_bits unlimited_int::find_single_int_quotient(const few_bits num_to_divide_by) const\": *this must have at most 2 ints used so that the result fits in a few_bits");
-#endif
 	//Assemble *this into a single many_bits value. The caller's contract guarantees at most two few_bits ints are used. The least significant int is at intarrays->first()->value->intarr[0]. The second int, if present, lives either at intarr[1] of the first int_array or at intarr[0] of the next int_array in the linked list, depending on how the storage happened to get laid out.
 	many_bits this_as_many_bits = (many_bits)0;
 	if (this->num_of_used_ints >= (size_t)1)

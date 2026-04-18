@@ -36,6 +36,12 @@ def karatsuba(num1, num2):
 static constexpr size_t MIN_KARATSUBA = 80;
 unlimited_int unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const
 {
+	if (num_to_mult == nullptr)
+		throw std::invalid_argument("Error in function \"unlimited_int unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const\": num_to_mult must not be nullptr");
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (this->find_inconsistencies() || num_to_mult->find_inconsistencies())
+		throw std::logic_error("The inconsistency was found in start of function \"unlimited_int unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult) const\"");
+#endif
 	const size_t num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
 	const size_t this_num_of_used_ints = this->num_of_used_ints;
 	if (num_to_mult_num_of_used_ints <= (size_t)MIN_KARATSUBA || this_num_of_used_ints <= (size_t)MIN_KARATSUBA)
@@ -80,6 +86,12 @@ unlimited_int unlimited_int::multiply_karatsuba(const unlimited_int* num_to_mult
 }
 unlimited_int unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unlimited_int* num_to_mult)
 {
+	if (num_to_mult == nullptr)
+		throw std::invalid_argument("Error in function \"unlimited_int unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unlimited_int* num_to_mult)\": num_to_mult must not be nullptr");
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (this->find_inconsistencies() || num_to_mult->find_inconsistencies())
+		throw std::logic_error("The inconsistency was found in start of function \"unlimited_int unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unlimited_int* num_to_mult)\"");
+#endif
 	const size_t num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
 	const size_t this_num_of_used_ints = this->num_of_used_ints;
 	if (num_to_mult_num_of_used_ints <= (size_t)MIN_KARATSUBA || this_num_of_used_ints <= (size_t)MIN_KARATSUBA)
@@ -126,6 +138,12 @@ unlimited_int unlimited_int::multiply_karatsuba_destroy_this_and_num_to_mult(unl
 }
 unlimited_int unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult)
 {
+	if (num_to_mult == nullptr)
+		throw std::invalid_argument("Error in function \"unlimited_int unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult)\": num_to_mult must not be nullptr");
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (this->find_inconsistencies() || num_to_mult->find_inconsistencies())
+		throw std::logic_error("The inconsistency was found in start of function \"unlimited_int unlimited_int::multiply_karatsuba_destroy_this(const unlimited_int* num_to_mult)\"");
+#endif
 	const size_t num_to_mult_num_of_used_ints = num_to_mult->num_of_used_ints;
 	const size_t this_num_of_used_ints = this->num_of_used_ints;
 	if (num_to_mult_num_of_used_ints <= (size_t)MIN_KARATSUBA || this_num_of_used_ints <= (size_t)MIN_KARATSUBA)

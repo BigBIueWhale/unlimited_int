@@ -35,6 +35,12 @@ custom_linked_list_node<int_array>* unlimited_int::get_most_significant_used_int
 {
 	if (this->num_of_intarrays_used == (size_t)0)
 		throw std::logic_error("Error in start of function \"Node* unlimited_int::get_last_intarray() const\" there are no used intarrays");
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (this->intarrays == nullptr)
+		throw std::logic_error("The inconsistency was found in function \"Node* unlimited_int::get_most_significant_used_int_array() const\": num_of_intarrays_used is non-zero but intarrays is nullptr");
+	if (this->intarrays->size() < this->num_of_intarrays_used)
+		throw std::logic_error("The inconsistency was found in function \"Node* unlimited_int::get_most_significant_used_int_array() const\": intarrays.size() is smaller than num_of_intarrays_used");
+#endif
 	const size_t num_of_intarrays_unused = this->intarrays->size() - this->num_of_intarrays_used;
 	custom_linked_list_node<int_array>* it = this->intarrays->last();
 	for (size_t counter = (size_t)0; counter < num_of_intarrays_unused; ++counter)

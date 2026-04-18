@@ -47,6 +47,10 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		answer->_is_negative = was_negative;
 		return;
 	}
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (num_to_add == this || this->num_of_intarrays_used == (size_t)0 || num_to_add->num_of_intarrays_used == (size_t)0)
+		throw std::logic_error("The inconsistency was found in start of main path of function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"");
+#endif
 	int num_of_negatives = 0;
 	bool this_is_negative = this->_is_negative, add_is_negative = num_to_add->_is_negative, set_answer_to_negative;
 	if (this_is_negative)
@@ -77,6 +81,10 @@ void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) 
 		set_answer_to_negative = false;
 	unlimited_int* smaller_num, * larger_num;
 	char compare_result = this_copy.estimate_compare_to_ignore_sign(num_to_add_copy);
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (compare_result != 'E' && compare_result != 'L' && compare_result != 'S')
+		throw std::logic_error("The inconsistency was found after estimate_compare_to_ignore_sign in function \"void unlimited_int::add(const unlimited_int* num_to_add, unlimited_int* answer) const\"");
+#endif
 	if (compare_result == 'L')
 	{
 		larger_num = &this_copy;

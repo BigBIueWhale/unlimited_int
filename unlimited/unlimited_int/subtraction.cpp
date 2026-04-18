@@ -28,8 +28,13 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 				num_to_subtract->copy_to(*answer);
 				answer->_is_negative = !answer->_is_negative;
 			}
-			return;
 		}
+		else //num_to_subtract aliases answer and *this is zero: answer = 0 - *answer = -*answer, in place
+		{
+			if (answer->num_of_used_ints != (size_t)0)
+				answer->_is_negative = !answer->_is_negative;
+		}
+		return;
 	}
 	if (num_to_subtract->num_of_intarrays_used == (size_t)0)
 	{
@@ -37,6 +42,10 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 			this->copy_to(*answer);
 		return;
 	}
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (num_to_subtract == this || this->num_of_intarrays_used == (size_t)0 || num_to_subtract->num_of_intarrays_used == (size_t)0)
+		throw std::logic_error("The inconsistency was found in start of main path of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
+#endif
 	const bool num_to_subtract_is_negative = num_to_subtract->_is_negative;
 	const bool this_is_negative = this->_is_negative;
 	unlimited_int this_copy(*this, false);
@@ -69,6 +78,10 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 		return;
 	}
 	char compare_result = this_copy.compare_to_ignore_sign(num_to_subtract_copy);
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (compare_result != 'E' && compare_result != 'L' && compare_result != 'S')
+		throw std::logic_error("The inconsistency was found after compare_to_ignore_sign in function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
+#endif
 	if (compare_result == 'E')
 	{
 		answer->set_to_zero();
@@ -77,10 +90,7 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 #endif
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 		if (answer->find_inconsistencies())
-		{
-			if (answer->find_inconsistencies())
-				throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
-		}
+			throw std::logic_error("The inconsistency was found in end of function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
 #endif
 		return;
 	}
@@ -92,6 +102,10 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 		this_copy.swap(num_to_subtract_copy);
 		set_answer_to_negative = true;
 	}
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (this_copy.num_of_used_ints < num_to_subtract_copy.num_of_used_ints)
+		throw std::logic_error("The inconsistency was found after compare-and-swap in function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\"");
+#endif
 	if (this_copy.fits_in_many_bits() && num_to_subtract_copy.fits_in_many_bits())
 	{
 		*answer = this_copy.to_many_bits() - num_to_subtract_copy.to_many_bits();
@@ -100,6 +114,10 @@ void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int
 	}
 	size_t num_of_used_ints_this = this_copy.num_of_used_ints;
 	answer->increase_until_num_of_ints(num_of_used_ints_this);
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	if (this_copy.intarrays == nullptr || num_to_subtract_copy.intarrays == nullptr)
+		throw std::logic_error("The inconsistency was found before main loop in function \"void unlimited_int::subtract(const unlimited_int* num_to_subtract, unlimited_int* answer) const\": one of the working copies has a null intarrays pointer");
+#endif
 	custom_linked_list_node<int_array>* it_this = this_copy.intarrays->first();
 	custom_linked_list_node<int_array>* it_subtract = num_to_subtract_copy.intarrays->first();
 	custom_linked_list_node<int_array>* it_answer = answer->intarrays->first();
