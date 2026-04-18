@@ -26,7 +26,6 @@ unlimited_int unlimited_int::calculate_sha256_hash() const
 	else
 	{
 		const custom_linked_list_node<int_array>* current_int_array_Node = this->get_most_significant_used_int_array();
-		const custom_linked_list_node<int_array>* const begin_node = this->intarrays->begin();
 		int_array current_int_array = *current_int_array_Node->value;
 		size_t current_index_in_int_array = current_int_array.num_of_used_ints - (size_t)1;
 		const few_bits most_significant_used_few_bits_in_number = current_int_array.intarr[current_index_in_int_array];
@@ -36,40 +35,25 @@ unlimited_int unlimited_int::calculate_sha256_hash() const
 		static_assert(sizeof(few_bits) == sizeof(uint32_t), "Assuming that few_bits is the same size as uint32_t");
 		current_block[index_in_block] = most_significant_used_few_bits_in_number;
 		++index_in_block;
-		if (current_index_in_int_array-- == (size_t)0)
+		//The backward walk is bounded by ints_remaining, not by a begin-sentinel pointer comparison, so it never dereferences begin()->previous. Node stepback assumes every int_array node visited has num_of_used_ints >= 1, which is a class invariant enforced by find_inconsistencies.
+		size_t ints_remaining = this->num_of_used_ints - (size_t)1;
+		while (ints_remaining > (size_t)0)
 		{
-			current_int_array_Node = current_int_array_Node->previous;
-			if (current_int_array_Node != begin_node) //reached the end of the list_of_int_arrays
+			if (current_index_in_int_array == (size_t)0)
 			{
+				current_int_array_Node = current_int_array_Node->previous;
 				current_int_array = *current_int_array_Node->value;
-				current_index_in_int_array = current_int_array.num_of_used_ints - (size_t)1;
+				current_index_in_int_array = current_int_array.num_of_used_ints;
 			}
-		}
-		if (current_int_array_Node != begin_node)
-		{
-			//TODO: Per-element boundary check on current_index_in_int_array can be replaced with
-			//deferred index reconciliation using a stop_at threshold (see addition.cpp). Backward
-			//iteration and the fixed-size 16-element block buffer make this more complex to retrofit.
-			while (true)
+			--current_index_in_int_array;
+			current_block[index_in_block] = current_int_array.intarr[current_index_in_int_array];
+			++index_in_block;
+			if (index_in_block >= 16)
 			{
-				const few_bits current_few_bits = current_int_array.intarr[current_index_in_int_array];
-				static_assert(NUM_OF_BITS_few_bits == 32, "Assertion error. Wrong assumption that UNLIMITED_INT_NUM_OF_BITS_few_bits is 32 bits.");
-				current_block[index_in_block] = current_few_bits;
-				++index_in_block;
-				if (index_in_block >= 16)
-				{
-					index_in_block = 0;
-					SHA256_compress_message_block(current_block, current_hash_values);
-				}
-				if (current_index_in_int_array-- == (size_t)0)
-				{
-					current_int_array_Node = current_int_array_Node->previous;
-					if (current_int_array_Node == begin_node) //reached the end of the list_of_int_arrays
-						break;
-					current_int_array = *current_int_array_Node->value;
-					current_index_in_int_array = current_int_array.num_of_used_ints - (size_t)1;
-				}
+				index_in_block = 0;
+				SHA256_compress_message_block(current_block, current_hash_values);
 			}
+			--ints_remaining;
 		}
 		if (index_in_block >= 16) //not enough room for the 1 at the end of the current block
 		{
