@@ -13,6 +13,8 @@ void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_
 	if (this->find_inconsistencies())
 		throw std::logic_error("The inconsistency was found in start of function \"void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_int* low) const\"");
 #endif
+	if (high == low)
+		throw std::invalid_argument("Error in function \"void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_int* low) const\": high and low must be distinct objects.");
 	const size_t this_num_of_used_ints = this->num_of_used_ints;
 	if (index >= this_num_of_used_ints)
 	{

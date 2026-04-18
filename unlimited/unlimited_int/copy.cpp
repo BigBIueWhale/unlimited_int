@@ -12,6 +12,8 @@ void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("inconsistency found in the beginning of \"void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const\"");
+	if (!num_to_paste_into.auto_destroy && num_to_paste_into.intarrays != nullptr)
+		throw std::logic_error("Error in function \"void unlimited_int::copy_to(unlimited_int& num_to_paste_into) const\": num_to_paste_into appears to be a non-owning view (auto_destroy is false and intarrays is not null). Call forget_memory() on it first, otherwise copy_to would silently take ownership of shared storage.");
 #endif
 	num_to_paste_into.auto_destroy = true;
 	size_t this_num_of_used_ints = this->num_of_used_ints;
@@ -103,6 +105,8 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, c
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
 		throw std::logic_error("Inconsistency was found in start of function \"void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const size_t num_of_ints_to_copy) const\"");
+	if (!num_to_paste_into.auto_destroy && num_to_paste_into.intarrays != nullptr)
+		throw std::logic_error("Error in function \"void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, const size_t num_of_ints_to_copy) const\": num_to_paste_into appears to be a non-owning view (auto_destroy is false and intarrays is not null). Call forget_memory() on it first, otherwise the function would silently write through shared storage.");
 #endif
 	//num_to_paste_into can't be the same object as *this. The copy walks both the source and the
 	//destination from most significant to least significant at the same time, with the source
