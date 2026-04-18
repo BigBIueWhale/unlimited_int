@@ -183,7 +183,7 @@ unlimited_int unlimited_int::recurring_division(const unlimited_int& dividend, c
 		//promote the importance of the current fingerprint by moving it to the head of the list (most recently used)
 		unlimited_int::Newton_Raphson_lookup.most_recent.push_front(item_in_list);
 		const bool is_different_divisor = divisor.calculate_efficient_cryptographic_hash() != *reciprocal.hash_of_dividend;
-		if ((reciprocal.amount_shifted < (dividend.num_of_used_ints + (size_t)AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL)) //reciprocal exists but doesn't have enough precision
+		if ((reciprocal.reciprocal_info.amount_shifted < (dividend.num_of_used_ints + (size_t)AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL)) //reciprocal exists but doesn't have enough precision
 			|| is_different_divisor) //or the fingerprint was matching just by chance, a hash collision (that's why we're checking with a cryptographic hash as well)
 		{
 			need_to_calculate_reciprocal = true;
@@ -219,7 +219,7 @@ unlimited_int unlimited_int::recurring_division(const unlimited_int& dividend, c
 		}
 		reciprocal_iterator_in_map = unlimited_int::Newton_Raphson_lookup.reciprocals_map.find(fingerprint_divisor);
 	}
-	return unlimited_int::divide_using_reciprocal(dividend, reciprocal_iterator_in_map->second, divisor, remainder);
+	return unlimited_int::divide_using_reciprocal(dividend, reciprocal_iterator_in_map->second.reciprocal_info, divisor, remainder);
 }
 unlimited_int unlimited_int::remainder_recurring_divison(const unlimited_int& dividend, const unlimited_int& divisor)
 {

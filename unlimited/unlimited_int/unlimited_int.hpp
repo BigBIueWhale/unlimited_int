@@ -13,20 +13,15 @@ namespace unlimited
 	{
 	public:
 		std::unique_ptr<unlimited_int> reciprocal; //the reciprocal_itself
-		size_t amount_shifted; //the amount shifted left during the reciprocal calculation
-		reciprocal_information(std::unique_ptr<unlimited_int>&& reciprocal, size_t amount_shifted);
-		reciprocal_information(reciprocal_information&&) noexcept; //move constructor
-		reciprocal_information() : amount_shifted((size_t)0) {}
+		size_t amount_shifted = (size_t)0; //the amount shifted left during the reciprocal calculation
 	};
-	struct reciprocal_information_for_database : public reciprocal_information
+	struct reciprocal_information_for_database
 	{
 	public:
-		std::unique_ptr<unlimited_int> hash_of_dividend;
+		reciprocal_information reciprocal_info; //the reciprocal together with the amount it was shifted during the reciprocal calculation
+		std::unique_ptr<unlimited_int> hash_of_dividend; //cryptographic hash of the divisor, used to distinguish genuine hits from fingerprint collisions
 		//Only my custom doubly-linked list is guaranteed to support keeping a valid pointer to a node in the list without that pointer becoming invalidated after changing the list
-		custom_linked_list_node<size_t>* link_to_list;
-		reciprocal_information_for_database(reciprocal_information&&, std::unique_ptr<unlimited_int>&&, custom_linked_list_node<size_t>*);
-		reciprocal_information_for_database(reciprocal_information_for_database&&) noexcept; //move constructor
-		reciprocal_information_for_database() : link_to_list(nullptr) {}
+		custom_linked_list_node<size_t>* link_to_list = nullptr;
 	};
 	struct reciprocals_database
 	{
@@ -36,7 +31,7 @@ namespace unlimited
 		//We don't want to be dependent on the implementation of our specific compiler's standard library.
 		custom_linked_list<size_t> most_recent; //fingerprints of the most recent.
 		//clears the saved reciprocals in the database, they'll be destoyed anyways by the destructor
-		void clear();
+		void clear() { this->most_recent.clear(); this->reciprocals_map.clear(); }
 	};
 	class unlimited_int
 	{
