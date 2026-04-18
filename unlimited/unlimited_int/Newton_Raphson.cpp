@@ -15,7 +15,14 @@ reciprocal_information unlimited_int::calculate_reciprocal_floor(size_t length_d
 	const size_t amount_to_shift_by = length_dividend_to_support + (size_t)AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL;
 	unlimited_int two_shifted((few_bits)2);
 	two_shifted.shift_left(amount_to_shift_by);
-	unlimited_int approx((few_bits)1);
+	//Starting value for the Newton Raphson iteration below. The target value that the iteration converges to is T = floor(B^k / N), where B = 2^NUM_OF_BITS_few_bits, N = *this, k = amount_to_shift_by, and d = num_of_used_ints. T sits somewhere in the range (B^(k-d), B^(k-d+1)]. The simplest starting value is just approx = B^(k-d), which is at the bottom of that range. When N's top int is small, T sits near the top of the range and so the simple starting value is up to a factor of B below T. Each Newton Raphson step only roughly doubles approx until approx gets close to T, so that factor-of-B gap can cost up to log2(B) extra iterations (that's 32 iterations on 32-bit platforms, 64 on 64-bit) before the iteration starts converging quickly. Computing the starting value from N's top int closes most of that gap for the cost of one hardware many_bits/few_bits divide, and preserves the property approx <= T that the rest of this function counts on.
+	//Why approx <= T still holds: let top be the most-significant used int of *this. Since N has d ints with top int equal to top, N is strictly less than (top + 1) * B^(d-1), so T is strictly greater than B^(k-d+1)/(top + 1). Taking q = floor(B/(top + 1)) from the hardware divide, we have q * (top + 1) <= B, so q * B^(k-d) <= B^(k-d+1)/(top + 1) < B^k/N. Since q * B^(k-d) is a non-negative whole number strictly less than B^k/N, it is at most floor(B^k/N) = T. So approx <= T, exactly the property that the old starting value approx = B^(k-d) also had.
+	//Why the new starting value is never worse than the old one: when top = B - 1 the expression floor(B/(top + 1)) evaluates to exactly 1 and we get back the old starting value. For every smaller top the expression is at least 1 and is at least 2 once top + 1 <= B/2, so the new starting value is never below the old one and is strictly greater for any divisor whose top int has its top bit unset.
+	custom_linked_list_node<int_array>* approx_top_node = this->get_most_significant_used_int_array();
+	const few_bits approx_top_int = approx_top_node->value->intarr[approx_top_node->value->num_of_used_ints - (size_t)1];
+	const many_bits B_as_many_bits = ((many_bits)1) << (many_bits)NUM_OF_BITS_few_bits;
+	const few_bits approx_leading_coefficient = (few_bits)(B_as_many_bits / ((many_bits)approx_top_int + (many_bits)1));
+	unlimited_int approx(approx_leading_coefficient);
 	approx.shift_left(amount_to_shift_by - this->num_of_used_ints);
 	unlimited_int previous_approx;
 	unlimited_int N(*this, false);

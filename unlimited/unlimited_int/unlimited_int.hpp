@@ -177,7 +177,7 @@ namespace unlimited
 		void multiply_answer_only_one_array(const few_bits num_to_mult, unlimited_int* answer) const;
 //Division
 		//Divides two numbers, ignores sign.
-		//Splits the numerator so that its length is roughly equal to the denominator and then uses binary_search_divide.
+		//Splits the numerator so that its length is roughly equal to the denominator and then uses find_single_int_quotient.
 		//It's the grade-school algorithm.
 		//Ignores sign, returns non-negative value.
 		unlimited_int divide_by(const unlimited_int& num_to_divide_by) const;
@@ -191,10 +191,10 @@ namespace unlimited
 		//Ignores sign, returns non-negative value.
 		unlimited_int divide_by_repeated_addition(const unlimited_int& num_to_divide_by) const;
 		//Accepts two unlimited_ints that the result of their division fits in "few_bits".
-		//It uses binary search while continuously using compare_multiplication_to_num to get the comparisons for the binary search.
-		few_bits binary_search_divide(const unlimited_int& num_to_divide_by) const;
-		few_bits binary_search_divide(const few_bits num_to_divide_by) const;
-		//function used by the long division binary search. Compares the result of multiplication of the multiplicand by the multiplier to the result target.
+		//Fast path uses a single hardware many_bits/few_bits divide to estimate the quotient int and then corrects with compare_multiplication_to_num. Falls back to a binary search over [0, MAX_few_bits_NUM] (using compare_multiplication_to_num at each step) for divisors whose top int does not have its high bit set, which keeps the function correct for every valid input.
+		few_bits find_single_int_quotient(const unlimited_int& num_to_divide_by) const;
+		few_bits find_single_int_quotient(const few_bits num_to_divide_by) const;
+		//function used by the long division binary search fallback above. Compares the result of multiplication of the multiplicand by the multiplier to the result target.
 		//Returns 'L' if the multiplication result is greater than the result_target. Returns 'E' if it's equal or 'S' if it's smaller. Ignores sign of the parameters.
 		static char compare_multiplication_to_num(const unlimited_int& multiplicand, const few_bits multiplier, const unlimited_int& result_target);
 		//Used by divide_by
@@ -215,7 +215,6 @@ namespace unlimited
 		static char number_to_char(const unsigned int num, const unsigned int base);
 		//get the number of consecutive bits that are zero in the most significant part of few_bits
 		static int num_of_zero_bits_preceding_number(const few_bits);
-		static int num_of_zero_bits_succeeding_number(const few_bits);
 		static int find_exact_log_2(few_bits num, bool* const is_power_2);
 		//Checks whether a number is an exact power of 2 and if it is, the result is returned.
 		//Receives bool* of is_power_2 and if the number isn't an exact power of 2, that bool is set to false.

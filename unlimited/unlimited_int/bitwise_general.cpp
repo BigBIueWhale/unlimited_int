@@ -18,30 +18,18 @@ int unlimited_int::num_of_zero_bits_preceding_number(const few_bits original_num
 	}
 	return amount_to_shift - 1;
 }
-int unlimited_int::num_of_zero_bits_succeeding_number(const few_bits original_num)
-{
-	if (original_num == (few_bits)0U)
-		return NUM_OF_BITS_few_bits;
-	few_bits original_num_cpy = original_num;
-	int amount_to_shift;
-	for (amount_to_shift = 1; amount_to_shift < NUM_OF_BITS_few_bits; ++amount_to_shift)
-	{
-		original_num_cpy >>= amount_to_shift;
-		original_num_cpy <<= amount_to_shift;
-		if (original_num_cpy != original_num)
-			break;
-	}
-	return amount_to_shift - 1;
-}
 int unlimited_int::find_exact_log_2(const few_bits num, bool* const is_power_2)
 {
+	//Fast power-of-2 test: num has exactly one bit set if and only if num is non-zero and "num & (num - 1)" is zero. See the longer comment in bitwise_log2.cpp for the reasoning. This rejection runs in a handful of native instructions and avoids calling the O(NUM_OF_BITS_few_bits) helpers in the common case where num is not a power of 2.
+	if (num == (few_bits)0 || ((num & (num - (few_bits)1)) != (few_bits)0))
+	{
+		*is_power_2 = false;
+		return 0;
+	}
+	//num has exactly one bit set, so it is a power of 2. The position of that bit inside num is what we need to return as the log2. That position is NUM_OF_BITS_few_bits - 1 - the count of zero bits to the left of the set bit.
 	const int preceding = unlimited_int::num_of_zero_bits_preceding_number(num);
-	const int succeeding = unlimited_int::num_of_zero_bits_succeeding_number(num);
-	const bool is_power_of_2_local = preceding + succeeding + 1 == NUM_OF_BITS_few_bits;
-	*is_power_2 = is_power_of_2_local;
-	if (is_power_of_2_local)
-		return succeeding;
-	return 0;
+	*is_power_2 = true;
+	return NUM_OF_BITS_few_bits - 1 - preceding;
 }
 size_t unlimited_int::get_length_in_bits() const
 {

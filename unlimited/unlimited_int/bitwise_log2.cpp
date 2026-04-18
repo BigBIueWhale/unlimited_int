@@ -23,13 +23,15 @@ size_t unlimited_int::find_exact_log_2(bool *const is_power_2) const
 	size_t index_in_int_array = current_int_array.num_of_used_ints - (size_t)1;
 	few_bits current_int = current_int_array.intarr[index_in_int_array];
 	const few_bits most_significant_int = current_int;
-	const int num_of_zeros_preceding_most_significant_int = unlimited_int::num_of_zero_bits_preceding_number(most_significant_int);
-	const size_t num_of_used_bits_in_most_significant_int = (size_t)NUM_OF_BITS_few_bits - (size_t)num_of_zeros_preceding_most_significant_int;
-	if (num_of_zeros_preceding_most_significant_int + unlimited_int::num_of_zero_bits_succeeding_number(most_significant_int) + 1 != NUM_OF_BITS_few_bits) //there's more than one 1 bit in the number
+	//Check whether most_significant_int has exactly one bit set. The expression "x & (x - 1)" clears the lowest set bit of x, so the result is zero exactly when x had at most one bit set. Combined with the most_significant_int != 0 guard this is the standard one-line power-of-2 test. It returns the same answer as "num_of_zero_bits_preceding_number + num_of_zero_bits_succeeding_number + 1 == NUM_OF_BITS_few_bits" but does not call either helper, which avoids those helpers' O(NUM_OF_BITS_few_bits) internal loop in the common case where most_significant_int is not a power of 2.
+	if (most_significant_int == (few_bits)0 || ((most_significant_int & (most_significant_int - (few_bits)1)) != (few_bits)0)) //there's more than one 1 bit in the number, or the number is zero
 	{
 		*is_power_2 = false;
 		return MAX_size_t_NUM;
 	}
+	//Reaching here means most_significant_int has exactly one bit set, so the whole number is a power of 2 if and only if every less-significant int is zero. num_of_zero_bits_preceding_number is used below only to figure out which bit inside most_significant_int is the one that is set, so the bit position can be added to the count of bits in the less-significant ints when producing the return value.
+	const int num_of_zeros_preceding_most_significant_int = unlimited_int::num_of_zero_bits_preceding_number(most_significant_int);
+	const size_t num_of_used_bits_in_most_significant_int = (size_t)NUM_OF_BITS_few_bits - (size_t)num_of_zeros_preceding_most_significant_int;
 	bool got_to_beginning = false;
 	if (index_in_int_array-- == (size_t)0)
 	{

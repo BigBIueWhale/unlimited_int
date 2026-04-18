@@ -129,19 +129,43 @@ unlimited_int unlimited_int::divide_by(const unlimited_int& num_to_divide_by) co
 		this_positive._is_negative = false;
 		return this_positive >> exact_power_of_2;
 	}
-	//If the lengths are the same, the result is guaranteed to fit into a few_bits
-	if (num_of_used_ints_this == num_of_used_ints_divide)
-		return unlimited_int(this->binary_search_divide(num_to_divide_by));
+	//Shift *this and num_to_divide_by left by the number of leading zero bits in num_to_divide_by's top int so that num_to_divide_by's top int has its high bit set. The result of floor(u / v) is unchanged when you shift the numerator and the denominator left by the same amount, so the final answer is unaffected. Once num_to_divide_by's top int has its high bit set, every call to find_single_int_quotient below takes its Knuth Algorithm D fast path with a correction loop that always ends in a couple of iterations, instead of the log2(B)-iteration binary search fallback. The up-front cost is shifting *this and num_to_divide_by once each per divide_by call; the saving is log2(B) work per quotient int in the main loop below.
+	custom_linked_list_node<int_array>* divisor_top_node = num_to_divide_by.get_most_significant_used_int_array();
+	const few_bits divisor_top_int = divisor_top_node->value->intarr[divisor_top_node->value->num_of_used_ints - (size_t)1];
+	const int leading_zero_bits_in_divisor_top = unlimited_int::num_of_zero_bits_preceding_number(divisor_top_int);
+	//Shifted copies are only constructed when a shift is actually needed; when the divisor already has its top bit set, this_to_use and divisor_to_use point directly at the originals and no extra memory is allocated. The two-copies-once-per-call pattern is strictly fewer heap interactions than the old binary-search path, which allocated scratch inside compare_multiplication_to_num on each of its log2(B) iterations per quotient int: the old per-divide_by allocation count grew as (number of quotient ints) * log2(B), while the new count is bounded by 2 regardless of how many quotient ints the main loop produces.
+	unlimited_int this_shifted;
+	unlimited_int divisor_shifted;
+	const unlimited_int* this_to_use = this;
+	const unlimited_int* divisor_to_use = &num_to_divide_by;
+	size_t num_of_used_ints_this_to_use = num_of_used_ints_this;
+	size_t num_of_used_ints_divide_to_use = num_of_used_ints_divide;
+	if (leading_zero_bits_in_divisor_top > (int)0)
+	{
+		this_shifted = *this;
+		this_shifted._is_negative = false;
+		this_shifted <<= (size_t)leading_zero_bits_in_divisor_top;
+		divisor_shifted = num_to_divide_by;
+		divisor_shifted._is_negative = false;
+		divisor_shifted <<= (size_t)leading_zero_bits_in_divisor_top;
+		this_to_use = &this_shifted;
+		divisor_to_use = &divisor_shifted;
+		num_of_used_ints_this_to_use = this_shifted.num_of_used_ints;
+		num_of_used_ints_divide_to_use = divisor_shifted.num_of_used_ints;
+	}
+	//If the lengths are the same (after the shift above, if there was one), the result is guaranteed to fit into a few_bits
+	if (num_of_used_ints_this_to_use == num_of_used_ints_divide_to_use)
+		return unlimited_int(this_to_use->find_single_int_quotient(*divisor_to_use));
 	unlimited_int answer;
 	unlimited_int partial_this;
-	size_t num_of_ints_currently_using_from_this = num_of_used_ints_divide;
-	this->copy_most_significant_to(partial_this, num_of_ints_currently_using_from_this);
-	int_array_list::list_location ll_start = this->find_num_used_int_from_significant(num_of_ints_currently_using_from_this + (size_t)1);
+	size_t num_of_ints_currently_using_from_this = num_of_used_ints_divide_to_use;
+	this_to_use->copy_most_significant_to(partial_this, num_of_ints_currently_using_from_this);
+	int_array_list::list_location ll_start = this_to_use->find_num_used_int_from_significant(num_of_ints_currently_using_from_this + (size_t)1);
 	custom_linked_list_node<int_array>* it_this = ll_start.node;
 	int_array* current_int_array_this = it_this->value;
-	const custom_linked_list_node<int_array> *const this_intarrays_begin =  this->intarrays->begin();
+	const custom_linked_list_node<int_array> *const this_intarrays_begin =  this_to_use->intarrays->begin();
 	size_t index_this = ll_start.index;
-	const char result_compare2 = partial_this.compare_to_ignore_sign(num_to_divide_by);
+	const char result_compare2 = partial_this.compare_to_ignore_sign(*divisor_to_use);
 	if (result_compare2 == 'S')
 	{
 		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
@@ -176,13 +200,13 @@ unlimited_int unlimited_int::divide_by(const unlimited_int& num_to_divide_by) co
 				continue;
 			}
 		}
-		const few_bits binary_search_division_result = partial_this.binary_search_divide(num_to_divide_by);
-		answer.push_to_insignificant(binary_search_division_result);
-		num_to_divide_by.multiply(binary_search_division_result, &result_of_multiplication);
+		const few_bits single_int_quotient_result = partial_this.find_single_int_quotient(*divisor_to_use);
+		answer.push_to_insignificant(single_int_quotient_result);
+		divisor_to_use->multiply(single_int_quotient_result, &result_of_multiplication);
 		result_of_multiplication._is_negative = false;
 		partial_this.subtract(&result_of_multiplication, &partial_this);
 		result_of_multiplication.flush();
-		if (num_of_ints_currently_using_from_this >= num_of_used_ints_this)
+		if (num_of_ints_currently_using_from_this >= num_of_used_ints_this_to_use)
 			break;
 		partial_this.push_to_insignificant(current_int_array_this->intarr[index_this]);
 		++num_of_ints_currently_using_from_this;
@@ -291,7 +315,7 @@ unlimited_int unlimited_int::divide_by(const few_bits num_to_divide_by) const
 				continue;
 			}
 		}
-		const few_bits mini_division_result = partial_this.binary_search_divide(num_to_divide_by);
+		const few_bits mini_division_result = partial_this.find_single_int_quotient(num_to_divide_by);
 		answer.push_to_insignificant(mini_division_result);
 		const many_bits result_of_multiplication = (many_bits)mini_division_result * divisor;
 		const unlimited_int result_of_multiplication_ui(result_of_multiplication);
@@ -351,16 +375,65 @@ void unlimited_int::push_to_insignificant(const few_bits num_to_push)
 #endif
 }
 //This function only produces the correct result when the difference length between the two unlimited_ints is 1 or 0. Length being the the number of few_bits used.
-few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_by) const
+//Fast path: when the top int of num_to_divide_by has its high bit set (v_top >= B/2), one hardware many_bits/few_bits divide on the top two ints of *this and the top int of num_to_divide_by gives an initial guess, which is then corrected downward with a short loop of compare_multiplication_to_num calls. Knuth showed that the guess is at most 2 too big when v_top >= B/2 (TAOCP Vol 2, Theorem B in section 4.3.1), so the correction loop always finishes quickly. That replaces the log2(B)-iteration binary search with a single hardware divide plus a short correction loop, and produces the exact same few_bits result the binary search produced.
+//Fallback path: when the top int of num_to_divide_by does not have its high bit set, the function runs the original binary search, which is correct for every divisor. Callers that invoke this function in a tight loop can make the fast path fire every time by shifting *this and num_to_divide_by left by the same number of bits up front (the quotient is unchanged under that shift, because shifting numerator and denominator by the same power of 2 cancels out).
+few_bits unlimited_int::find_single_int_quotient(const unlimited_int& num_to_divide_by) const
 {
 	static_assert(sizeof(few_bits) * 2 == sizeof(many_bits), "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in function \"few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_by) const\"";
+	std::cout << "\nFinding inconsistencies in function \"few_bits unlimited_int::find_single_int_quotient(const unlimited_int& num_to_divide_by) const\"";
 #endif
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if ((this->find_inconsistencies()) || (num_to_divide_by.find_inconsistencies()))
-		throw std::logic_error("The inconsistency was found in function \"few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_by) const\"");
+		throw std::logic_error("The inconsistency was found in function \"few_bits unlimited_int::find_single_int_quotient(const unlimited_int& num_to_divide_by) const\"");
+	if (num_to_divide_by.num_of_used_ints == (size_t)0)
+		throw std::invalid_argument("Error in function \"few_bits unlimited_int::find_single_int_quotient(const unlimited_int& num_to_divide_by) const\": num_to_divide_by must not be zero");
+	if (this->num_of_used_ints > num_to_divide_by.num_of_used_ints + (size_t)1)
+		throw std::invalid_argument("Error in function \"few_bits unlimited_int::find_single_int_quotient(const unlimited_int& num_to_divide_by) const\": *this must have at most one more int used than num_to_divide_by so that the result fits in a few_bits");
 #endif
+	//Fast path: Knuth's Algorithm D quotient estimation. Requires the top int of num_to_divide_by to have its high bit set. When that holds, Knuth proves the estimate is at most 2 too big; without it the number of corrections needed is not bounded by a small constant.
+	custom_linked_list_node<int_array>* v_top_node = num_to_divide_by.get_most_significant_used_int_array();
+	const few_bits v_top = v_top_node->value->intarr[v_top_node->value->num_of_used_ints - (size_t)1];
+	const few_bits HALF_B = (few_bits)1 << ((few_bits)NUM_OF_BITS_few_bits - (few_bits)1); //= B/2 = smallest value of v_top for which the fast path's correction count stays small
+	if (v_top >= HALF_B)
+	{
+		//Handle the case where *this < num_to_divide_by up front. Knuth's bound assumes *this has one more int than num_to_divide_by with *this's top int strictly less than num_to_divide_by's top int, which is exactly what divide_by's main loop feeds us. When *this and num_to_divide_by have the same length, Knuth's estimate still works (treating the virtual top int of *this as zero), but if *this happens to be smaller than num_to_divide_by then the true result is zero and the estimate can come out above zero, which would force the correction loop to run more than a couple of times. Returning zero directly in that case keeps the correction loop short.
+		if (this->compare_to_ignore_sign(num_to_divide_by) == 'S')
+			return (few_bits)0;
+		//Assemble (u_top * B + u_next) as a many_bits value, where u_top and u_next are the top two ints of *this (treating an int beyond the top as zero). When *this has one more int than num_to_divide_by, u_top is the top int of *this and u_next is just below it. When *this and num_to_divide_by are the same length, the virtual u_top is zero and u_next is the top int of *this.
+		custom_linked_list_node<int_array>* u_top_node = this->get_most_significant_used_int_array();
+		int_array* u_top_array = u_top_node->value;
+		const size_t u_top_idx_in_array = u_top_array->num_of_used_ints - (size_t)1;
+		const few_bits u_top_int = u_top_array->intarr[u_top_idx_in_array];
+		many_bits u_top_two;
+		if (this->num_of_used_ints > num_to_divide_by.num_of_used_ints)
+		{
+			few_bits u_next_int;
+			if (u_top_idx_in_array >= (size_t)1)
+				u_next_int = u_top_array->intarr[u_top_idx_in_array - (size_t)1];
+			else
+			{
+				//The second-from-top int lives in the next-less-significant int_array in the linked list, at that array's most significant used position.
+				custom_linked_list_node<int_array>* u_next_node = u_top_node->previous;
+				int_array* u_next_array = u_next_node->value;
+				u_next_int = u_next_array->intarr[u_next_array->num_of_used_ints - (size_t)1];
+			}
+			u_top_two = ((many_bits)u_top_int << (many_bits)NUM_OF_BITS_few_bits) | (many_bits)u_next_int;
+		}
+		else
+			u_top_two = (many_bits)u_top_int;
+		const many_bits q_hat_raw = u_top_two / (many_bits)v_top;
+		few_bits q_hat = (q_hat_raw >= (many_bits)MAX_few_bits_NUM) ? (few_bits)MAX_few_bits_NUM : (few_bits)q_hat_raw;
+		//Correct q_hat downward until q_hat * num_to_divide_by <= *this. When v_top >= B/2 Knuth's theorem says this loop runs at most twice, but we don't hard-code that count: compare_multiplication_to_num is the authoritative check, and the loop produces the exact right result regardless of how many times it actually ends up running.
+		while (unlimited_int::compare_multiplication_to_num(num_to_divide_by, q_hat, *this) == 'L')
+		{
+			if (q_hat == (few_bits)0)
+				return (few_bits)0;
+			--q_hat;
+		}
+		return q_hat;
+	}
+	//Fallback path for divisors whose top int does not have its high bit set: original binary search. Correct for every divisor, including the cases where the fast path's small correction count is not guaranteed.
 	few_bits min = (few_bits)0, max = (few_bits)MAX_few_bits_NUM;
 	const char result_compare = unlimited_int::compare_multiplication_to_num(num_to_divide_by, min, *this);
 	if (result_compare == 'E')
@@ -386,40 +459,51 @@ few_bits unlimited_int::binary_search_divide(const unlimited_int& num_to_divide_
 	return (few_bits)0;
 }
 //This function only produces the correct result when the difference length between the two unlimited_ints is 1 or 0. Length being the the number of few_bits used.
-few_bits unlimited_int::binary_search_divide(const few_bits num_to_divide_by) const
+//By that constraint *this fits into a single many_bits value (it uses at most 2 few_bits ints), and the true result floor(*this / num_to_divide_by) fits into a single few_bits value (because the caller's contract keeps it strictly less than B). A single hardware many_bits/few_bits divide therefore gives the exact answer with no estimation, no correction loop, and no binary search at all. This function used to do a log2(B)-iteration binary search; the current form is strictly better because a many_bits/few_bits divide is a single hardware instruction on every platform where few_bits and many_bits map to native integer widths (which the static_assert above enforces).
+few_bits unlimited_int::find_single_int_quotient(const few_bits num_to_divide_by) const
 {
 	static_assert(sizeof(few_bits) * 2 == sizeof(many_bits), "Assertion error: NUM_OF_BITS_many_bits must have exactly twice the number of bits as NUM_OF_BITS_few_bits");
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
-	std::cout << "\nFinding inconsistencies in function \"few_bits unlimited_int::binary_search_divide(const few_bits num_to_divide_by) const\"";
+	std::cout << "\nFinding inconsistencies in function \"few_bits unlimited_int::find_single_int_quotient(const few_bits num_to_divide_by) const\"";
 #endif
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
 	if (this->find_inconsistencies())
-		throw std::logic_error("The inconsistency was found in function \"few_bits unlimited_int::binary_search_divide(const few_bits num_to_divide_by) const\"");
+		throw std::logic_error("The inconsistency was found in function \"few_bits unlimited_int::find_single_int_quotient(const few_bits num_to_divide_by) const\"");
+	if (num_to_divide_by == (few_bits)0)
+		throw std::invalid_argument("Error in function \"few_bits unlimited_int::find_single_int_quotient(const few_bits num_to_divide_by) const\": num_to_divide_by must not be zero");
+	if (this->num_of_used_ints > (size_t)2)
+		throw std::invalid_argument("Error in function \"few_bits unlimited_int::find_single_int_quotient(const few_bits num_to_divide_by) const\": *this must have at most 2 ints used so that the result fits in a few_bits");
 #endif
-	const many_bits divisor = (many_bits)num_to_divide_by;
-	many_bits min = (many_bits)0, max = (many_bits)MAX_few_bits_NUM;
-	const char result_compare = this->compare_to_ignore_sign(min * divisor);
-	if (result_compare == 'E')
-		return (few_bits)min;
-	//Variable shadowing isn't permitted in the same level scope.
-	const char result_compare2 = this->compare_to_ignore_sign(max * divisor);
-	if (result_compare2 == 'E' || result_compare2 == 'L')
-		return (few_bits)max;
-	while (true)
+	//Assemble *this into a single many_bits value. The caller's contract guarantees at most two few_bits ints are used. The least significant int is at intarrays->first()->value->intarr[0]. The second int, if present, lives either at intarr[1] of the first int_array or at intarr[0] of the next int_array in the linked list, depending on how the storage happened to get laid out.
+	many_bits this_as_many_bits = (many_bits)0;
+	if (this->num_of_used_ints >= (size_t)1)
 	{
-		const many_bits average = (min + max) / (many_bits)2;
-		//Variable shadowing. This is permitted because it's in a more inner scope.
-		const char result_compare = this->compare_to_ignore_sign(average * divisor);
-		if (result_compare == 'E')
-			return (few_bits)average;
-		if (result_compare == 'S')
-			max = average;
-		else
-			min = average;
-		if (max - min <= (many_bits)1)
-			return (few_bits)min;
+		custom_linked_list_node<int_array>* node_first = this->intarrays->first();
+		int_array* arr_first = node_first->value;
+		this_as_many_bits = (many_bits)arr_first->intarr[(size_t)0];
+		if (this->num_of_used_ints >= (size_t)2)
+		{
+			few_bits second_int;
+			if (arr_first->num_of_used_ints >= (size_t)2)
+				second_int = arr_first->intarr[(size_t)1];
+			else
+			{
+				custom_linked_list_node<int_array>* node_second = node_first->next;
+				int_array* arr_second = node_second->value;
+				second_int = arr_second->intarr[(size_t)0];
+			}
+			this_as_many_bits |= ((many_bits)second_int) << (many_bits)NUM_OF_BITS_few_bits;
+		}
 	}
-	return (few_bits)0;
+	const few_bits answer = (few_bits)(this_as_many_bits / (many_bits)num_to_divide_by);
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	//Sanity check: answer * num_to_divide_by <= *this < (answer + 1) * num_to_divide_by. The second half of that check is only meaningful when answer is not already the largest few_bits value, because in that case answer + 1 would overflow.
+	const many_bits answer_times_divisor = (many_bits)answer * (many_bits)num_to_divide_by;
+	const many_bits answer_plus_one_times_divisor = answer_times_divisor + (many_bits)num_to_divide_by;
+	if (answer_times_divisor > this_as_many_bits || (answer != (few_bits)MAX_few_bits_NUM && answer_plus_one_times_divisor <= this_as_many_bits))
+		throw std::logic_error("Wrong answer in function \"few_bits unlimited_int::find_single_int_quotient(const few_bits num_to_divide_by) const\"");
+#endif
+	return answer;
 }
 //starts the multiplication from the right, and compares while multiplying. That way this function is closer to O(1) than to O(n)
 char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplicand, const few_bits multiplier, const unlimited_int& result_target)
