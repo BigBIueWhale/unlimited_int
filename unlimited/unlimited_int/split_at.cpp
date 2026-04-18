@@ -256,8 +256,9 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 	std::unique_ptr<int_array_list> least_significant_part_of_this = this->intarrays->sublist_int_array_list(this->intarrays->first(), it_this, num_of_taken_int_arrays_from_this, num_of_ints_filled_lower);
 	low->intarrays->prepend(*least_significant_part_of_this);
 	least_significant_part_of_this.reset();
-	low->num_of_intarrays_used = num_of_taken_int_arrays_from_this;
-	low->num_of_used_ints = index;
+	//Reset this's counters after the sublist detaches. If any remaining allocation throws, this stays self-consistent.
+	this->num_of_intarrays_used = (size_t)0;
+	this->num_of_used_ints = (size_t)0;
 	const size_t num_of_ints_left_in_shared_int_array = sum_used - index;
 	//Allocate high's backing storage for the shared boundary portion before
 	//modifying the shared int_array's num_of_used_ints. If this allocation
@@ -265,6 +266,9 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 	if (num_of_ints_left_in_shared_int_array > (size_t)0)
 		high->increase_until_num_of_ints(num_of_ints_left_in_shared_int_array);
 	current_int_array_this->num_of_used_ints -= num_of_ints_left_in_shared_int_array;
+	//Set low's counters after the allocation above, so if it throws low stays self-consistent.
+	low->num_of_intarrays_used = num_of_taken_int_arrays_from_this;
+	low->num_of_used_ints = index;
 	if (num_of_ints_left_in_shared_int_array > (size_t)0)
 	{
 		size_t stop_at, num_int = (size_t)0, previous_num_int = (size_t)0;

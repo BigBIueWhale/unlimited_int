@@ -21,9 +21,9 @@ void int_array::find_memory_leaks::assert_no_memory_leak() noexcept(false)
 #endif
 void int_array::assign(const few_bits num_to_assign)
 {
-	this->num_of_used_ints = (size_t)1;
 	if (this->intarr_len == (size_t)0) {this->resize((size_t)MIN_ALLOC); }
 	this->intarr[(size_t)0] = num_to_assign;
+	this->num_of_used_ints = (size_t)1;
 }
 void int_array::fillzero()
 {
