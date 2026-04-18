@@ -635,6 +635,11 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 			++int_counter_reverse;
 			++index_result_reverse;
 		}
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+		//stop_all_reverse bounds the scatter at one past multiplicand.num_of_used_ints + 1 positions, which is exactly enough to hold the product, so the scatter always absorbs the carry before reaching that bound.
+		if (carry != (few_bits)0)
+			throw std::logic_error("Error in function \"char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplicand, const few_bits multiplier, const unlimited_int& result_target)\": scatter carry escaped past the end of result");
+#endif
 		const size_t difference_between_current_and_already_certain = num_of_ints_filled_in_result - num_of_ints_in_result_that_have_been_compared;
 		few_bits max_hypothetical_carry;
 		bool at_last = false;
@@ -706,7 +711,14 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 			if (at_last)
 				num_of_new_comparisons_to_make = difference_between_current_and_already_certain;
 			else
+			{
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+				//Reaching this else-branch with max_hypothetical_carry == 0 means the certainty walk broke inside its body (lines 696-697), which requires int_counter_reverse < stop_at_reverse. stop_at_reverse is capped by difference_between_current_and_already_certain at lines 661-662 and 690-691, so this subtraction cannot underflow.
+				if (int_counter_reverse >= difference_between_current_and_already_certain)
+					throw std::logic_error("Error in function \"char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplicand, const few_bits multiplier, const unlimited_int& result_target)\": num_of_new_comparisons_to_make would underflow");
+#endif
 				num_of_new_comparisons_to_make = difference_between_current_and_already_certain - (int_counter_reverse + (size_t)1);
+			}
 			num_of_ints_in_result_that_have_been_compared += num_of_new_comparisons_to_make;
 			if (num_of_new_comparisons_to_make > (size_t)0)
 			{
@@ -729,6 +741,11 @@ char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplic
 					custom_linked_list_node<int_array>* comparing_int_array_Node_result = compare_from_int_array_Node_result;
 					int_array comparing_int_array_result = compare_from_int_array_result;
 					size_t comparing_index_result = compare_from_index_result;
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+					//The reverse walk only advances current_int_array_Node_result_target_reverse to result_target_intarrays_end once int_counter_reverse has passed result_target's used range, which forces num_of_new_comparisons_to_make to 0 and skips this inner block.
+					if (current_int_array_Node_result_target_reverse == result_target_intarrays_end)
+						throw std::logic_error("Error in function \"char unlimited_int::compare_multiplication_to_num(const unlimited_int& multiplicand, const few_bits multiplier, const unlimited_int& result_target)\": compare_from_int_array_Node_result_target latched past result_target");
+#endif
 					//adjusting starting points of next comparison iteration
 					compare_from_int_array_Node_result_target = current_int_array_Node_result_target_reverse;
 					compare_from_int_array_result_target = current_int_array_result_target_reverse;
