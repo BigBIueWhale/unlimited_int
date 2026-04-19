@@ -205,19 +205,18 @@ unlimited_int unlimited_int::recurring_division(const unlimited_int& dividend, c
 		}
 		try
 		{
-			unlimited_int::Newton_Raphson_lookup.reciprocals_map.emplace(fingerprint_divisor, reciprocal_information_for_database(divisor.calculate_reciprocal_floor(dividend.num_of_used_ints), std::make_unique<unlimited_int>(divisor.calculate_efficient_cryptographic_hash()), item_in_list));
+			reciprocal_iterator_in_map = unlimited_int::Newton_Raphson_lookup.reciprocals_map.emplace(fingerprint_divisor, reciprocal_information_for_database(divisor.calculate_reciprocal_floor(dividend.num_of_used_ints), std::make_unique<unlimited_int>(divisor.calculate_efficient_cryptographic_hash()), item_in_list)).first;
 		}
 		catch (...)
 		{
 			//Emplace failed. Remove the LRU node unconditionally to keep the list
 			//and map consistent. In the !key_exists_in_list case, the node was just
 			//created by push_front above. In the key_exists_in_list case, the old
-			//map entry was already erased (line 183), so leaving the promoted node
+			//map entry was already erased, so leaving the promoted node
 			//in the list would create an orphan that degrades cache effectiveness.
 			unlimited_int::Newton_Raphson_lookup.most_recent.erase(item_in_list);
 			throw;
 		}
-		reciprocal_iterator_in_map = unlimited_int::Newton_Raphson_lookup.reciprocals_map.find(fingerprint_divisor);
 	}
 	return unlimited_int::divide_using_reciprocal(dividend, reciprocal_iterator_in_map->second.reciprocal_info, divisor, remainder);
 }
