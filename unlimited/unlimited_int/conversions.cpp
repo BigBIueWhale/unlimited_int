@@ -61,7 +61,7 @@ unlimited_int::operator signed short int() const
 	typedef signed short int convertion_target_type;
 	constexpr bool fits_in_few_bits_signed = sizeof(convertion_target_type) <= sizeof(few_bits_signed);
 	constexpr bool fits_in_many_bits_signed = sizeof(convertion_target_type) <= sizeof(many_bits_signed);
-	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+	static_assert(fits_in_few_bits_signed || fits_in_many_bits_signed,
 		"Error can\'t convert from \"unlimited_int\" to \"" "signed short int" "\"");
 	constexpr auto target_max = std::numeric_limits<convertion_target_type>::max();
 	constexpr auto target_min = std::numeric_limits<convertion_target_type>::min();
@@ -87,7 +87,7 @@ unlimited_int::operator signed int() const
 	typedef signed int convertion_target_type;
 	constexpr bool fits_in_few_bits_signed = sizeof(convertion_target_type) <= sizeof(few_bits_signed);
 	constexpr bool fits_in_many_bits_signed = sizeof(convertion_target_type) <= sizeof(many_bits_signed);
-	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+	static_assert(fits_in_few_bits_signed || fits_in_many_bits_signed,
 		"Error can\'t convert from \"unlimited_int\" to \"" "signed int" "\"");
 	constexpr auto target_max = std::numeric_limits<convertion_target_type>::max();
 	constexpr auto target_min = std::numeric_limits<convertion_target_type>::min();
@@ -113,7 +113,7 @@ unlimited_int::operator signed long int() const
 	typedef signed long int convertion_target_type;
 	constexpr bool fits_in_few_bits_signed = sizeof(convertion_target_type) <= sizeof(few_bits_signed);
 	constexpr bool fits_in_many_bits_signed = sizeof(convertion_target_type) <= sizeof(many_bits_signed);
-	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+	static_assert(fits_in_few_bits_signed || fits_in_many_bits_signed,
 		"Error can\'t convert from \"unlimited_int\" to \"" "signed long int" "\"");
 	constexpr auto target_max = std::numeric_limits<convertion_target_type>::max();
 	constexpr auto target_min = std::numeric_limits<convertion_target_type>::min();
@@ -139,7 +139,7 @@ unlimited_int::operator signed long long int() const
 	typedef signed long long int convertion_target_type;
 	constexpr bool fits_in_few_bits_signed = sizeof(convertion_target_type) <= sizeof(few_bits_signed);
 	constexpr bool fits_in_many_bits_signed = sizeof(convertion_target_type) <= sizeof(many_bits_signed);
-	static_assert((fits_in_few_bits_signed && fits_in_many_bits_signed) || fits_in_many_bits_signed,
+	static_assert(fits_in_few_bits_signed || fits_in_many_bits_signed,
 		"Error can\'t convert from \"unlimited_int\" to \"" "signed long long int" "\"");
 	constexpr auto target_max = std::numeric_limits<convertion_target_type>::max();
 	constexpr auto target_min = std::numeric_limits<convertion_target_type>::min();
@@ -165,7 +165,7 @@ unlimited_int::operator unsigned short int() const
 	typedef unsigned short int convertion_target_type;
 	constexpr bool fits_in_few_bits = sizeof(convertion_target_type) <= sizeof(few_bits);
 	constexpr bool fits_in_many_bits = sizeof(convertion_target_type) <= sizeof(many_bits);
-	static_assert((fits_in_few_bits && fits_in_many_bits) || fits_in_many_bits,
+	static_assert(fits_in_few_bits || fits_in_many_bits,
 		"Error can\'t convert from \"unlimited_int\" to \"" "unsigned short int" "\"");
 	constexpr auto target_max = std::numeric_limits<convertion_target_type>::max();
 	constexpr auto target_min = std::numeric_limits<convertion_target_type>::min();
@@ -191,7 +191,7 @@ unlimited_int::operator unsigned int() const
 	typedef unsigned int convertion_target_type;
 	constexpr bool fits_in_few_bits = sizeof(convertion_target_type) <= sizeof(few_bits);
 	constexpr bool fits_in_many_bits = sizeof(convertion_target_type) <= sizeof(many_bits);
-	static_assert((fits_in_few_bits && fits_in_many_bits) || fits_in_many_bits,
+	static_assert(fits_in_few_bits || fits_in_many_bits,
 		"Error can\'t convert from \"unlimited_int\" to \"" "unsigned int" "\"");
 	constexpr auto target_max = std::numeric_limits<convertion_target_type>::max();
 	constexpr auto target_min = std::numeric_limits<convertion_target_type>::min();
@@ -217,7 +217,7 @@ unlimited_int::operator unsigned long int() const
 	typedef unsigned long int convertion_target_type;
 	constexpr bool fits_in_few_bits = sizeof(convertion_target_type) <= sizeof(few_bits);
 	constexpr bool fits_in_many_bits = sizeof(convertion_target_type) <= sizeof(many_bits);
-	static_assert((fits_in_few_bits && fits_in_many_bits) || fits_in_many_bits,
+	static_assert(fits_in_few_bits || fits_in_many_bits,
 		"Error can\'t convert from \"unlimited_int\" to \"" "unsigned long int" "\"");
 	constexpr auto target_max = std::numeric_limits<convertion_target_type>::max();
 	constexpr auto target_min = std::numeric_limits<convertion_target_type>::min();
@@ -243,7 +243,7 @@ unlimited_int::operator unsigned long long int() const
 	typedef unsigned long long int convertion_target_type;
 	constexpr bool fits_in_few_bits = sizeof(convertion_target_type) <= sizeof(few_bits);
 	constexpr bool fits_in_many_bits = sizeof(convertion_target_type) <= sizeof(many_bits);
-	static_assert((fits_in_few_bits && fits_in_many_bits) || fits_in_many_bits,
+	static_assert(fits_in_few_bits || fits_in_many_bits,
 		"Error can\'t convert from \"unlimited_int\" to \"" "unsigned long long int" "\"");
 	constexpr auto target_max = std::numeric_limits<convertion_target_type>::max();
 	constexpr auto target_min = std::numeric_limits<convertion_target_type>::min();
