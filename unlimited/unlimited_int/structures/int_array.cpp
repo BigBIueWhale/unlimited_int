@@ -132,7 +132,7 @@ void int_array::shift_right(const size_t num_of_ints_to_shift_right_by)
 }
 void int_array::shift_left(const size_t amount_to_shift)
 {
-	if (amount_to_shift > (size_t)0)
+	if (amount_to_shift > (size_t)0 && this->num_of_used_ints > (size_t)0)
 	{
 		const size_t room_left_on_the_left = this->intarr_len - this->num_of_used_ints;
 		if (amount_to_shift > room_left_on_the_left)
