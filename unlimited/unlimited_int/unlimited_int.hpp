@@ -6,9 +6,46 @@
 #include <unordered_map>
 #include <vector>
 #include <memory>
+#include <array>
 namespace unlimited
 {
 	class unlimited_int;
+	namespace detail
+	{
+		inline constexpr size_t SMALL_PRIMES_UNTIL = (size_t)200; //Until and including, although in this case 200 isn't actually a prime number so it'll only be until 199.
+		static_assert(SMALL_PRIMES_UNTIL < (size_t)MAX_few_bits_NUM, "SMALL_PRIMES_UNTIL exceeds what few_bits can hold");
+		consteval auto sieve_small_primes()
+		{
+			std::array<bool, SMALL_PRIMES_UNTIL + (size_t)1> is_prime{};
+			for (size_t index = (size_t)2; index < is_prime.size(); ++index)
+				is_prime[index] = true;
+			//sieve of Eratosthenes
+			for (size_t index = (size_t)2; index * index < is_prime.size(); ++index)
+				if (is_prime[index])
+					for (size_t index_skipping = index * index; index_skipping < is_prime.size(); index_skipping += index)
+						is_prime[index_skipping] = false;
+			return is_prime;
+		}
+		consteval size_t count_small_primes()
+		{
+			constexpr auto sieve = sieve_small_primes();
+			size_t count = (size_t)0;
+			for (size_t index = (size_t)2; index < sieve.size(); ++index)
+				if (sieve[index])
+					++count;
+			return count;
+		}
+		consteval auto build_small_primes()
+		{
+			constexpr auto sieve = sieve_small_primes();
+			std::array<few_bits, count_small_primes()> out{};
+			size_t out_index = (size_t)0;
+			for (size_t index = (size_t)2; index < sieve.size(); ++index)
+				if (sieve[index])
+					out[out_index++] = static_cast<few_bits>(index);
+			return out;
+		}
+	}
 	struct reciprocal_information
 	{
 	public:
@@ -42,7 +79,7 @@ namespace unlimited
 		static thread_local unlimited_int current_random;
 		static thread_local reciprocals_database Newton_Raphson_lookup;
 	protected:
-		static std::vector<few_bits> small_prime_numbers;
+		static constexpr auto small_prime_numbers = detail::build_small_primes();
 //Member Variables
 		size_t num_of_used_ints; //number of used ints int the entire list_of_int_arrays
 		//A linked list of few_bits arrays. The unlimited_int is represented as follows:
@@ -615,9 +652,6 @@ namespace unlimited
 			unlimited_int::clear_Newton_Raphson_lookup();
 			list_of_int_arrays::destroy_piggy_bank();
 		}
-		//Don't erase small_prime_numbers array while it's being used. In a multithreaded environment it might be used by another thread, so be careful.
-		//It's not required to call this function. The std::vector will clear out its own memory.
-		static void clear_small_prime_numbers_array() { unlimited_int::small_prime_numbers.clear(); }
 //Automatic Destructor
 		//respects this->auto_destroy tag.
 		~unlimited_int()
