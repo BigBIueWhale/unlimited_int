@@ -56,6 +56,10 @@ reciprocal_information unlimited_int::calculate_reciprocal_floor(size_t length_d
 }
 unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& dividend, const reciprocal_information& reciprocal, const unlimited_int& divisor, unlimited_int* remainder)
 {
+	if (divisor.is_zero())
+		throw std::invalid_argument("Error in function \"divide_using_reciprocal\": divisor must not be zero.");
+	if (reciprocal.reciprocal == nullptr)
+		throw std::invalid_argument("Error in function \"divide_using_reciprocal\": reciprocal.reciprocal must not be nullptr.");
 	if (reciprocal.reciprocal->_is_negative)
 		throw std::invalid_argument("Error in function divide using reciprocal! The reciprocal is negative");
 	if (reciprocal.amount_shifted < (dividend.num_of_used_ints + (size_t)AMOUNT_OF_EXTRA_PRECISION_FOR_RECIPROCAL))
@@ -100,23 +104,27 @@ unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& divide
 	answer._is_negative = dividend._is_negative != divisor._is_negative;
 	if (answer.is_zero())
 		answer._is_negative = false;
+#if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
+	const unlimited_int dividend_original_for_debug = dividend;
+#endif
 	if (remainder != nullptr)
 	{
+		const bool dividend_was_negative = dividend._is_negative;
 		unlimited_int dividend_positive(dividend, false);
 		dividend_positive.self_abs();
 		*remainder = dividend_positive - result_multiplication;
-		if (dividend._is_negative)
+		if (dividend_was_negative)
 			remainder->self_negative(); //because this is remainder of division, not modulo
 		else
 			remainder->self_abs();
 	}
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
-	unlimited_int long_division_check = dividend / divisor;
+	unlimited_int long_division_check = dividend_original_for_debug / divisor;
 	if (answer != long_division_check)
 		throw std::logic_error("Error in function: divide_using_reciprocal. The result of division conflicts with the other division method.");
 	if (remainder != nullptr)
 	{
-		unlimited_int check_remainder = dividend % divisor;
+		unlimited_int check_remainder = dividend_original_for_debug % divisor;
 		if (*remainder != check_remainder)
 			throw std::logic_error("Error in function: divide_using_reciprocal. The result of remainder conflicts with the other division method.");
 	}

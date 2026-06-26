@@ -578,8 +578,8 @@ namespace unlimited
 //String Conversions
 		//from base 2 until base 36 (including). Can recognize prepended minus symbol (-). Supports both uppercase and lowercase. Receives null-terminated string.
 		static unlimited_int from_string(const char* str, const unsigned int base = 10);
-		//uses "static unlimited_int from_string(const char* str, const int base = 10)"
-		static unlimited_int from_string(const std::string& str, const unsigned int base = 10) { return unlimited_int::from_string(str.c_str(), base); }
+		//from base 2 until base 36 (including). Parses the entire std::string, including embedded null characters.
+		static unlimited_int from_string(const std::string& str, const unsigned int base = 10);
 		//from base 2 until base 36 (including). Uses lowercase English letters. Faster in base 16.
 		std::string to_string(const unsigned int base = 10) const;
 //Power (^)
@@ -590,16 +590,18 @@ namespace unlimited
 		//Works with negative numbers as well. If power is negative it will return 0.
 		static unlimited_int pow(const unlimited_int& base, const unlimited_int& power, const volatile bool *const terminator = nullptr);
 //Random
-		//Uses generate_random_that_is_at_least and then the modulo operator to generate a random number with perfectly random distribution in the given range.
+		//Uses generate_random_that_is_at_least and then the modulo operator to generate a random number in the given range. The extra random bits make modulo bias negligible, but not mathematically impossible.
 		//Cryptographically secure.
 		static unlimited_int generate_random(const unlimited_int& min, const unlimited_int& max);
 //Hash
 		//Calculates the sha-256 hash of an unlimited_int. Splits number into chunks of 32-bit integers, whether or not the program is in 64-bit mode.
 		//The hash function produces the same output whether this library is in 32bit mode or in 64bit mode.
+		//Ignores sign.
 		//It directly iterates through the unlimited_int so there's no RAM risk of hashing huge unlimited_int numbers.
 		unlimited_int calculate_sha256_hash() const;
 		//Calculates the sha-512 hash of an unlimited_int. Splits number into chunks of 64-bit integers, whether or not the program is in 64-bit mode.
 		//The hash function produces the same output whether this library is in 32bit mode or in 64bit mode.
+		//Ignores sign.
 		//It directly iterates through the unlimited_int so there's no RAM risk of hashing huge unlimited_int numbers.
 		unlimited_int calculate_sha512_hash() const;
 		//uses sha512 when compiling in 64bit mode, and sha256 when compiling in 32bit mode

@@ -25,6 +25,9 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		throw std::invalid_argument("Invalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder)\" pow(0, 0) is mathematically undefined");
 	if (remainder.is_zero())
 		throw std::invalid_argument("Invalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder)\" division by zero is undefined");
+	if (!terminator_is_nullptr)
+		if (*terminator)
+			return unlimited_int();
 	if (remainder.compare_to_ignore_sign((few_bits)1) == 'E')
 		return unlimited_int();
 	if (power.is_zero())
@@ -237,13 +240,13 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 	const bool terminator_is_nullptr = terminator == nullptr;
 	if (base.is_zero() && power.is_zero())
 		throw std::invalid_argument("Invalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power)\" pow(0, 0) is mathematically undefined");
+	if (!terminator_is_nullptr)
+		if (*terminator)
+			return unlimited_int();
 	if (power.is_zero())
 		return unlimited_int(1);
 	if (base.is_zero() || power._is_negative)
 		return unlimited_int();
-	if (!terminator_is_nullptr)
-		if (*terminator)
-			return unlimited_int();
 	const size_t power_bit_length = power.get_length_in_bits();
 	//Same algorithm structure as the modular overload above, without the modular reduction after each multiplication or squaring. See the commentary up there for the details of both the plain-loop fallback and the sliding-window main path.
 	if (power_bit_length <= SMALL_POWER_THRESHOLD_BITS)

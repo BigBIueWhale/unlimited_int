@@ -2,7 +2,7 @@
 # Written by Ronen Zyroff in 2019-2021
 Arbitrary-precision arithmetic library written in pure C++ for C++. Has similar syntax to int in C++ with operator overloading.
 # Compilers
-Supports C++14, C++17, C++20\
+Supports C++20\
 Supports MSVC++ (the Microsoft C++ compiler)\
 Supports GCC's g++ (The GNU Linux compiler)\
 Supports clang++\

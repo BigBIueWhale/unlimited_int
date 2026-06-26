@@ -17,6 +17,8 @@ unlimited_int unlimited_int::gcd(const unlimited_int& a, const unlimited_int& b)
 //lcm(a, b) = abs(a * b) / gcd(a, b)
 unlimited_int unlimited_int::lcm(const unlimited_int& a, const unlimited_int& b)
 {
+	if (a.is_zero() || b.is_zero())
+		return unlimited_int();
 	unlimited_int result = b * (a / unlimited::unlimited_int::gcd(a, b));
 	result.self_abs();
 	return result;

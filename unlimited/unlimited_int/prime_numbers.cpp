@@ -11,6 +11,12 @@ using namespace unlimited;
 //If a number fails one of the iterations, the number is certainly composite. A composite number has a chance of 25% to pass every iteration. That's why 64 iterations ensures 1/(2^128) probability of mistake.
 bool unlimited_int::is_prime(const int num_of_iterations, const volatile bool *const terminator) const
 {
+	if (num_of_iterations <= 0)
+		throw std::invalid_argument("Error in function \"bool unlimited_int::is_prime(int, const volatile bool*) const\": num_of_iterations must be positive.");
+	const bool terminator_is_nullptr = terminator == nullptr;
+	if (!terminator_is_nullptr)
+		if (*terminator)
+			return false; //abort
 	//0 and 1 are not prime. The small-primes loop below assumes |this| >= 2;
 	//without this guard it would incorrectly return true for values less than the smallest prime (2).
 	if (this->compare_to_ignore_sign((few_bits)2) == 'S')
@@ -24,7 +30,6 @@ bool unlimited_int::is_prime(const int num_of_iterations, const volatile bool *c
 		else if (((*this) % current_small_prime).is_zero())
 			return false;
 	}
-	const bool terminator_is_nullptr = terminator == nullptr;
 	if (!terminator_is_nullptr)
 		if (*terminator)
 			return false; //abort
