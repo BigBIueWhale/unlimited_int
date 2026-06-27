@@ -105,7 +105,20 @@ unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& divide
 	if (answer.is_zero())
 		answer._is_negative = false;
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
-	const unlimited_int dividend_original_for_debug = dividend;
+	const unlimited_int* dividend_for_debug = &dividend;
+	unlimited_int dividend_original_for_debug;
+	if (remainder == &dividend)
+	{
+		dividend_original_for_debug = dividend;
+		dividend_for_debug = &dividend_original_for_debug;
+	}
+	const unlimited_int* divisor_for_debug = &divisor;
+	unlimited_int divisor_original_for_debug;
+	if (remainder == &divisor)
+	{
+		divisor_original_for_debug = divisor;
+		divisor_for_debug = &divisor_original_for_debug;
+	}
 #endif
 	if (remainder != nullptr)
 	{
@@ -119,12 +132,12 @@ unlimited_int unlimited_int::divide_using_reciprocal(const unlimited_int& divide
 			remainder->self_abs();
 	}
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE > 0
-	unlimited_int long_division_check = dividend_original_for_debug / divisor;
+	unlimited_int long_division_check = *dividend_for_debug / *divisor_for_debug;
 	if (answer != long_division_check)
 		throw std::logic_error("Error in function: divide_using_reciprocal. The result of division conflicts with the other division method.");
 	if (remainder != nullptr)
 	{
-		unlimited_int check_remainder = dividend_original_for_debug % divisor;
+		unlimited_int check_remainder = *dividend_for_debug % *divisor_for_debug;
 		if (*remainder != check_remainder)
 			throw std::logic_error("Error in function: divide_using_reciprocal. The result of remainder conflicts with the other division method.");
 	}
