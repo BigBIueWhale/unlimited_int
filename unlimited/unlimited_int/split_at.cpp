@@ -33,8 +33,11 @@ void unlimited_int::split_at(const size_t index, unlimited_int* high, unlimited_
 	const size_t length_of_high = this_num_of_used_ints - index;
 	const size_t length_of_low = index;
 	low->increase_until_num_of_ints(length_of_low);
-	low->num_of_used_ints = length_of_low;
 	high->increase_until_num_of_ints(length_of_high);
+	//Set low's num_of_used_ints AFTER high's allocation. If high->increase_until_num_of_ints throws,
+	//low is then left a consistent allocated-but-zero object rather than num_of_used_ints=index with
+	//num_of_intarrays_used still 0 (set at the end of the copy loop), which violates the invariant.
+	low->num_of_used_ints = length_of_low;
 	high->num_of_used_ints = length_of_high;
 	custom_linked_list_node<int_array>* it_this = this->intarrays->first();
 	size_t num_int = (size_t)0, previous_num_int = (size_t)0;
@@ -316,6 +319,13 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 		}
 		current_high_int_array->num_of_used_ints = index_high;
 	}
+	//Finalize low (sign + leading-zero cutoff) BEFORE the high-side node transfer below, whose
+	//sublist_int_array_list allocates (two make_unique) and can throw. low is complete here (its low nodes
+	//are prepended, its counters are set, and the boundary node's used-count is reduced), and cutoff touches
+	//only low, so a bad_alloc in the transfer can no longer leave low with an un-stripped zero top limb
+	//(which happens when limb[index-1] is zero).
+	low->_is_negative = false;
+	low->cutoff_leading_zeros(low->intarrays->last());
 	const size_t this_num_of_used_int_arrays_left = this_num_of_used_int_arrays - num_of_taken_int_arrays_from_this;
 	if (this_num_of_used_int_arrays_left > (size_t)0)
 	{
@@ -335,8 +345,6 @@ void unlimited_int::split_at_and_use_original(const size_t index, unlimited_int*
 	high->num_of_intarrays_used = high->intarrays->size();
 	high->num_of_used_ints = size_to_make_high;
 	high->_is_negative = false;
-	low->_is_negative = false;
-	low->cutoff_leading_zeros(low->intarrays->last());
 	this->flush();
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"split_at_and_use_original(size_t index, unlimited_int* high, unlimited_int* low)\"";
