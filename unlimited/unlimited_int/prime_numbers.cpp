@@ -9,13 +9,13 @@
 using namespace unlimited;
 //Miller-Rabin primality test algorithm.
 //If a number fails one of the iterations, the number is certainly composite. A composite number has a chance of 25% to pass every iteration. That's why 64 iterations ensures 1/(2^128) probability of mistake.
-bool unlimited_int::is_prime(const int num_of_iterations, const volatile bool *const terminator) const
+bool unlimited_int::is_prime(const int num_of_iterations, const std::atomic<bool> *const terminator) const
 {
 	if (num_of_iterations <= 0)
-		throw std::invalid_argument("Error in function \"bool unlimited_int::is_prime(int, const volatile bool*) const\": num_of_iterations must be positive.");
+		throw std::invalid_argument("Error in function \"bool unlimited_int::is_prime(int, const std::atomic<bool>*) const\": num_of_iterations must be positive.");
 	const bool terminator_is_nullptr = terminator == nullptr;
 	if (!terminator_is_nullptr)
-		if (*terminator)
+		if (terminator->load(std::memory_order_relaxed))
 			return false; //abort
 	//0 and 1 are not prime. The small-primes loop below assumes |this| >= 2;
 	//without this guard it would incorrectly return true for values less than the smallest prime (2).
@@ -31,7 +31,7 @@ bool unlimited_int::is_prime(const int num_of_iterations, const volatile bool *c
 			return false;
 	}
 	if (!terminator_is_nullptr)
-		if (*terminator)
+		if (terminator->load(std::memory_order_relaxed))
 			return false; //abort
 	const char comparison_to_2 = this->compare_to_ignore_sign((few_bits)2);
 	if (comparison_to_2 == 'E' || this->compare_to_ignore_sign((few_bits)3) == 'E')
@@ -56,7 +56,7 @@ bool unlimited_int::is_prime(const int num_of_iterations, const volatile bool *c
 		unlimited_int _a = unlimited_int::generate_random(unlimited_int(2), pMinusTwo);
 		unlimited_int _x = unlimited_int::pow(_a, _m, *this, terminator);
 		if (!terminator_is_nullptr)
-			if (*terminator)
+			if (terminator->load(std::memory_order_relaxed))
 				return false; //abort
 		if (_x.compare_to_ignore_sign((few_bits)1) == 'E' || _x == pMinusOne)
 			continue;
@@ -79,7 +79,7 @@ bool unlimited_int::is_prime(const int num_of_iterations, const volatile bool *c
 	return true;
 }
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
-static void generate_random_prime_single_thread(const unlimited_int& min, const unlimited_int& max, volatile bool *const result_was_set, unlimited_int *const result, std::mutex& result_lock, std::condition_variable& wakeup_main_thread, std::mutex& wakeup_main_thread_lock)
+static void generate_random_prime_single_thread(const unlimited_int& min, const unlimited_int& max, std::atomic<bool> *const result_was_set, unlimited_int *const result, std::mutex& result_lock, std::condition_variable& wakeup_main_thread, std::mutex& wakeup_main_thread_lock)
 {
 	try
 	{
@@ -90,13 +90,13 @@ static void generate_random_prime_single_thread(const unlimited_int& min, const 
 			do
 			{
 				current_try = unlimited_int::generate_random(min, max);
-			} while (!current_try.is_prime(64, result_was_set) && !(*result_was_set));
+			} while (!current_try.is_prime(64, result_was_set) && !result_was_set->load(std::memory_order_relaxed));
 			{
 				std::lock_guard<std::mutex> locker_result(result_lock);
-				if (!(*result_was_set)) //if it ended because it actually found a prime number, rather than because of is_ending
+				if (!result_was_set->load(std::memory_order_relaxed)) //if it ended because it actually found a prime number, rather than because of is_ending
 				{
 					*result = current_try;
-					*result_was_set = true;
+					result_was_set->store(true, std::memory_order_relaxed);
 					{
 						std::lock_guard<std::mutex> locker(wakeup_main_thread_lock);
 						wakeup_main_thread.notify_one();
@@ -122,7 +122,7 @@ static void generate_random_prime_single_thread(const unlimited_int& min, const 
 		static_cast<void>(e); //Suppress compiler warning of unreference local variable.
 		{
 			std::unique_lock<std::mutex> locker_result(result_lock);
-			if (!(*result_was_set)) //if we're not too late to the party
+			if (!result_was_set->load(std::memory_order_relaxed)) //if we're not too late to the party
 			{
 				*result_was_set = true;
 				{
@@ -162,7 +162,7 @@ unlimited_int unlimited_int::generate_random_prime_multithreaded(const unlimited
 		unlimited_int result;
 		std::vector<std::future<void>> parallel_threads;
 		parallel_threads.reserve((size_t)num_threads_to_use);
-		volatile bool found_prime = false;
+		std::atomic<bool> found_prime{false};
 		std::mutex result_was_set;
 		std::condition_variable wakeup_me;
 		std::mutex wakeup_me_lock;
@@ -170,7 +170,7 @@ unlimited_int unlimited_int::generate_random_prime_multithreaded(const unlimited
 		for (unsigned thread_counter = 0U; thread_counter < num_threads_to_use; ++thread_counter)
 			parallel_threads.push_back(std::async(std::launch::async, generate_random_prime_single_thread, std::ref(min), std::ref(max), &found_prime, &result, std::ref(result_was_set), std::ref(wakeup_me), std::ref(wakeup_me_lock)));
 		//The condition must be specified in the lambda just in case of spurious wakeup 
-		wakeup_me.wait(wakeup_me_unique_lock, [&found_prime] () { return found_prime; });
+		wakeup_me.wait(wakeup_me_unique_lock, [&found_prime] () { return found_prime.load(std::memory_order_relaxed); });
 		std::vector<std::string> exceptions_thrown_by_threads;
 		for (unsigned thread_counter = 0U; thread_counter < parallel_threads.size(); ++thread_counter)
 		{
@@ -208,7 +208,7 @@ unlimited_int unlimited_int::generate_random_prime_multithreaded(const unlimited
 	}
 }
 #endif
-unlimited_int unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max, const volatile bool *const terminator)
+unlimited_int unlimited_int::generate_random_prime(const unlimited_int& min, const unlimited_int& max, const std::atomic<bool> *const terminator)
 {
 	const bool terminator_is_nullptr = terminator == nullptr;
 	unlimited_int range_size(max - min);
@@ -219,7 +219,7 @@ unlimited_int unlimited_int::generate_random_prime(const unlimited_int& min, con
 	{
 		current_try = unlimited_int::generate_random(min, max);
 		if (!terminator_is_nullptr)
-			if (*terminator)
+			if (terminator->load(std::memory_order_relaxed))
 				return unlimited_int();
 	} while (!current_try.is_prime(64, terminator));
 	return current_try;

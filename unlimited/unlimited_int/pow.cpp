@@ -11,7 +11,7 @@ static constexpr size_t WINDOW_TABLE_ENTRIES = ((size_t)1) << (WINDOW_BITS - (si
 //Threshold below which the plain square-and-multiply loop beats windowing. Break-even is around 24 bits (below which the 1 squaring + 7 multiplications spent building odd_powers_table outweigh the per-bit savings); 32 bits gives a bit of margin and lets all native-sized powers take the plain path.
 static constexpr size_t SMALL_POWER_THRESHOLD_BITS = (size_t)32;
 //makes use if the identity (a ⋅ b) mod m = [(a mod m) ⋅ (b mod m)] mod m
-unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder, const volatile bool *const terminator)
+unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder, const std::atomic<bool> *const terminator)
 {
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power, unlimited_int& remainder)\"";
@@ -26,7 +26,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 	if (remainder.is_zero())
 		throw std::invalid_argument("Invalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder)\" division by zero is undefined");
 	if (!terminator_is_nullptr)
-		if (*terminator)
+		if (terminator->load(std::memory_order_relaxed))
 			return unlimited_int();
 	if (remainder.compare_to_ignore_sign((few_bits)1) == 'E')
 		return unlimited_int();
@@ -40,7 +40,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 	if (current_power.is_zero())
 		return unlimited_int();
 	if (!terminator_is_nullptr)
-		if (*terminator)
+		if (terminator->load(std::memory_order_relaxed))
 			return unlimited_int();
 	const size_t power_bit_length = power.get_length_in_bits();
 	//For small powers the precomputation cost (1 squaring + 7 multiplications, each followed by a modular reduction, to fill odd_powers_table) exceeds the savings from windowing, so a plain square-and-multiply loop is used instead. The plain loop handles the LSB of the power before entering the while-loop so that the first "square current_power" step inside the while-loop produces current_power^2, not current_power^1.
@@ -57,26 +57,26 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		while (!power_cpy.is_zero())
 		{
 			if (!terminator_is_nullptr)
-				if (*terminator)
+				if (terminator->load(std::memory_order_relaxed))
 					return unlimited_int();
 			current_power = current_power.power2_destroy_this();
 			if (!terminator_is_nullptr)
-				if (*terminator)
+				if (terminator->load(std::memory_order_relaxed))
 					return unlimited_int();
 			current_power = unlimited_int::remainder_recurring_divison(current_power, remainder);
 			if (power_cpy.modulo_2() == static_cast<unsigned short int>(1))
 			{
 				if (!terminator_is_nullptr)
-					if (*terminator)
+					if (terminator->load(std::memory_order_relaxed))
 						return unlimited_int();
 				answer *= current_power;
 				if (!terminator_is_nullptr)
-					if (*terminator)
+					if (terminator->load(std::memory_order_relaxed))
 						return unlimited_int();
 				answer = unlimited_int::remainder_recurring_divison(answer, remainder);
 			}
 			if (!terminator_is_nullptr)
-				if (*terminator)
+				if (terminator->load(std::memory_order_relaxed))
 					return unlimited_int();
 			power_cpy >>= (size_t)1;
 		}
@@ -101,14 +101,14 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 	current_power_squared = unlimited_int::remainder_recurring_divison(current_power_squared, remainder);
 	odd_powers_table[(size_t)0] = std::move(current_power);
 	if (!terminator_is_nullptr)
-		if (*terminator)
+		if (terminator->load(std::memory_order_relaxed))
 			return unlimited_int();
 	for (size_t table_index = (size_t)1; table_index < WINDOW_TABLE_ENTRIES; ++table_index)
 	{
 		odd_powers_table[table_index] = odd_powers_table[table_index - (size_t)1] * current_power_squared;
 		odd_powers_table[table_index] = unlimited_int::remainder_recurring_divison(odd_powers_table[table_index], remainder);
 		if (!terminator_is_nullptr)
-			if (*terminator)
+			if (terminator->load(std::memory_order_relaxed))
 				return unlimited_int();
 	}
 	//Extract the bits of |power| into a flat buffer, most significant bit first. power_bits_most_significant_first[0] is the top bit of |power| (guaranteed to be 1) and power_bits_most_significant_first[power_bit_length - 1] is the bottom bit. Done once up front so the main loop can index into the buffer directly instead of threading a custom_linked_list_node + int_array + bit-within-int cursor through the window-formation logic.
@@ -179,7 +179,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 	while (current_bit < total_bits)
 	{
 		if (!terminator_is_nullptr)
-			if (*terminator)
+			if (terminator->load(std::memory_order_relaxed))
 				return unlimited_int();
 		if (!power_bits_most_significant_first[current_bit])
 		{
@@ -204,13 +204,13 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		for (size_t squaring_counter = (size_t)0; squaring_counter < window_width; ++squaring_counter)
 		{
 			if (!terminator_is_nullptr)
-				if (*terminator)
+				if (terminator->load(std::memory_order_relaxed))
 					return unlimited_int();
 			answer = answer.power2_destroy_this();
 			answer = unlimited_int::remainder_recurring_divison(answer, remainder);
 		}
 		if (!terminator_is_nullptr)
-			if (*terminator)
+			if (terminator->load(std::memory_order_relaxed))
 				return unlimited_int();
 		const size_t table_index = (window_value - (size_t)1) >> 1;
 		answer *= odd_powers_table[table_index];
@@ -228,7 +228,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 #endif
 	return answer;
 }
-unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const volatile bool *const terminator)
+unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int& power, const std::atomic<bool> *const terminator)
 {
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in start of function \"unlimited_int::pow(unlimited_int& base, unlimited_int& power)\"";
@@ -241,7 +241,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 	if (base.is_zero() && power.is_zero())
 		throw std::invalid_argument("Invalid arguments in function \"unlimited_int* unlimited_int::pow(const unlimited_int& base, const unlimited_int& power)\" pow(0, 0) is mathematically undefined");
 	if (!terminator_is_nullptr)
-		if (*terminator)
+		if (terminator->load(std::memory_order_relaxed))
 			return unlimited_int();
 	if (power.is_zero())
 		return unlimited_int(1);
@@ -255,31 +255,31 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		unlimited_int power_cpy = power;
 		power_cpy._is_negative = false;
 		if (!terminator_is_nullptr)
-			if (*terminator)
+			if (terminator->load(std::memory_order_relaxed))
 				return unlimited_int();
 		unlimited_int answer((few_bits)1);
 		if (power_cpy.modulo_2() == static_cast<unsigned short>(1))
 			answer *= current_power;
 		if (!terminator_is_nullptr)
-			if (*terminator)
+			if (terminator->load(std::memory_order_relaxed))
 				return unlimited_int();
 		power_cpy >>= (size_t)1;
 		if (!terminator_is_nullptr)
-			if (*terminator)
+			if (terminator->load(std::memory_order_relaxed))
 				return unlimited_int();
 		while (!power_cpy.is_zero())
 		{
 			if (!terminator_is_nullptr)
-				if (*terminator)
+				if (terminator->load(std::memory_order_relaxed))
 					return unlimited_int();
 			current_power = current_power.power2_destroy_this();
 			if (!terminator_is_nullptr)
-				if (*terminator)
+				if (terminator->load(std::memory_order_relaxed))
 					return unlimited_int();
 			if (power_cpy.modulo_2() == static_cast<unsigned short>(1))
 				answer *= current_power;
 			if (!terminator_is_nullptr)
-				if (*terminator)
+				if (terminator->load(std::memory_order_relaxed))
 					return unlimited_int();
 			power_cpy >>= (size_t)1;
 		}
@@ -299,13 +299,13 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 	unlimited_int base_squared = base;
 	base_squared = base_squared.power2_destroy_this();
 	if (!terminator_is_nullptr)
-		if (*terminator)
+		if (terminator->load(std::memory_order_relaxed))
 			return unlimited_int();
 	for (size_t table_index = (size_t)1; table_index < WINDOW_TABLE_ENTRIES; ++table_index)
 	{
 		odd_powers_table[table_index] = odd_powers_table[table_index - (size_t)1] * base_squared;
 		if (!terminator_is_nullptr)
-			if (*terminator)
+			if (terminator->load(std::memory_order_relaxed))
 				return unlimited_int();
 	}
 	std::vector<bool> power_bits_most_significant_first;
@@ -372,7 +372,7 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 	while (current_bit < total_bits)
 	{
 		if (!terminator_is_nullptr)
-			if (*terminator)
+			if (terminator->load(std::memory_order_relaxed))
 				return unlimited_int();
 		if (!power_bits_most_significant_first[current_bit])
 		{
@@ -396,12 +396,12 @@ unlimited_int unlimited_int::pow(const unlimited_int& base, const unlimited_int&
 		for (size_t squaring_counter = (size_t)0; squaring_counter < window_width; ++squaring_counter)
 		{
 			if (!terminator_is_nullptr)
-				if (*terminator)
+				if (terminator->load(std::memory_order_relaxed))
 					return unlimited_int();
 			answer = answer.power2_destroy_this();
 		}
 		if (!terminator_is_nullptr)
-			if (*terminator)
+			if (terminator->load(std::memory_order_relaxed))
 				return unlimited_int();
 		const size_t table_index = (window_value - (size_t)1) >> 1;
 		answer *= odd_powers_table[table_index];

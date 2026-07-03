@@ -7,6 +7,7 @@
 #include <vector>
 #include <memory>
 #include <array>
+#include <atomic>
 namespace unlimited
 {
 	class unlimited_int;
@@ -585,10 +586,10 @@ namespace unlimited
 //Power (^)
 		//efficient method for power (math function) with remainder as well. Receives boolean pointer used for early termination of calculation.
 		//With given negative numbers, it works the same as unlimited_int::operator% and the same as unlimited_int::pow(base, power).
-		static unlimited_int pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder, const volatile bool *const terminator = nullptr);
+		static unlimited_int pow(const unlimited_int& base, const unlimited_int& power, const unlimited_int& remainder, const std::atomic<bool> *const terminator = nullptr);
 		//efficient method for power (math function)
 		//Works with negative numbers as well. If power is negative it will return 0.
-		static unlimited_int pow(const unlimited_int& base, const unlimited_int& power, const volatile bool *const terminator = nullptr);
+		static unlimited_int pow(const unlimited_int& base, const unlimited_int& power, const std::atomic<bool> *const terminator = nullptr);
 //Random
 		//Uses generate_random_that_is_at_least and then the modulo operator to generate a random number in the given range. The extra random bits make modulo bias negligible, but not mathematically impossible.
 		//Cryptographically secure.
@@ -619,14 +620,14 @@ namespace unlimited
 		//Miller-Rabin primality test: 1/(0.75^num_of_iterations) chance of mistake, exposes Carmichael numbers like 561 that satisfy the Fermat test.
 		//Ignores that sign of a number: -2 is prime. Optional argument: num_of_iterations. 20 iterations will give you a 1 in a trillion chance of mistake.
 		//Receives a pointer to a boolean that tells it to stop early and return false (in case of multithreading).
-		bool is_prime(const int num_of_iterations = 64, const volatile bool *const terminator = nullptr) const;
+		bool is_prime(const int num_of_iterations = 64, const std::atomic<bool> *const terminator = nullptr) const;
 #if UNLIMITED_INT_SUPPORT_MULTITHREADING
 		//Receives optional argument: bool* terminator that when true, the function will terminate itself a.s.a.p and return unlimited_int that's equal to 0
 		//Receives optional argument: int num_threads that specified how many threads are to be run concurrently to try to find the prime number.
 		//If int num_threads is not specified then the number of threads used will be equal to the number of cores (logical processors) on the system.
 		static unlimited_int generate_random_prime_multithreaded(const unlimited_int& min, const unlimited_int& max, const unsigned num_threads = 0U);
 #endif
-		static unlimited_int generate_random_prime(const unlimited_int& min, const unlimited_int& max, const volatile bool *const terminator = nullptr);
+		static unlimited_int generate_random_prime(const unlimited_int& min, const unlimited_int& max, const std::atomic<bool> *const terminator = nullptr);
 //Abstract Math
 		//greatest common divisor- treats negative numbers as positive
 		static unlimited_int gcd(const unlimited_int& a, const unlimited_int& b);
