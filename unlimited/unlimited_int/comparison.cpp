@@ -176,8 +176,9 @@ char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const
 		stop_at = length_left_in_compare;
 	if (num_of_used_ints_both < stop_at)
 		stop_at = num_of_used_ints_both;
-	const few_bits* current_int_array_this_intarr = current_int_array_this->intarr + (current_int_array_this->num_of_used_ints - (size_t)1);
-	const few_bits* current_int_array_compare_intarr = current_int_array_compare->intarr + (current_int_array_compare->num_of_used_ints - (size_t)1);
+	//The two read cursors are kept one slot ABOVE the int about to be read: the tight loop below decrements first, then reads. Starting one past the most-significant used int (instead of on it) keeps every pointer value the walk forms inside [intarr, intarr + num_of_used_ints], so when the walk bottoms out on intarr[0] it never forms intarr - 1. Forming a pointer before the start of an array is undefined behavior per [expr.add], even though that value would not be dereferenced here.
+	const few_bits* current_int_array_this_intarr = current_int_array_this->intarr + current_int_array_this->num_of_used_ints;
+	const few_bits* current_int_array_compare_intarr = current_int_array_compare->intarr + current_int_array_compare->num_of_used_ints;
 	while (true)
 	{
 		if (num_int >= stop_at)
@@ -194,14 +195,14 @@ char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const
 			{
 				it_this = it_this->previous;
 				current_int_array_this = it_this->value;
-				current_int_array_this_intarr = current_int_array_this->intarr + (current_int_array_this->num_of_used_ints - (size_t)1);
+				current_int_array_this_intarr = current_int_array_this->intarr + current_int_array_this->num_of_used_ints;
 				index_this = current_int_array_this->num_of_used_ints - (size_t)1;
 			}
 			if (index_compare_reached_end)
 			{
 				it_compare = it_compare->previous;
 				current_int_array_compare = it_compare->value;
-				current_int_array_compare_intarr = current_int_array_compare->intarr + (current_int_array_compare->num_of_used_ints - (size_t)1);
+				current_int_array_compare_intarr = current_int_array_compare->intarr + current_int_array_compare->num_of_used_ints;
 				index_compare = current_int_array_compare->num_of_used_ints - (size_t)1;
 			}
 			const size_t length_left_in_this = index_this + (size_t)1, length_left_in_compare = index_compare + (size_t)1;
@@ -213,6 +214,9 @@ char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const
 				stop_at = num_of_used_ints_both;
 			continue;
 		}
+		//Step each cursor down to the next int and only then read it. This body runs only while num_int < stop_at, which guarantees the int at the decremented position is still inside the current node segment, so the decrement always lands on a valid element and never forms intarr - 1.
+		--current_int_array_this_intarr;
+		--current_int_array_compare_intarr;
 		const few_bits this_value_current = *current_int_array_this_intarr;
 		const few_bits compare_value_current = *current_int_array_compare_intarr;
 		if (this_value_current < compare_value_current)
@@ -230,8 +234,6 @@ char unlimited_int::compare_to(const unlimited_int& num_to_compare_to) const
 				return 'L';
 		}
 		++num_int;
-		--current_int_array_this_intarr;
-		--current_int_array_compare_intarr;
 	}
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"compare_to(unlimited_int* num_to_compare_to)\":";

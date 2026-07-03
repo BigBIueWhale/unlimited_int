@@ -141,8 +141,9 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, c
 	size_t num_int = (size_t)0, stop_at, previous_num_int = (size_t)0;
 	size_t num_of_ints_left_for_this = index_this + (size_t)1;
 	size_t num_of_ints_left_for_paste = index_paste + (size_t)1;
-	few_bits* current_intarr_this = current_int_array_this->intarr + index_this;
-	few_bits* current_intarr_paste = current_int_array_paste->intarr + index_paste;
+	//Both cursors sit one slot ABOVE the int about to be accessed: the tight loop below decrements first, then accesses. This keeps every pointer the backward walk forms inside [intarr, intarr + intarr_len], so when the walk bottoms out on intarr[0] it never forms intarr - 1. Forming a pointer before the start of an array is undefined behavior per [expr.add], even though that value would not be dereferenced here.
+	few_bits* current_intarr_this = current_int_array_this->intarr + index_this + (size_t)1;
+	few_bits* current_intarr_paste = current_int_array_paste->intarr + index_paste + (size_t)1;
 	if (num_of_ints_left_for_this < num_of_ints_left_for_paste)
 		stop_at = num_of_ints_left_for_this;
 	else
@@ -166,14 +167,14 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, c
 				it_this = it_this->previous;
 				current_int_array_this = it_this->value;
 				index_this = current_int_array_this->num_of_used_ints - (size_t)1;
-				current_intarr_this = current_int_array_this->intarr + index_this;
+				current_intarr_this = current_int_array_this->intarr + index_this + (size_t)1;
 			}
 			if (reached_end_paste)
 			{
 				it_paste = it_paste->previous;
 				current_int_array_paste = it_paste->value;
 				index_paste = current_int_array_paste->intarr_len - (size_t)1;
-				current_intarr_paste = current_int_array_paste->intarr + index_paste;
+				current_intarr_paste = current_int_array_paste->intarr + index_paste + (size_t)1;
 				current_int_array_paste->set_num_of_used_ints_to_maximum();
 			}
 			num_of_ints_left_for_this = index_this + (size_t)1;
@@ -186,9 +187,10 @@ void unlimited_int::copy_most_significant_to(unlimited_int& num_to_paste_into, c
 				stop_at = num_of_ints_to_copy_cpy;
 			continue;
 		}
-		*current_intarr_paste = *current_intarr_this;
+		//Step each cursor down to the next slot and only then access it. This body runs only while num_int < stop_at, which guarantees the decremented position is still inside the current node, so the decrement always lands on a valid element and never forms intarr - 1.
 		--current_intarr_paste;
 		--current_intarr_this;
+		*current_intarr_paste = *current_intarr_this;
 		++num_int;
 	}
 	num_to_paste_into.flush_unused();
