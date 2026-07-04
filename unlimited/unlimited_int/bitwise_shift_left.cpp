@@ -24,12 +24,15 @@ void unlimited_int::shift_left(const size_t shift_by)
 		amount_to_shift_least_significant_arr = room_available_to_shift_left;
 		if (shift_by < amount_to_shift_least_significant_arr)
 			amount_to_shift_least_significant_arr = shift_by;
-		least_significant_int_array->shift_left(amount_to_shift_least_significant_arr);
 	}
 	const size_t amount_needed_to_shift = shift_by - amount_to_shift_least_significant_arr;
+	//Build the list to prepend before touching "this", so that if the allocation inside
+	//increase_until_num_of_ints throws, "this" is left completely unchanged. Everything after the
+	//list is built (the least significant array's in-place shift, the prepend and the counter updates)
+	//allocates nothing and can't throw, so the whole shift is all-or-nothing.
+	list_of_int_arrays list_to_prepend;
 	if (amount_needed_to_shift > (size_t)0)
 	{
-		list_of_int_arrays list_to_prepend;
 		list_to_prepend.increase_until_num_of_ints(amount_needed_to_shift);
 		const custom_linked_list_node<int_array>* const list_to_prepend_end = list_to_prepend.end();
 	//The list to prepend will be completely full except for the least significant int_array which might not be completely full. That's purposeful.
@@ -52,6 +55,12 @@ void unlimited_int::shift_left(const size_t shift_by)
 			int_array_in_list_to_prepend->value->set_num_of_used_ints_to_maximum();
 			int_array_in_list_to_prepend->value->fillzero();
 		}
+	}
+	//All allocations have succeeded; the remaining mutations of "this" can't throw.
+	if (amount_to_shift_least_significant_arr > (size_t)0)
+		least_significant_int_array->shift_left(amount_to_shift_least_significant_arr);
+	if (amount_needed_to_shift > (size_t)0)
+	{
 		this->num_of_intarrays_used += list_to_prepend.size();
 		this->intarrays->prepend(list_to_prepend);
 	}
@@ -77,17 +86,35 @@ void unlimited_int::shift_left_by_bits(const size_t num_of_bits_to_shift_by)
 		throw std::invalid_argument("Can\'t do bitwise operation on negative number");
 	if (this->num_of_used_ints == (size_t)0 || num_of_bits_to_shift_by == (size_t)0)
 		return;
-	this->shift_left(num_of_bits_to_shift_by / (size_t)NUM_OF_BITS_few_bits); //macro shift (as opposed to micro)
+	const size_t macro_shift = num_of_bits_to_shift_by / (size_t)NUM_OF_BITS_few_bits; //macro shift (as opposed to micro)
 	const int micro_shift = num_of_bits_to_shift_by % (size_t)NUM_OF_BITS_few_bits;
-	if (micro_shift != 0)
+	if (micro_shift == 0)
+		this->shift_left(macro_shift); //a pure whole-limb shift is already all-or-nothing on its own
+	else
 	{
 		const int amount_to_shift_remainder = NUM_OF_BITS_few_bits - micro_shift;
 		few_bits mask_of_shift_builder = 0;
 		for (int bit_counter = NUM_OF_BITS_few_bits - 1; bit_counter >= amount_to_shift_remainder; --bit_counter)
 			mask_of_shift_builder += (few_bits)1 << bit_counter;
 		const few_bits mask_of_shift = mask_of_shift_builder;
-		few_bits remainder = (size_t)0;
 		this->flush_unused();
+		//Whether the sub-limb shift carries out of the most significant int depends only on that int's top
+		//"micro_shift" bits, which the whole-limb macro shift below leaves untouched (it only inserts zeroed least
+		//significant ints). So if there is a carry, reserve a spare int_array from the piggy bank off to the side
+		//now, before "this" is mutated at all. Kept in its own list (never linked into "this") the spare neither
+		//trips shift_left's entry consistency check nor gets reclaimed by flush_unused, and if reserving it has to
+		//allocate and throws, "this" is untouched. From the macro shift onward nothing else allocates, so the whole
+		//bit shift is all-or-nothing. The macro shift can fill the most significant int_array (when that is also the
+		//least significant one), so whether the carry actually needs the spare is only settled after it runs; a
+		//spare left unused is handed straight back to the bank below.
+		int_array *const most_significant_int_array = this->intarrays->last()->value;
+		const few_bits most_significant_int = most_significant_int_array->intarr[most_significant_int_array->num_of_used_ints - (size_t)1];
+		const bool carry_out_of_most_significant_int = ((most_significant_int & mask_of_shift) >> amount_to_shift_remainder) != (few_bits)0;
+		list_of_int_arrays reserved_carry_int_array_list;
+		if (carry_out_of_most_significant_int)
+			reserved_carry_int_array_list.increase_by_one_array_from_piggy_bank();
+		this->shift_left(macro_shift);
+		few_bits remainder = (few_bits)0;
 		custom_linked_list_node<int_array>* it_this = this->intarrays->first();
 		while (it_this != this->intarrays->end())
 		{
@@ -104,20 +131,29 @@ void unlimited_int::shift_left_by_bits(const size_t num_of_bits_to_shift_by)
 			}
 			it_this = it_this->next;
 		}
-		if (remainder != 0)
+		//remainder != 0 here is exactly carry_out_of_most_significant_int, so the spare was reserved above. When the
+		//most significant int_array is full the spare becomes the carry's home (appended as the new most significant
+		//node); otherwise the carry uses the free slot already there. Either way nothing is allocated here, so this
+		//tail can't throw.
+		if (remainder != (few_bits)0)
 		{
 			int_array* last_int_array = this->intarrays->last()->value;
 			if (last_int_array->is_full())
 			{
-				this->intarrays->increase_by_one_array_from_piggy_bank();
+				this->intarrays->append(reserved_carry_int_array_list);
 				++this->num_of_intarrays_used;
 				last_int_array = this->intarrays->last()->value;
 				last_int_array->num_of_used_ints = (size_t)0;
 			}
-			++this->num_of_used_ints;
 			last_int_array->intarr[last_int_array->num_of_used_ints] = remainder;
 			++last_int_array->num_of_used_ints;
+			++this->num_of_used_ints;
 		}
+		//If the carry fit in the existing most significant int_array the reserved spare went unused; hand it back to
+		//the piggy bank so it is reused rather than leaked (when the append above consumed it the list is empty and
+		//this is a no-op).
+		if (reserved_carry_int_array_list.size() > (size_t)0)
+			reserved_carry_int_array_list.flush_to_piggy_bank();
 	}
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
 	std::cout << "\nFinding inconsistencies in end of function \"shift_left_by_bits()\"";
