@@ -62,7 +62,4 @@ namespace unlimited //Macros that are inside of the namespace, aren't affected b
 #endif
 
 }
-//set the multithreading macro to false if you want to compile for Linux using g++ with -static flag because that causes issues with multithreading
-//Even if it's set to false, this library will still be thread-safe, it just won't open any threads of its own: unlimited::unlimited_int::generate_random_prime_multithreaded()
-#define UNLIMITED_INT_SUPPORT_MULTITHREADING true
 #endif

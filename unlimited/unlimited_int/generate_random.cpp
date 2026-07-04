@@ -4,10 +4,7 @@
 #include <cmath> //Attempt at using floating point operation errors
 #include <vector>
 //Get thread_id and number of logical processors for extra runtime randomness
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 #include <thread>
-#include <sstream>
-#endif
 using namespace unlimited;
 many_bits ceiling_division(many_bits, many_bits);
 #if UNLIMITED_INT_LIBRARY_DEBUG_MODE == 2
@@ -51,12 +48,10 @@ unlimited_int unlimited_int::generate_truly_random()
 	insert_64bit_into_uint32_t(static_cast<unsigned long long>(sizeof(float)), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_64bit_into_uint32_t(static_cast<unsigned long long>(sizeof(double)), nums_to_generate_seed.data(), &uint32_t_index);
 	insert_64bit_into_uint32_t(static_cast<unsigned long long>(sizeof(long double)), nums_to_generate_seed.data(), &uint32_t_index);
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
 	const size_t this_thread_id = std::hash<std::thread::id>()(std::this_thread::get_id());
 	insert_64bit_into_uint32_t(static_cast<unsigned long long>(this_thread_id), nums_to_generate_seed.data(), &uint32_t_index);
 	const unsigned num_logical_processors = std::thread::hardware_concurrency();
 	insert_64bit_into_uint32_t(static_cast<unsigned long long>(num_logical_processors), nums_to_generate_seed.data(), &uint32_t_index);
-#endif
 	unlimited_int num_to_return = unlimited_int(nums_to_generate_seed.data(), SIZE_OF_SEED_ARR).calculate_efficient_cryptographic_hash();
 	const long long extra_randomness_from_memory = reinterpret_cast<size_t>(&num_to_return);
 	//using floating-point rounding errors to increase randomness

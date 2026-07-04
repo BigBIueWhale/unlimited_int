@@ -621,12 +621,6 @@ namespace unlimited
 		//Ignores that sign of a number: -2 is prime. Optional argument: num_of_iterations. 20 iterations will give you a 1 in a trillion chance of mistake.
 		//Receives a pointer to a boolean that tells it to stop early and return false (in case of multithreading).
 		bool is_prime(const int num_of_iterations = 64, const std::atomic<bool> *const terminator = nullptr) const;
-#if UNLIMITED_INT_SUPPORT_MULTITHREADING
-		//Receives optional argument: bool* terminator that when true, the function will terminate itself a.s.a.p and return unlimited_int that's equal to 0
-		//Receives optional argument: int num_threads that specified how many threads are to be run concurrently to try to find the prime number.
-		//If int num_threads is not specified then the number of threads used will be equal to the number of cores (logical processors) on the system.
-		static unlimited_int generate_random_prime_multithreaded(const unlimited_int& min, const unlimited_int& max, const unsigned num_threads = 0U);
-#endif
 		static unlimited_int generate_random_prime(const unlimited_int& min, const unlimited_int& max, const std::atomic<bool> *const terminator = nullptr);
 //Abstract Math
 		//greatest common divisor- treats negative numbers as positive
