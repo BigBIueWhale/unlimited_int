@@ -1,5 +1,5 @@
 # unlimited_int
-# Written by Ronen Zyroff in 2019-2021
+# Written by Ronen Zyroff in 2017-2021
 Arbitrary-precision arithmetic library written in pure C++ for C++. Has similar syntax to int in C++ with operator overloading.
 # Compilers
 Supports C++20\
@@ -9,14 +9,13 @@ Supports clang++\
 Supports both 32-bit architectures and 64-bit architectures on GNU and on Windows.\
 Can be compiled to a library using the source files inside "unlimited" folder.\
 \
-Note: There exists an issue in Windows with MinGW GCC / MSYS2 with clang / MSYS2 GCC\
-The issue is that thread_local variables cause a crash when multithreading.\
-That's why if you're compiling on Windows on MSYS2 and/or on MinGW you just need to not use the function: unlimited::unlimited_int::generate_random_prime_multithreaded() \
-Also you can optionally change the macro in unlimited/unlimited_int/structures/settings.hpp UNLIMITED_INT_SUPPORT_MULTITHREADING from true to false.\
-Changing the macro that way will cause the problematic function not to be available.\
-Even after the "fix", the unlimited library will still crash when used in a multithreaded environment, with those compilers (because of the thread_local bug in those compilers in Windows).
+# Multithreading
+Per-thread state (the random-number chain and the Newton-Raphson reciprocal cache) lives in thread_local storage and the library never spawns threads of its own, so unlimited_int objects owned by different threads can be used concurrently without locking.\
+To generate primes in parallel, call unlimited::unlimited_int::generate_random_prime(min, max, &terminator) from your own threads and flip the shared std::atomic\<bool\> terminator to true once one thread finds a prime — the other threads observe the flag and return early. If your runtime does not destroy thread_local objects for you (some std::async implementations, for instance), call unlimited::unlimited_int::delete_all_thread_local_memory() on a thread before it exits.\
+\
+Note: some Windows toolchains (MinGW GCC, MSYS2 GCC/clang) ship a buggy thread_local implementation that can crash any thread_local-using program when it is run multithreaded — this is a limitation of those compilers, not of the library. On Windows, use MSVC for multithreaded programs.
 # Reliability
-Partially tested, still not quite ready for release yet (as of 18 Septemper 2021)
+This codebase is almost entirely human-written, by Ronen Zyroff (2017-2021). In 2026 it was hardened further and put through an extensive verification pass: the author fixed a number of subtle arithmetic, aliasing, and exception-safety bugs, and Claude Opus 4.8 1M reviewed the library function by function from first principles — reasoning through each multi-node algorithm and trying to construct adversarial (value, node-layout) counterexamples — backed by differential testing against reference implementations on multi-node numbers, AddressSanitizer/UndefinedBehaviorSanitizer runs, and the library's own debug-mode consistency checker (find_inconsistencies) running at every function boundary. No defects were found in the reachable code.
 # Basic use
 #include "unlimited.hpp"\
 using unlimited::unlimited_int;\
